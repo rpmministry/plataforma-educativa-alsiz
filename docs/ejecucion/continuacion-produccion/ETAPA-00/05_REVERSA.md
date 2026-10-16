@@ -43,3 +43,4 @@ Si se requiere descartar o archivar la documentación generada en esta etapa de 
 - Comprobar que `git branch --show-current` reporte `main`.
 - Comprobar que `git log -1 --oneline` muestre `57a063a feat: culminacion integral...`.
 - Comprobar que `data/alsiz.db` conserve su integridad (`PRAGMA integrity_check`).
+

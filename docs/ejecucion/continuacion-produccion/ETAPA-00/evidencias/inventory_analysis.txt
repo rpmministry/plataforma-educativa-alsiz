@@ -68,3 +68,4 @@ Archivos auditados:
 - Recursos totales: 86 (46 Avril + 40 Gael)
 - Recursos dummy/simulados que requieren reemplazo por material pedagógico real: 43 recursos (50%)
 - Videos placeholder que apuntan al videoclip de Rick Astley (dQw4w9WgXcQ): 25 instancias (29%)
+

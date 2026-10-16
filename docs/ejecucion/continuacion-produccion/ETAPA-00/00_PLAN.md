@@ -52,3 +52,4 @@
    - Registro de evidencias en `evidencias/`.
    - Generación de documentos normativos de la etapa (00 a 06).
    - Definición de backlog priorizado P0 / P1 / P2 para las siguientes etapas.
+

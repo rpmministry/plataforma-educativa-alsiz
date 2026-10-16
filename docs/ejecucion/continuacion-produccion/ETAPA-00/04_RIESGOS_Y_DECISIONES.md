@@ -32,3 +32,4 @@
    - *Fundamento*: La diferencia entre 153 y 163 pruebas no era un error de conteo sino una diferencia de alcance metodológico (tests de runners vs verificaciones operacionales totales). Se documentó en `02_PRUEBAS.md` sin alterar los informes cerrados de la Etapa 14.
 4. **Decisión 4: No Ejecutar Benchmarks de LLMs con Claves Reales**:
    - *Fundamento*: Para salvaguardar cuotas y evitar gastos o agotamiento de tokens sin un plan de pruebas acotado, se auditó estáticamente el script `benchmark-ai-free.ps1` y se comprobó la resiliencia del fallback simulado.
+

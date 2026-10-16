@@ -51,3 +51,4 @@ Se generó la estructura formal de auditoría en:
 - Base de datos `data/alsiz.db`: **Intacta** (sin modificaciones por la auditoría).
 - Migraciones `server/db/migrations/`: **Intactas** (sin modificaciones).
 - Dependencias `package.json` y `package-lock.json`: **Intactas**.
+

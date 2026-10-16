@@ -35,3 +35,4 @@
 - Toda afirmación de existencia o carencia funcional apunta a archivos reales y líneas de código exactas.
 - Todas las pruebas reportadas fueron reproducidas localmente en esta sesión.
 - Todos los riesgos identificados cuentan con un paso correctivo claro y viable en el backlog P0/P1/P2.
+

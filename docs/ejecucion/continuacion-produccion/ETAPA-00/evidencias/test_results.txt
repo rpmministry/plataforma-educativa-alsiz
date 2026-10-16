@@ -40,3 +40,4 @@ RECONCILIACIÓN DEL CONTEO DOCUMENTAL HISTÓRICO:
 
 CONCLUSIÓN DE AUDITORÍA:
 Ambos conteos son técnicamente ciertos y reproducibles, pero describían granularidades distintas: 153 es el número estricto de casos de prueba ejecutados por los test runners en scripts/test-etapa-*.ts; 163 es el total sumando las 10 verificaciones de infraestructura y empaquetado (lint, health, backup, restore, build).
+

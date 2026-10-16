@@ -45,3 +45,4 @@ Exactamente idénticos (0 commits de diferencia).
 57a063a feat: culminacion integral de la Plataforma Educativa ALSIZ para Ekballo Church (Etapas 00 a 14, v1.0.0)
 fdaa63a fix(login): mostrar el banner verde tras iniciar sesion en iPad
 fda962a fix(chat): full-width del chat en tablets horizontales por deteccion tactil
+
