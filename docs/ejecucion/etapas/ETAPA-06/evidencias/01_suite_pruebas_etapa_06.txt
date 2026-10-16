@@ -1,0 +1,47 @@
+﻿
+> react-example@0.0.0 test:etapa06
+> tsx scripts/test-etapa-06.ts
+
+Γùç injected env (4) from .env // tip: Γùê encrypted .env [www.dotenvx.com]
+Γùç injected env (6) from .env.local // tip: Γîÿ override existing { override: true }
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS ΓÇö ETAPA 06 (ALSIZ / EKBALLO)
+  N├ÜCLEO ACAD├ëMICO LMS, CURR├ìCULO, EVALUACIONES Y COMPETENCIAS
+================================================================
+
+Γ£à [Migraciones] Migraciones de esquema completas (v001 a v005): Se verificaron 5 migraciones aplicadas correctamente.
+Γ£à [Autenticaci├│n] Autenticaci├│n inicial de los 4 roles de prueba: Tokens emitidos para ADMIN, TEACHER, STUDENT y REPRESENTATIVE.
+Γ£à [Gesti├│n Curricular] Criterio 1A: Administrador crea programa formativo: Status HTTP 201. Programa ID: prog-508720033d52.
+Γ£à [Gesti├│n Curricular] Criterio 1B: Administrador crea nivel / grado: Status HTTP 201. Nivel ID: lvl-0c1198eea7f0.
+Γ£à [Gesti├│n Curricular] Criterio 1C: Administrador crea asignatura de la malla: Status HTTP 201. Asignatura ID: subj-be22d4d51d59.
+Γ£à [Matriculaci├│n] Criterio 2A: Matr├¡cula de estudiante en programa y nivel: Status HTTP 201. Matr├¡cula ID: enr-669d1b64b7b2.
+Γ£à [Matriculaci├│n] Criterio 2B: Asignaci├│n normalizada de estudiante a la asignatura: Status HTTP 201. Estudiante vinculado a materia subj-be22d4d51d59.
+Γ£à [Estructura Pedag├│gica] Criterio 3A: Docente crea competencia curricular: Status HTTP 201. Competencia C├│digo: CN.F.581069.
+Γ£à [Estructura Pedag├│gica] Criterio 3B: Docente crea unidad curricular trimestral: Status HTTP 201. Unidad ID: unit-1092ad34f6a8.
+Γ£à [Estructura Pedag├│gica] Criterio 3C: Docente crea lecci├│n diaria socr├ítica: Status HTTP 201. Lecci├│n ID: class-acb9c47c985f.
+Γ£à [Evaluaci├│n Formativa] Criterio 3D: Docente crea actividad evaluativa con r├║brica: Status HTTP 201. Evaluaci├│n ID: eval-3eaf785ecb5c.
+Γ£à [Experiencia del Estudiante] Criterio 4A: Estudiante accede al contenido y lecci├│n socr├ítica: Status HTTP 200. T├¡tulo: "Clase 1: Primera Ley de Newton y Movimiento Rectil├¡neo".
+Γ£à [Biling├╝ismo & Recursos] Criterio 4B: Selecci├│n de idioma en recursos con fallback transparente: Status HTTP 200. Idioma EN detectado correctamente.
+Γ£à [Entregas y Tareas] Criterio 4C: Estudiante entrega la actividad formativa: Status HTTP 201. Entrega ID: sub-9c328176de7e. Estado: SUBMITTED.
+Γ£à [Calificaciones & R├║bricas] Criterio 5A: Docente eval├║a con r├║brica cuantitativa y retroalimentaci├│n: Status HTTP 200. Nota asignada: 5.50 / 10.00.
+Γ£à [Seguimiento Competencial] Criterio 6A: CR├ìTICO: Panel distingue actividad completada de dominio demostrado (Sin dominio si nota < 7.00): Estado competencial: "COMPLETED_NO_MASTERY". Actividades completadas: 1. Dominio no concedido.
+Γ£à [Calificaciones & R├║bricas] Criterio 5B: Docente re-eval├║a y actualiza calificaci├│n con justificaci├│n: Status HTTP 200. Nueva nota: 8.50 / 10.00.
+Γ£à [Auditor├¡a de Calificaciones] Criterio 5C: Historial inmutable de calificaciones registra cambios y autor├¡as: Se registraron 2 cambios con trazabilidad de motivo ("Re-evaluaci├│n formativa tras entrega de correcciones socr├íticas").
+Γ£à [Seguimiento Competencial] Criterio 6B: Panel refleja DOMINIO DEMOSTRADO cuando se superan los criterios (ΓëÑ 7.00): Estado competencial: "DEMONSTRATED_MASTERY". Nota promedio: 8.5.
+Γ£à [Seguridad & RBAC] Criterio 7A: Rechazo de solicitud no autenticada a la API acad├⌐mica (401): Status HTTP 401. C├│digo de error: UNAUTHORIZED.
+Γ£à [Seguridad & RBAC] Criterio 7B: Estudiante bloqueado de calificar o modificar notas (403): Status HTTP 403. Rechazado por pol├¡tica de rol.
+Γ£à [Aislamiento IDOR] Criterio 7C: Estudiante no puede consultar progreso competencial de otro menor (Anti-IDOR): Status HTTP 403. C├│digo: FORBIDDEN_STUDENT_ACCESS.
+Γ£à [Aislamiento IDOR Familiar] Criterio 7D: Representante bloqueado de consultar boletines de familias ajenas (Anti-IDOR Familiar): Status HTTP 403. C├│digo: FORBIDDEN_FAMILY_ACCESS.
+Γ£à [Acceso Familiar Leg├¡timo] Criterio 7E: Representante accede leg├¡timamente al Bolet├¡n Oficial de su hijo vinculado: Status HTTP 200. Estudiante: "Mateo Santos (Sint├⌐tico 8vo)". Marco: MINEDUC Art. 32.
+Γ£à [Calendario LMS] Calendario Acad├⌐mico: Creaci├│n y consulta de hitos y fechas de entrega: Status HTTP 201. Evento registrado en calendario oficial.
+
+================================================================
+  RESUMEN FINAL DE LA SUITE DE PRUEBAS DE LA ETAPA 06
+================================================================
+
+Total de pruebas ejecutadas: 25
+Pruebas aprobadas (PAS├ô):   25
+Pruebas fallidas  (FALL├ô):  0
+
+Todas las pruebas cr├¡ticas de la ETAPA 06 fueron APROBADAS con ├⌐xito.
+

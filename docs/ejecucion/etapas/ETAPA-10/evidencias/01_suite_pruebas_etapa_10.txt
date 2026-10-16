@@ -1,0 +1,42 @@
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS — ETAPA 10 (ALSIZ / EKBALLO)
+  CENTRO ADMINISTRATIVO UNIFICADO Y AUDITORÍA LOPDP
+================================================================
+
+[Migrator] Migración 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator] Migración 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator] Migración 003_seed_dev_data.sql (v003) aplicada exitosamente.
+[Migrator] Migración 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator] Migración 005_lms_seed_data.sql (v005) aplicada exitosamente.
+[Migrator] Migración 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator] Migración 007_knowledge_seed_data.sql (v007) aplicada exitosamente.
+[Migrator] Migración 008_ai_agents_orchestration.sql (v008) aplicada exitosamente.
+[Migrator] Migración 009_ai_agents_seed.sql (v009) aplicada exitosamente.
+[Migrator] Migración 010_interactive_pilot.sql (v010) aplicada exitosamente.
+[Migrator] Migración 011_unified_admin.sql (v011) aplicada exitosamente.
+✅ [Migraciones] Migraciones de esquema completas (v001 a v011): Se verificaron 11 migraciones aplicadas correctamente.
+✅ [Autenticación] Autenticación inicial de los roles de prueba (ADMIN, TEACHER, STUDENT): Tokens emitidos satisfactoriamente para los 3 roles.
+✅ [Gestión Académica] Criterio 1: Administrador autorizado puede crear una asignatura de prueba: Status HTTP 201. Asignatura creada con ID: subj-b950a7baffb1.
+✅ [Gestión Académica] Criterio 2: Administrador autorizado puede modificar una asignatura de prueba: Status HTTP 200. Nombre actualizado a: "Asignatura Experimental Modificada 10". Horas: 6.
+✅ [Seguridad & RBAC] Criterio 3: Rol sin permiso no puede crear ni modificar asignaturas (HTTP 403): PUT status: 403, POST status: 403. Acceso denegado correctamente.
+✅ [Centro de Conocimiento] Criterio 4: Se puede actualizar una fuente de conocimiento con justificación: Status HTTP 200. Título actualizado: "Clase 1: Historia, Visión y Misión de Ekballo Church (Actualizada Etapa 10)".
+✅ [Centro de Conocimiento] Criterio 5: Se puede consultar el historial completo de cambios de la fuente: Status HTTP 200. Eventos encontrados: 2. Evento UPDATED verificado.
+✅ [Agentes IA & Piloto] Criterio 6: Se puede revisar el estado y configuración pública del agente piloto: Status HTTP 200. Piloto activo: true.
+✅ [Agentes IA & Piloto] Criterio 7: Vista de errores de integración, fallbacks y disponibilidad con datos reales: Status HTTP 200. Sesiones abortadas registradas: 0. Proveedores: SIMULATED_LOCAL, GOOGLE_GEMINI, DEEPSEEK_API.
+✅ [Seguridad & Auditoría] Criterio 8: Acciones sensibles quedan registradas en auditoría inmutable sin secretos (LOPDP): Eventos registrados: 8. Fuga de secretos: CERO (Cumple).
+✅ [Configuración] Criterio 9: Consulta y actualización de configuración institucional por Administrador: Status HTTP 200. Claves actualizadas: institution_name, current_school_year.
+✅ [Seguridad & RBAC] Criterio 10: Usuario no autorizado no puede modificar configuración institucional (HTTP 403): Status HTTP 403. Acceso denegado a rol STUDENT.
+✅ [Centro Unificado] Criterio 11: Dashboard consolidado retorna métricas reales y tareas pendientes sin invención: Status HTTP 200. Usuarios: 7. Programas: 2. Tareas pendientes calculadas.
+✅ [Gestión de Usuarios] Criterio 12: Nómina de usuarios con filtros por rol y relaciones de tutela familiar: Filtro TEACHER: 1 usuarios. Representantes vinculados: 2.
+✅ [Informes] Criterio 13: Reporte académico consolidado con distribución de competencias MINEDUC: Status HTTP 200. Asignaturas evaluadas: 3. Dominio demostrado: 1.
+
+================================================================
+  RESUMEN FINAL DE LA SUITE DE PRUEBAS DE LA ETAPA 10
+================================================================
+
+Total de pruebas ejecutadas: 15
+Pruebas aprobadas (PASÓ):   15
+Pruebas fallidas  (FALLÓ):  0
+
+Todas las pruebas críticas de la ETAPA 10 fueron APROBADAS con éxito.
+

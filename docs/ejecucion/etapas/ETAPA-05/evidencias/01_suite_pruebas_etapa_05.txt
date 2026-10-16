@@ -1,0 +1,32 @@
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS — ETAPA 05 (ALSIZ / EKBALLO)
+================================================================
+
+✅ [Migraciones] Migraciones de esquema e índices desde cero: Se aplicaron 3 migraciones correctamente (001_schema, 002_indexes, 003_seed).
+✅ [Autenticación] Login exitoso con usuario y contraseña (ADMIN): Status HTTP 200. Token emitido y rol ADMIN verificado.
+✅ [Autenticación] Login táctil de estudiante por PIN (4 dígitos): Status HTTP 200. Alumno STU-SYNTH-01 autenticado por PIN.
+✅ [Autenticación] Login exitoso de Representante Legal: Status HTTP 200. Representante rep-01 autenticado.
+✅ [Autenticación] Rechazo de credenciales incorrectas: Status HTTP 401. Código de error: AUTH_INVALID_CREDENTIALS.
+✅ [Autenticación] Rechazo de PIN táctil incorrecto: Status HTTP 401. Código de error: AUTH_INVALID_PIN.
+✅ [Seguridad & RBAC] Rechazo de solicitud no autenticada a expediente de menor: Status HTTP 401. Respuesta 401 con código UNAUTHORIZED.
+✅ [Aislamiento IDOR] Estudiante consulta legítimamente su propio expediente: Status HTTP 200. Acceso permitido a su propio registro.
+✅ [Aislamiento IDOR] CRÍTICO: Estudiante no puede acceder al expediente de otro alumno (Anti-IDOR): Status HTTP 403. Rechazo 403 con código FORBIDDEN_STUDENT_ACCESS.
+✅ [Aislamiento Familiar] Representante accede a los datos de su hijo autorizado: Status HTTP 200. Acceso autorizado por vínculo familiar verificado.
+✅ [Aislamiento Familiar] CRÍTICO: Representante no puede acceder a menores de otra familia (Anti-IDOR Familiar): Status HTTP 403. Rechazo 403 con código FORBIDDEN_FAMILY_ACCESS.
+✅ [Seguridad & RBAC] Estudiante bloqueado de consultar rutas administrativas (RBAC): Status HTTP 403. Rechazo 403 por falta de rol administrativo.
+✅ [Privacidad & LOPDP] Nómina administrativa de usuarios sin exposición de hashes de contraseñas: Status HTTP 200. 7 usuarios obtenidos. Cero hashes filtrados.
+✅ [Auditoría LOPDP] Libro mayor de auditoría registra rechazos IDOR y anonimiza IPs (SHA-256): Auditoría contiene evento STUDENT_DATA_ACCESS_DENIED. Todas las IPs hasheadas.
+✅ [Respaldo & Recuperación] Generación de Hot Backup transaccional (VACUUM INTO): Respaldo creado en alsiz_backup_2026-10-16T15-37-39-644Z.db (311296 bytes). Checksum: 3348e3c44ad1...
+✅ [Respaldo & Recuperación] Restauración de respaldo y verificación de integridad (PRAGMA integrity_check): Restauración verificada con éxito. PRAGMA integrity_check = "ok".
+
+================================================================
+  RESUMEN FINAL DE LA SUITE DE PRUEBAS DE LA ETAPA 05
+================================================================
+
+Total de pruebas ejecutadas: 16
+Pruebas aprobadas (PASÓ):   16
+Pruebas fallidas  (FALLÓ):  0
+
+Todas las pruebas críticas de la ETAPA 05 fueron APROBADAS con éxito.
+Código de salida: 0
+

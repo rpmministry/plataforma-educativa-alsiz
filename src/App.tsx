@@ -10,11 +10,15 @@ import { useSwipeBack } from './hooks/useSwipeBack';
 import { useScrollToTopOnChange } from './hooks/useScrollToTopOnChange';
 import { APP_SCROLL_CONTAINER_ID } from './utils/scrollToTop';
 import { LandingView } from './components/landing/LandingView';
+import { AccessView } from './components/auth/AccessView';
 import { StudentDashboard } from './components/dashboard/StudentDashboard';
 import { SubjectsView } from './components/subjects/SubjectsView';
+import { CourseDetailView } from './components/subjects/CourseDetailView';
 import { DailyClassView } from './components/classes/DailyClassView';
 import { ProgressView } from './components/progress/ProgressView';
 import { ScheduleView } from './components/schedule/ScheduleView';
+import { ParentDashboard } from './components/parent/ParentDashboard';
+import { AdminShell } from './components/admin/AdminShell';
 import { AITeacherDrawer } from './components/teacher/AITeacherDrawer';
 import { StudentLoginModal } from './components/auth/StudentLoginModal';
 import { NewStudentModal } from './components/landing/NewStudentModal';
@@ -48,27 +52,35 @@ const MainContent: React.FC = () => {
     switch (activeTab) {
       case 'home':
         return <LandingView />;
+      case 'access':
+        return <AccessView />;
       case 'space':
         return <StudentDashboard />;
       case 'subjects':
         return <SubjectsView />;
+      case 'subject-detail':
+        return <CourseDetailView />;
       case 'classes':
         return <DailyClassView />;
       case 'progress':
         return <ProgressView />;
       case 'schedule':
         return <ScheduleView />;
+      case 'parent':
+        return <ParentDashboard />;
+      case 'admin':
+        return <AdminShell />;
       default:
         return <LandingView />;
     }
   };
 
   return (
-    <div className="min-h-dvh flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-dvh flex flex-col bg-[#0A0D11] text-slate-100 selection:bg-amber-500 selection:text-slate-950 font-sans">
       <Navbar />
 
       <div className="flex-1 flex w-full max-w-[100vw] overflow-x-hidden">
-        {activeTab !== 'home' && <Sidebar />}
+        {activeTab !== 'home' && activeTab !== 'access' && <Sidebar />}
 
         <main id={APP_SCROLL_CONTAINER_ID} className="flex-1 px-4 sm:px-6 lg:px-8 pt-0 pb-28 md:pb-8 overflow-y-auto overflow-x-hidden">
           <div className="max-w-7xl mx-auto w-full">
@@ -103,11 +115,11 @@ const MainContent: React.FC = () => {
       />
 
       {/* Contacto global: SOLO visible para los perfiles de prueba (Karen / Mauricio)
-          y únicamente dentro del espacio educativo, nunca en la pantalla principal. */}
-      {isDemoMode && activeTab !== 'home' && <DemoContactWidget />}
+          y únicamente dentro del espacio educativo, nunca en la pantalla principal o acceso. */}
+      {isDemoMode && activeTab !== 'home' && activeTab !== 'access' && <DemoContactWidget />}
 
       <SaveStatusIndicator />
-      <MobileBottomNav />
+      {activeTab !== 'home' && activeTab !== 'access' && <MobileBottomNav />}
     </div>
   );
 };

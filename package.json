@@ -7,7 +7,21 @@
     "build": "vite build && esbuild dev-server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --outfile=api-server.js",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "db:migrate": "tsx server/db/migrator.ts",
+    "db:backup": "tsx scripts/backup-db.ts",
+    "db:restore": "tsx scripts/restore-db.ts",
+    "health": "tsx scripts/health-check.ts",
+    "test:etapa05": "tsx scripts/test-etapa-05.ts",
+    "test:etapa06": "tsx scripts/test-etapa-06.ts",
+    "test:etapa07": "tsx scripts/test-etapa-07.ts",
+    "test:etapa08": "tsx scripts/test-etapa-08.ts",
+    "test:etapa09": "tsx scripts/test-etapa-09.ts",
+    "test:etapa10": "tsx scripts/test-etapa-10.ts",
+    "test:etapa11": "tsx scripts/test-etapa-11.ts",
+    "test:etapa12": "tsx scripts/test-etapa-12.ts",
+    "test:etapa13": "tsx scripts/test-etapa-13.ts",
+    "test:etapa14": "tsx scripts/test-etapa-14.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -20,7 +34,8 @@
     "nodemailer": "^9.1.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

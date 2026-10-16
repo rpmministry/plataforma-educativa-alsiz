@@ -1,0 +1,23 @@
+# Matriz de Validación de Criterios — ETAPA 05: Backend, Base de Datos, Identidad y Seguridad
+
+## 1. Evaluación de Criterios de Aceptación
+
+| ID | Criterio de Aceptación | Estado | Evidencia Vinculada | Justificación Técnica |
+|:---:|---|:---:|---|---|
+| **CRIT-01** | Pruebas de autorización y autenticación críticas aprobadas en servidor | `CUMPLE` | [01_suite_pruebas_etapa_05.txt](file:///C:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/etapas/ETAPA-05/evidencias/01_suite_pruebas_etapa_05.txt) | 16 de 16 pruebas automatizadas aprobadas; login por credenciales y PIN táctil verificados. |
+| **CRIT-02** | Rechazo estricto de accesos no autorizados (401 Unauthorized / 403 Forbidden) | `CUMPLE` | [01_suite_pruebas_etapa_05.txt](file:///C:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/etapas/ETAPA-05/evidencias/01_suite_pruebas_etapa_05.txt#L10-L16) | Peticiones anónimas o con roles insuficientes son rechazadas a nivel de middleware antes de consultar la lógica de negocio. |
+| **CRIT-03** | Prevención de IDOR: Un estudiante no puede leer ni modificar expedientes de otro estudiante | `CUMPLE` | [01_suite_pruebas_etapa_05.txt](file:///C:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/etapas/ETAPA-05/evidencias/01_suite_pruebas_etapa_05.txt#L13-L14) | Middleware `requireStudentAccess` compara el identificador de sesión contra el recurso solicitado y rechaza con `403 FORBIDDEN_STUDENT_ACCESS`. |
+| **CRIT-04** | Prevención de IDOR Familiar: Un representante solo accede a los menores vinculados en su familia | `CUMPLE` | [01_suite_pruebas_etapa_05.txt](file:///C:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/etapas/ETAPA-05/evidencias/01_suite_pruebas_etapa_05.txt#L15-L16) | Middleware valida existencia del par `(representative_id, student_id)` en `student_representatives`. Intento de acceso a otra familia recibe `403 FORBIDDEN_FAMILY_ACCESS`. |
+| **CRIT-05** | Migraciones relacionales versionadas y documentadas | `CUMPLE` | [001_initial_schema.sql](file:///C:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/server/db/migrations/001_initial_schema.sql) | 3 archivos SQL (`001`, `002`, `003`) versionados con tabla de control `schema_migrations` y firmas SHA-256. |
+| **CRIT-06** | Secretos y contraseñas fuera del código y de los registros | `CUMPLE` | [.env.example](file:///C:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/.env.example) | Hashing criptográfico `scrypt` implementado; sanitización en `auditMiddleware.ts`; `.gitignore` protege `.env*` y `*.db`. |
+| **CRIT-07** | Validación de entradas y manejo de errores sin fuga de trazas | `CUMPLE` | [errorHandler.ts](file:///C:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/server/middleware/errorHandler.ts) | Validación Zod en todos los endpoints de API; formato estándar de error envelope sin volcado de trazas de pila. |
+| **CRIT-08** | Libro mayor de auditoría inmutable (LOPDP Art. 21 y 22) | `CUMPLE` | [01_suite_pruebas_etapa_05.txt](file:///C:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/etapas/ETAPA-05/evidencias/01_suite_pruebas_etapa_05.txt#L19) | Registro automático de eventos sensibles; IP anonimizada con HMAC-SHA256 (`ip_hash`). |
+| **CRIT-09** | Respaldo y restauración documentados y probados | `CUMPLE` | [01_suite_pruebas_etapa_05.txt](file:///C:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/etapas/ETAPA-05/evidencias/01_suite_pruebas_etapa_05.txt#L20-L21) | Hot Backup transaccional `VACUUM INTO` verificado; restauración validada con `PRAGMA integrity_check = "ok"`. |
+| **CRIT-10** | Cumplimiento de restricciones (No importar datos reales de Gael ni Avril) | `CUMPLE` | [003_seed_dev_data.sql](file:///C:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/server/db/migrations/003_seed_dev_data.sql) | Exclusivamente datos sintéticos de prueba (`STU-SYNTH-01`, `STU-SYNTH-02`). Cero expedientes reales importados. |
+| **CRIT-11** | No desplegar en producción ni ejecutar operaciones destructivas | `CUMPLE` | [02_PRUEBAS.md](file:///C:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/etapas/ETAPA-05/02_PRUEBAS.md) | Pruebas realizadas exclusivamente en entorno local y base de datos de pruebas aislada. |
+| **CRIT-12** | Compilación y verificación estricta de código | `CUMPLE` | [02_PRUEBAS.md](file:///C:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/etapas/ETAPA-05/02_PRUEBAS.md#L11-L28) | `npm run lint` y `npm run build` completados con código de salida 0. |
+
+---
+
+## 2. Dictamen de Validación
+Todos los 12 criterios de la etapa se encuentran en estado **`CUMPLE`**. No existen bloqueos técnicos ni fallos en pruebas críticas.

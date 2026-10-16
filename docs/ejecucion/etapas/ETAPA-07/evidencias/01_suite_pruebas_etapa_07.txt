@@ -1,0 +1,39 @@
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS — ETAPA 07 (ALSIZ / EKBALLO)
+  CENTRO DE CONOCIMIENTO, FRAGMENTACIÓN, FTS5 Y RETIRADA RAG
+================================================================
+
+[Migrator] Migración 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator] Migración 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator] Migración 003_seed_dev_data.sql (v003) aplicada exitosamente.
+[Migrator] Migración 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator] Migración 005_lms_seed_data.sql (v005) aplicada exitosamente.
+[Migrator] Migración 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator] Migración 007_knowledge_seed_data.sql (v007) aplicada exitosamente.
+✅ [Migraciones] Migraciones de esquema completas (v001 a v007): Se verificaron 7 migraciones aplicadas correctamente.
+✅ [Autenticación] Autenticación inicial de los 4 roles de prueba: Tokens emitidos para ADMIN, TEACHER, STUDENT y REPRESENTATIVE.
+✅ [Gestión de Fuentes] Criterio 1: Carga de documento de prueba autorizado en estado PENDIENTE: Status HTTP 201. ID: src-8a4353a1-327. Estado inicial: PENDIENTE (no auto-aprobado).
+✅ [Seguridad & Deduplicación] Criterio 2: Detección y rechazo de contenido duplicado (SHA-256 Checksum): Status HTTP 409. Código de rechazo: CONFLICT.
+✅ [Extracción & Chunking] Criterio 3: Extracción y segmentación en fragmentos con etiquetas de citación: Status HTTP 200. Fragmentos generados: 3. Etiquetas: [TEST-OPTICA-820664#C1], [TEST-OPTICA-820664#C2].
+✅ [Seguridad & RBAC] Criterio 4A: Docente bloqueado de auto-aprobar fuentes (RBAC 403): Status HTTP 403. Solo ADMIN y ACADEMIC_COORDINATOR pueden aprobar.
+✅ [Seguridad & RBAC] Criterio 4B: Estudiante bloqueado de administración del centro de conocimiento (RBAC 403): Status HTTP 403. Acceso restringido por rol.
+✅ [Control Editorial] Criterio 5: Aprobación editorial por Administrador con justificación en auditoría: Status HTTP 200. Estado promovido a APROBADO.
+✅ [Indexación & Retrieval] Criterio 6: Búsqueda y recuperación temática exitosa en SQLite FTS5 (BM25): Status HTTP 200. Fragmentos recuperados: 3. Relevancia: 1.57.
+✅ [Versionado] Criterio 7: Publicación de nueva versión y trazabilidad de árbol de versiones: Status HTTP 201. Versión: 2. Parent ID: src-8a4353a1-327.
+✅ [Retirada Efectiva] Criterio 8: Retirada / desactivación efectiva de la fuente en base de datos: Status HTTP 200. Estado actualizado a DESACTIVADO.
+✅ [Retirada Efectiva] Criterio 9: CRÍTICO: La fuente retirada DEJA DE RECUPERARSE en el motor RAG de los agentes: Status HTTP 200. Fragmentos de fuente desactivada recuperados: 0. Exclusión estricta confirmada.
+✅ [Validación de Archivos] Criterio 10: Validación de entrada, rechazo de contenido insuficiente o inválido: Status HTTP 400. Mensaje: VALIDATION_ERROR: El contenido del documento es demasiado breve o está vacío..
+✅ [Control Editorial] Criterio 11: Registro y escalamiento de conflicto editorial para revisión humana: Status HTTP 201. Conflicto ID: ksc-50cda636-b62. Estado: REPORTED.
+✅ [Control Editorial] Criterio 12: Resolución formal de conflicto editorial por Administrador: Status HTTP 200. Conflicto resuelto exitosamente.
+✅ [Telemetría] Criterio 13: Métricas y resumen estadístico del centro de conocimiento: Status HTTP 200. Total Chunks: 9. Grupos de estado: 3.
+
+================================================================
+  RESUMEN FINAL DE LA SUITE DE PRUEBAS DE LA ETAPA 07
+================================================================
+
+Total de pruebas ejecutadas: 16
+Pruebas aprobadas (PASÓ):   16
+Pruebas fallidas  (FALLÓ):  0
+
+Todas las pruebas críticas de la ETAPA 07 fueron APROBADAS con éxito.
+

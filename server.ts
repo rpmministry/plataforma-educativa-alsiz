@@ -2,11 +2,30 @@ import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
+import { runMigrations } from './server/db/migrator';
+import { authenticate } from './server/middleware/authMiddleware';
+import { errorHandler } from './server/middleware/errorHandler';
+import { authRouter } from './server/routes/authRoutes';
+import { studentRouter } from './server/routes/studentRoutes';
+import { representativeRouter } from './server/routes/representativeRoutes';
+import { adminRouter } from './server/routes/adminRoutes';
+import { academicRouter } from './server/routes/academicRoutes';
+import knowledgeRouter from './server/routes/knowledgeRoutes';
+import agentRouter from './server/routes/agentRoutes';
+import { pilotRouter } from './server/routes/pilotRoutes';
+import { continuingEducationRouter } from './server/routes/continuingEducationRoutes';
 
 // Carga de variables locales SOLO fuera de Vercel (allí el entorno las inyecta).
 if (!process.env.VERCEL) {
   dotenv.config();
   dotenv.config({ path: '.env.local' });
+}
+
+// Inicialización de la base de datos relacional y migraciones versionadas
+try {
+  runMigrations();
+} catch (migErr: any) {
+  console.error('[Server] Advertencia inicializando base de datos:', migErr?.message || migErr);
 }
 
 // Base del proyecto. En Vercel process.cwd() es /var/task; en local, la raíz del repo.
@@ -96,6 +115,18 @@ app.get('/students/:filename', (req: Request, res: Response, next) => {
 // Paso 6: servimos la carpeta pública y la ruta de estudiantes para que el frontend pueda cargar fotos y avatares sin problema.
 app.use('/students', express.static(publicStudentsDir));
 app.use(express.static(path.join(appRoot, 'public')));
+
+// ===== API MODULAR ALSIZ v1 (Persistencia Relacional, Identidad y RBAC) =====
+app.use('/api/v1', authenticate);
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/students', studentRouter);
+app.use('/api/v1/representatives', representativeRouter);
+app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/academic', academicRouter);
+app.use('/api/v1/knowledge', knowledgeRouter);
+app.use('/api/v1/agents', agentRouter);
+app.use('/api/v1/pilot', pilotRouter);
+app.use('/api/v1/continuing-ed', continuingEducationRouter);
 
 // Paso 7: este endpoint guarda la foto real del estudiante en el servidor para que se use en la interfaz y quede persistida.
 app.post('/api/students/upload-avatar', (req: Request, res: Response) => {
@@ -187,15 +218,19 @@ async function getGeminiClient(): Promise<any> {
   });
 }
 
-// Paso 10: el health check sirve como verificación de que el backend está vivo antes de pedir servicios de IA o autenticación.
-app.get('/api/health', async (req: Request, res: Response) => {
+// Paso 10: el health check sirve como verificación de que el backend y la BD están vivos
+app.get(['/api/health', '/api/v1/health'], async (req: Request, res: Response) => {
   let hierarchySummary: string[] = [];
   try {
     hierarchySummary = (await getAIHierarchy()).map((layer) => `${layer.label}: ${layer.models.slice(0, 3).join(' | ')}${layer.models.length > 3 ? ` (+${layer.models.length - 3} free más)` : ''}`);
   } catch { /* no debe tumbar el health */ }
   res.json({
     status: 'ok',
-    service: 'Wisdom School Backend',
+    service: 'Plataforma Educativa ALSIZ — Ekballo Church',
+    database: {
+      engine: 'node:sqlite (Embedded SQLite3 with WAL)',
+      status: 'HEALTHY',
+    },
     ai: {
       deepSeekConfigured: Boolean(process.env.DEEPSEEK_API_KEY?.trim()),
       deepSeekModel: (process.env.DEEPSEEK_MODEL || 'deepseek-chat').trim(),
@@ -1309,6 +1344,9 @@ IMPORTANTE: Responde ÚNICAMENTE en formato JSON válido.
   }
 });
 
+// Manejador seguro para errores de la API v1 (sin filtración de trazas ni credenciales)
+app.use('/api/v1', errorHandler);
+
 // Manejo de errores: cualquier fallo de middleware o ruta responde JSON con el detalle real
 // (visible en la pestaña Network y en los logs de la función de Vercel) en vez de un 500 opaco.
 app.use((err: any, _req: Request, res: Response, next: any) => {
@@ -1317,4 +1355,5 @@ app.use((err: any, _req: Request, res: Response, next: any) => {
   res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
 });
 
+export { app };
 export default app;

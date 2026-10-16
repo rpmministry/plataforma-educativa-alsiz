@@ -1,0 +1,38 @@
+﻿
+> react-example@0.0.0 test:etapa13
+> tsx scripts/test-etapa-13.ts
+
+================================================================
+  SUITE DE AUDITOR├ìA INTEGRAL Y ACEPTACI├ôN ΓÇö ETAPA 13 (ALSIZ)
+  VERIFICACI├ôN MULTIDISCIPLINAR DE FLUJOS, AISLAMIENTO Y SEGURIDAD
+================================================================
+
+[Migrator] Migraci├│n 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator] Migraci├│n 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator] Migraci├│n 003_seed_dev_data.sql (v003) aplicada exitosamente.
+[Migrator] Migraci├│n 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator] Migraci├│n 005_lms_seed_data.sql (v005) aplicada exitosamente.
+[Migrator] Migraci├│n 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator] Migraci├│n 007_knowledge_seed_data.sql (v007) aplicada exitosamente.
+[Migrator] Migraci├│n 008_ai_agents_orchestration.sql (v008) aplicada exitosamente.
+[Migrator] Migraci├│n 009_ai_agents_seed.sql (v009) aplicada exitosamente.
+[Migrator] Migraci├│n 010_interactive_pilot.sql (v010) aplicada exitosamente.
+[Migrator] Migraci├│n 011_unified_admin.sql (v011) aplicada exitosamente.
+[Migrator] Migraci├│n 012_continuing_education_courses.sql (v012) aplicada exitosamente.
+Γ£à [Gobernanza Documental] Auditor├¡a 1: Expediente documental completo de todas las etapas previas (00 a 12): Las 13 etapas previas cuentan con los 7 archivos normativos obligatorios y bit├ícora actualizada
+Γ£à [Identidad & Tutela] Auditor├¡a 2: Identidad, roles RBAC, tutela familiar e inmutabilidad de credenciales scrypt: Usuarios verificados (Admin, Docente, Alumno, Tutor). Representante vinculado (rep-01). Cero credenciales en claro.
+Γ£à [N├║cleo Acad├⌐mico LMS] Auditor├¡a 3: Integridad de la Malla Curricular K-12 Homeschool EGB: Programa: 'Educaci├│n en Casa K-12', Asignaturas: 2, Unidades: 1, Clases diarias: 1
+Γ£à [Seguridad & Privacidad] Auditor├¡a 4: Aislamiento estricto de expedientes inter-familiares (Anti-IDOR): Tutor 1 supervisa ├║nicamente a Estudiante 1 (1); Tutor 2 supervisa ├║nicamente a Estudiante 2 (1). Cero fuga transversal.
+Γ£à [Conocimiento & RAG] Auditor├¡a 5: Centro de Conocimiento RAG y exclusi├│n estricta de fuentes desactivadas: Fuentes aprobadas en RAG: 2, Chunks aprobados: 3. Fuente desactivada excluida al 100%.
+Γ£à [Agentes IA & Resiliencia] Auditor├¡a 6: Resiliencia de proveedores de IA y degradaci├│n elegante a simulaci├│n local: Proveedores disponibles: SIMULATED_LOCAL. Respuesta entregada por 'SIMULATED_LOCAL' sin error 500.
+Γ£à [Educaci├│n No Formal] Auditor├¡a 7: Formaci├│n No Formal: Control de cupos, certificado SHA-256 y descargo Art. 32: Cupo respetado: true. Verificaci├│n p├║blica (c├│digo/hash): OK. Descargo Art. 32 MINEDUC incluido.
+Γ£à [Seguridad & Privacidad] Auditor├¡a 8: Privacidad LOPDP: Anonimizaci├│n de IPs (SHA-256) y cero secretos en bit├ícora: Eventos auditados: 4. 100% de IPs anonimizadas con HMAC/SHA-256 de 64 hex. Cero contrase├▒as en logs.
+Γ£à [Respaldo & Recuperaci├│n] Auditor├¡a 9: Respaldo en caliente (Hot Backup) y restauraci├│n comprobada (PRAGMA integrity_check): Respaldo creado (802816 bytes, SHA-256: fda615fd22fede8d...). Restauraci├│n: ok
+Γ£à [Seguridad & Producci├│n] Auditor├¡a 10: Integridad y salvaguarda estricta de la base de datos de producci├│n (data/alsiz.db): data/alsiz.db verificado en modo read-only: 0 contaminaciones de suites de prueba
+
+================================================================
+  RESUMEN DE AUDITOR├ìA INTEGRAL ΓÇö ETAPA 13
+================================================================
+Total Criterios Auditados: 10 | Aprobados: 10 | Fallidos: 0
+
+Γ£à LA AUDITOR├ìA INTEGRAL DE LA ETAPA 13 CONCLUY├ô SATISFACTORIAMENTE (10/10 CRITERIOS APROBADOS).

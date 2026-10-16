@@ -45,6 +45,12 @@ export const SubjectsView: React.FC = () => {
     reflectionPrompt: `¿Cómo aplicas lo aprendido en ${subject.name} a tu vida diaria?`,
   });
 
+  const handleOpenDetail = (subject: typeof studentSubjects[0], e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setActiveSubject(subject);
+    setActiveTab('subject-detail');
+  };
+
   const handleOpenSubject = (subject: typeof studentSubjects[0]) => {
     // Abrimos siempre la clase del día asignado con el temario de la semana en curso.
     const targetDay = ((subject.daysOfWeek && subject.daysOfWeek[0]) || selectedDayOfWeek) as DayOfWeekName;
@@ -130,16 +136,25 @@ export const SubjectsView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-xs text-slate-400 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" />
-                  {subject.scheduleTime}
-                </span>
-                <span className="text-xs font-bold text-indigo-400 group-hover:text-indigo-300 flex items-center gap-1 transition-colors">
+              <div className="flex items-center justify-between pt-3 border-t border-slate-700/60 gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => handleOpenDetail(subject, e)}
+                  className="px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 text-xs font-semibold transition-all"
+                  title="Ver unidades curriculares y sílabo"
+                >
+                  Detalle y Sílabo
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenSubject(subject)}
+                  className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                >
                   <BookOpen className="w-3.5 h-3.5" />
-                  Ver clase
+                  <span>Clase de Hoy</span>
                   <ArrowRight className="w-3 h-3" />
-                </span>
+                </button>
               </div>
             </div>
           );

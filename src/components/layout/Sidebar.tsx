@@ -10,6 +10,8 @@ import {
   BookMarked,
   CalendarDays,
   TrendingUp,
+  Users,
+  Shield,
 } from 'lucide-react';
 
 interface NavItem {
@@ -90,7 +92,7 @@ export const Sidebar: React.FC = () => {
         {/* Navigation List */}
         <nav className="space-y-1">
           <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-            <span>Navegación</span>
+            <span>Espacio de Estudio</span>
             <span className="text-[10px] opacity-75">{isAvril ? '🐶 Peanuts' : '🍄 Level 1'}</span>
           </div>
           {navItems.map((item) => {
@@ -129,6 +131,49 @@ export const Sidebar: React.FC = () => {
               </button>
             );
           })}
+
+          {/* Sección de Gestión & Roles Institucionales */}
+          <div className="pt-3 border-t border-white/10">
+            <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Gestión & Roles
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('parent')}
+              className={`w-full flex items-center justify-between min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                activeTab === 'parent'
+                  ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40'
+                  : 'text-slate-400 hover:text-emerald-300 hover:bg-slate-800/50'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Users className="w-4 h-4 text-emerald-400" />
+                <span>Portal Padres</span>
+              </div>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">
+                MINEDUC
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('admin')}
+              className={`w-full flex items-center justify-between min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                activeTab === 'admin'
+                  ? 'bg-purple-500/20 text-purple-200 border border-purple-500/40'
+                  : 'text-slate-400 hover:text-purple-300 hover:bg-slate-800/50'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Shield className="w-4 h-4 text-purple-400" />
+                <span>Consola Admin</span>
+              </div>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">
+                TI
+              </span>
+            </button>
+          </div>
         </nav>
       </div>
 

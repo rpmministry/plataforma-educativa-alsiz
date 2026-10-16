@@ -8,6 +8,7 @@ import {
   NavigationTab,
   ScheduleEntry,
   NewStudentInput,
+  UserRole,
 } from '../types';
 import {
   STUDENTS_DATA,
@@ -50,6 +51,8 @@ interface SchoolContextType {
   authenticatedStudentId: StudentId | null;
   setAuthenticatedStudentId: (id: StudentId | null) => void;
   isAuthenticated: boolean;
+  currentRole: UserRole;
+  setCurrentRole: (role: UserRole) => void;
   loginStudent: (identifier: string, passOrPin: string) => { success: boolean; student?: Student; error?: string };
   /** Aplica una sesión ya validada (p. ej. Google) de forma síncrona, sin forzar navegación. */
   authenticateStudent: (id: StudentId) => void;
@@ -215,6 +218,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, []);
 
+  const [currentRole, setCurrentRole] = useState<UserRole>('student');
   const [activeTab, setActiveTab] = useState<NavigationTab>('home');
   const [navigationHistory, setNavigationHistory] = useState<NavigationTab[]>([]);
   const [activeSubject, setActiveSubject] = useState<Subject | null>(null);
@@ -410,6 +414,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     authRef.current = null;
     setAuthenticatedStudentId(null);
     setCurrentStudentId(null);
+    setCurrentRole('student');
     safeRemoveItem('wisdom_auth_v2026');
     safeRemoveItem('wisdom_current_v2026');
     setActiveTab('home');
@@ -419,6 +424,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const demoStudent = studentsList.find((s) => s.id === testStudentId && s.isDemo);
     if (!demoStudent) return;
     // Bypass de autenticación tradicional: el Modo Demo entra directo con estado global.
+    setCurrentRole('student');
     commitAuthenticatedSession(testStudentId, true);
     setIsDemoLockOpen(false);
     setSelectedDayOfWeek('Lunes');
@@ -430,19 +436,50 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setAllSubjects((prev) => [...created.subjects, ...prev]);
     setClassesList((prev) => [...created.classes, ...prev]);
     setAllSchedules((prev) => [...created.schedules, ...prev]);
+    setCurrentRole('student');
     commitAuthenticatedSession(created.student.id, true);
     return { student: created.student, credentials: { email: created.student.email || '', pinCode: created.student.pinCode || '', password: created.student.password || '' } };
   };
 
   const handleSetActiveTab = (tab: NavigationTab) => {
-    // Se lee del ref, no del estado capturado: tras un login en el mismo tick el guard ya ve la sesión.
-    if (tab !== 'home' && !authRef.current) {
+    // Rutas públicas: 'home' y 'access' no requieren autenticación previa
+    if (tab === 'home' || tab === 'access') {
+      setActiveTab((prevTab) => {
+        if (prevTab !== tab && prevTab !== 'home') setNavigationHistory((prev) => [...prev, prevTab]);
+        if (tab === 'home') setNavigationHistory([]);
+        return tab;
+      });
+      return;
+    }
+
+    // Ruta de Representante / Padres de Familia
+    if (tab === 'parent') {
+      setCurrentRole('representative');
+      setActiveTab((prevTab) => {
+        if (prevTab !== tab && prevTab !== 'home') setNavigationHistory((prev) => [...prev, prevTab]);
+        return tab;
+      });
+      return;
+    }
+
+    // Ruta de Shell Administrativo
+    if (tab === 'admin') {
+      setCurrentRole('admin');
+      setActiveTab((prevTab) => {
+        if (prevTab !== tab && prevTab !== 'home') setNavigationHistory((prev) => [...prev, prevTab]);
+        return tab;
+      });
+      return;
+    }
+
+    // Rutas de Estudiante: validamos sesión de estudiante
+    if (!authRef.current) {
       openAuthModal(authRef.current || currentStudentId || undefined);
       return;
     }
+    setCurrentRole('student');
     setActiveTab((prevTab) => {
       if (prevTab !== tab && prevTab !== 'home') setNavigationHistory((prev) => [...prev, prevTab]);
-      if (tab === 'home') setNavigationHistory([]);
       return tab;
     });
   };
@@ -566,6 +603,8 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         authenticatedStudentId, 
         setAuthenticatedStudentId, 
         isAuthenticated: !!authenticatedStudentId, 
+        currentRole,
+        setCurrentRole,
         loginStudent, 
         authenticateStudent,
         logoutStudent, 

@@ -1,0 +1,38 @@
+=== RESUMEN DE HALLAZGOS DE AUDITORIA DE SEGURIDAD (SIN SECRETOS) ===
+Fecha: 2026-10-16T07:37:30-05:00
+
+1. EXPOSICIÓN DE VARIABLES DE ENTORNO EN FRONTEND:
+- Archivo afectado: src/services/aiService.ts (líneas 509, 510, 567, 570)
+- Mecanismo: import.meta.env.VITE_GEMINI_API_KEY y import.meta.env.VITE_OPENROUTER_API_KEY.
+- Riesgo: Cualquier clave definida en variables con prefijo VITE_* es inyectada estáticamente en el bundle de producción de Vite (dist/assets/*.js) accesible públicamente por cualquier visitante.
+- Estado en .env.example: .env.example no incluye VITE_GEMINI_API_KEY (solo GEMINI_API_KEY para backend), pero el código cliente aún mantiene el fallback directo a la API pública de Google/OpenRouter.
+
+2. BYPASS CRÍTICO EN AUTENTICACIÓN:
+- Archivo afectado: src/context/SchoolContext.tsx (línea 382)
+- Condición vulnerable:
+  `if ((found.password?.toLowerCase() === cleanSecret) || (found.pinCode?.toLowerCase() === cleanSecret) || (cleanId === found.pinCode?.toLowerCase() || cleanId === found.id.toLowerCase()))`
+- Explotación: Si el usuario introduce el identificador del alumno (ej. "avril" o "gael"), la expresión `cleanId === found.id.toLowerCase()` evalúa a verdadero sin importar qué contraseña o PIN se ingrese (incluso cadena vacía).
+- Impacto: Acceso no autorizado inmediato a los datos de cualquier estudiante con solo conocer su ID público.
+
+3. ARCHIVOS PÚBLICOS Y DATOS DE MENORES EN GIT:
+- Archivos rastreados en Git:
+  - public/students/avril.png
+  - public/students/avril.svg
+  - public/students/gael.png
+  - public/students/gael.svg
+  - public/Plan Escolar 2026-2027 - Avril (8vo de Básica).pdf
+  - public/Plan Escolar 2026-2027 - Gael (4to de Básica).pdf
+- Exposición en backend:
+  - server.ts línea 97: `app.use('/students', express.static(publicStudentsDir));`
+  - server.ts línea 101: `POST /api/students/upload-avatar` escribe directamente a `public/students/<id>.png`.
+  - No existe validación de token ni autenticación de sesión en la descarga o subida de avatares.
+
+4. DATOS PERSONALES HARDCODEADOS EN CÓDIGO FUENTE:
+- Archivo afectado: src/data/mockData.ts (líneas 28-35 y 135-155)
+- Datos presentes en texto plano en TypeScript: Nombres completos de menores, correos electrónicos personales, códigos PIN y contraseñas por defecto.
+
+5. AUSENCIA DE PERSISTENCIA BACKEND Y RESPALDO:
+- Toda la sesión, progreso de lecciones y entregas se guarda en `localStorage` del navegador bajo claves `wisdom_*_v2026`.
+- El "DESTRUCTOR DE MEMORIA FANTASMA" en `mockData.ts:15-23` borra todo el almacenamiento local si cambia la versión de inicio.
+- No hay base de datos backend ni mecanismo de copias de seguridad de datos de progreso.
+

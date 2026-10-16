@@ -1,0 +1,29 @@
+=== COMANDOS GIT BASELINE ===
+Fecha: 2026-10-16T07:27:56-05:00
+
+1. git rev-parse --show-toplevel
+C:/Users/Alsiz/Documents/plataforma educativa ALSIZ
+
+2. git status --short --branch
+## main...origin/main
+?? "DOCUMENTOS EKBALLO/"
+?? WISDOM-SCHOOL-SHOWCASE.md
+
+3. git branch --show-current
+main
+
+4. git remote -v
+origin	https://github.com/rpmministry/plataforma-educativa-alsiz.git (fetch)
+origin	https://github.com/rpmministry/plataforma-educativa-alsiz.git (push)
+
+5. git log -1 --oneline
+fdaa63a fix(login): mostrar el banner verde tras iniciar sesion en iPad
+
+6. git checkout -b etapa-00-inicializacion-y-linea-base
+Switched to a new branch 'etapa-00-inicializacion-y-linea-base'
+
+7. git status --short --branch (en nueva rama)
+## etapa-00-inicializacion-y-linea-base
+?? "DOCUMENTOS EKBALLO/"
+?? WISDOM-SCHOOL-SHOWCASE.md
+

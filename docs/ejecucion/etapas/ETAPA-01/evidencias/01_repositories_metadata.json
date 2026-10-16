@@ -1,0 +1,127 @@
+{
+  "audit_timestamp": "2026-10-16T09:10:00-05:00",
+  "repositories_audited": [
+    {
+      "repo": "TobbenTT/colegio",
+      "url": "https://github.com/TobbenTT/colegio",
+      "license": null,
+      "language": "PHP",
+      "pushed_at": "2025-11-23T23:27:11Z",
+      "stars": 0,
+      "stack": ["PHP 8.2", "MySQL", "Python 3.10", "Bootstrap 5"],
+      "classification": "descartar",
+      "rationale": "Sin licencia abierta, stack PHP monolítico incompatible con TypeScript/Node/React, orientado a colegio presencial con QR."
+    },
+    {
+      "repo": "Zethearc/edu_ai",
+      "url": "https://github.com/Zethearc/edu_ai",
+      "license": "MIT",
+      "language": "Python",
+      "pushed_at": "2023-11-13T14:50:18Z",
+      "stars": 2,
+      "stack": ["Python", "pyTelegramBotAPI", "llama-cpp-python", "sentence-transformers", "pinecone-client", "langchain 0.0.240"],
+      "classification": "referencia",
+      "rationale": "Referencia útil para tono y contextualización de matemáticas en Ecuador (Yachay Tech/UIDE). Descartar integración de código por ser bot de Telegram con dependencias obsoletas y base vectorial de pago (Pinecone)."
+    },
+    {
+      "repo": "tonalliGarcia/IAEducation",
+      "url": "https://github.com/tonalliGarcia/IAEducation",
+      "license": null,
+      "language": "HTML/CSS",
+      "pushed_at": "2023-09-12T20:15:59Z",
+      "stars": 0,
+      "stack": ["HTML5", "CSS3"],
+      "classification": "descartar",
+      "rationale": "Plantilla HTML escolar estática de 2023 sin IA, sin backend y sin licencia."
+    },
+    {
+      "repo": "juansebag31-blip/academia-ia-educativa",
+      "url": "https://github.com/juansebag31-blip/academia-ia-educativa",
+      "license": null,
+      "language": "TypeScript",
+      "pushed_at": "2026-10-11T21:13:32Z",
+      "stars": 0,
+      "stack": ["Next.js 15", "TypeScript 5", "Supabase (PostgreSQL + pgvector)", "Google Gemini Embedding 2", "Gemini 3.5 Flash Lite", "Tailwind CSS", "Vitest"],
+      "classification": "adaptar / referencia",
+      "rationale": "Arquitectura de RAG estricta con citación obligatoria [S#], chunking de PDFs por sección/página y detención temprana ante evidencia insuficiente. Patrón ideal para los 7 módulos doctrinales de Ekballo Church. No integrar código directamente por stack (Next.js) y falta de licencia explícita."
+    },
+    {
+      "repo": "THU-MAIC/OpenMAIC",
+      "url": "https://github.com/THU-MAIC/OpenMAIC",
+      "license": "MIT",
+      "language": "TypeScript",
+      "pushed_at": "2026-10-16T10:44:12Z",
+      "stars": 40879,
+      "stack": ["Next.js 16", "React 19", "TypeScript 5", "LangGraph 1.1", "Tailwind CSS 4", "PostgreSQL 16 server-first pipeline"],
+      "classification": "piloto aislado / adaptar",
+      "rationale": "Plataforma multi-agente inmersiva con generación de diapositivas interactivas, quizzes, simulaciones HTML y exportación offline. Requiere servidor persistente y PostgreSQL 16; no es integrable directamente en el monolito Vite/Express ligero de ALSIZ. Puede usarse como piloto aislado o adaptar sus esquemas de escenas interactivas."
+    },
+    {
+      "repo": "StudentTraineeCenter/edu-agent",
+      "url": "https://github.com/StudentTraineeCenter/edu-agent",
+      "license": "MIT",
+      "language": "TypeScript",
+      "pushed_at": "2025-12-30T19:40:10Z",
+      "stars": 22,
+      "stack": ["TypeScript", "React", "Python FastAPI", "LangGraph", "PostgreSQL + pgvector", "Azure OpenAI"],
+      "classification": "reutilizar habilidades / adaptar",
+      "rationale": "Mecanismos y prompts para transformar documentos estáticos en planes de estudio adaptativos, flashcards, mapas conceptuales y quizzes basados en active recall."
+    },
+    {
+      "repo": "hqanhh/EduGPT",
+      "url": "https://github.com/hqanhh/EduGPT",
+      "license": "MIT",
+      "language": "Jupyter Notebook",
+      "pushed_at": "2023-06-04T10:25:14Z",
+      "stars": 220,
+      "stack": ["Python", "LangChain", "CAMEL", "OpenAI GPT-3.5"],
+      "classification": "referencia",
+      "rationale": "Juego de roles simbiótico estudiante-tutor para prompts socráticos. Código técnico obsoleto e inactivo desde 2023."
+    },
+    {
+      "repo": "DHRUVvkdv/teaching-assistant",
+      "url": "https://github.com/DHRUVvkdv/teaching-assistant",
+      "license": null,
+      "language": "Python",
+      "pushed_at": "2024-07-25T12:09:42Z",
+      "stars": 12,
+      "stack": ["Python", "Streamlit", "FastAPI", "AWS Bedrock", "LangChain", "Pinecone", "Tavily search"],
+      "classification": "referencia",
+      "rationale": "Concepto de balance entre conocimiento del docente y búsqueda web controlada. Descartar integración por stack Streamlit/Python y falta de licencia."
+    },
+    {
+      "repo": "A-R007/Multi-Agent-Study-Assistant",
+      "url": "https://github.com/A-R007/Multi-Agent-Study-Assistant",
+      "license": null,
+      "language": "Python",
+      "pushed_at": "2025-11-04T11:55:19Z",
+      "stars": 64,
+      "stack": ["Python", "Streamlit", "Phidata", "ChromaDB", "LangChain", "Groq/OpenAI"],
+      "classification": "referencia",
+      "rationale": "Taxonomía de 6 agentes especializados (roadmaps, quizzes, tutoría, RAG Q&A, adaptación de estilos). Descartar integración por stack y ausencia de licencia."
+    },
+    {
+      "repo": "GarethManning/education-agent-skills",
+      "url": "https://github.com/GarethManning/education-agent-skills",
+      "license": "CC BY-SA 4.0",
+      "language": "TypeScript / Markdown",
+      "pushed_at": "2026-08-28T21:22:06Z",
+      "stars": 870,
+      "stack": ["Agent Skills (SKILL.md)", "TypeScript", "Markdown"],
+      "classification": "reutilizar habilidades",
+      "rationale": "165 habilidades pedagógicas basadas en evidencia (Bloom, active recall, socrático, rúbricas formativas, interacciones en vivo en Dominio 20). Reutilizable directamente en prompts y agentes respetando atribución CC BY-SA 4.0."
+    },
+    {
+      "repo": "netless-io/flat (virtual-classroom topic)",
+      "url": "https://github.com/netless-io/flat",
+      "license": "MIT",
+      "language": "TypeScript",
+      "pushed_at": "2026-10-03T17:44:33Z",
+      "stars": 6438,
+      "stack": ["TypeScript", "React", "Electron", "Agora WebRTC", "Fastboard Whiteboard"],
+      "classification": "referencia",
+      "rationale": "Aulas virtuales sincrónicas con video en vivo demandan WebRTC de alta concurrencia y conectividad estable, desaconsejadas para zonas rurales con internet intermitente en Ecuador."
+    }
+  ]
+}
+

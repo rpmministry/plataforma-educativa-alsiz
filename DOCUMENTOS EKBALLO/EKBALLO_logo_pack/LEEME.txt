@@ -1,0 +1,19 @@
+EKBALLO CHURCH - PAQUETE DE LOGOTIPO
+
+svg/logotipo/        Logo en SVG, recorte ajustado y fondo transparente:
+                     ekballo-gris (color original, para fondos oscuros), ekballo-blanco,
+                     ekballo-negro (fondos claros), ekballo-currentColor (hereda el color por CSS),
+                     ekballo-fondo-oscuro / ekballo-fondo-claro (con fondo incluido).
+svg/redes-sociales/  Perfil (3 versiones), portadas Facebook / X / LinkedIn, banner YouTube,
+                     imagen para compartir (Open Graph) e historia vertical.
+svg/favicon/         favicon.svg, apple-touch-icon.svg, icon-maskable.svg (monograma "E" del logo).
+png/                 Mismas piezas en PNG. Las redes sociales NO aceptan SVG: suba los PNG.
+                     Incluye favicon.ico (16/32/48) y los iconos de app.
+web/                 head-snippet.html y site.webmanifest listos para pegar.
+
+Colores:  gris del logo #BCBEBE  |  fondo oscuro #0A0D11
+Las letras estan convertidas a trazados: no requiere tipografia instalada.
+
+Nota: el vector se reconstruyo a partir del PNG de 504x166 px incluido en el Word.
+Si dispone del archivo original (AI, EPS, PDF o nombre de la tipografia), conviene reemplazarlo
+como maestro definitivo.

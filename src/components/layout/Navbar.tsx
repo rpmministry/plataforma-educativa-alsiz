@@ -44,22 +44,20 @@ export const Navbar: React.FC = () => {
       <div className="max-w-[100vw] px-3 sm:px-6 lg:px-8 mx-auto min-h-14 sm:min-h-16 flex items-center justify-between gap-2">
 
         
-        {/* Paso 2: la marca del colegio y el logo se mantienen visibles para reforzar identidad institucional. */}
+        {/* Paso 2: la marca de Ekballo Church y ALSIZ */}
         <div className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0" onClick={() => setActiveTab('home')}>
-          <div className={`w-10 h-10 shrink-0 rounded-xl bg-slate-800/90 border p-1.5 shadow-md shadow-black/30 flex items-center justify-center group-hover:scale-105 transition-all duration-300 ${
-            isAvril ? 'border-indigo-500/40 group-hover:border-indigo-400' : 'border-amber-500/40 group-hover:border-amber-400'
-          }`}>
-            <SchoolLogo size="sm" className="w-full h-full object-contain" />
+          <div className="w-10 h-10 shrink-0 rounded-xl bg-[#121820] border border-amber-500/40 p-1.5 shadow-md shadow-black/40 flex items-center justify-center group-hover:scale-105 transition-all duration-300">
+            <SchoolLogo size="sm" variant="monogram" className="w-full h-full object-contain" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="hidden min-[400px]:inline font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-indigo-200 truncate">
-                WISDOM SCHOOL
+              <span className="hidden min-[400px]:inline font-extrabold text-base sm:text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-amber-200 truncate">
+                ALSIZ • EKBALLO
               </span>
               <span className={`text-[10px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full border shadow-sm flex items-center gap-1 ${
                 isAvril
-                  ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
-                  : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                  : 'bg-red-500/20 text-red-300 border-red-500/40'
               }`}>
                 {currentStudent.name} ({currentStudent.grade.split(' ')[0]})
                 {isDemoStudent && (
@@ -68,13 +66,27 @@ export const Navbar: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-400 hidden sm:block">
-              Plataforma Pedagógica & Colegio Virtual
+              Plataforma Educativa • Ekballo Church
             </p>
           </div>
         </div>
 
-        {/* Paso 3: el lado derecho muestra "Iniciar sesión de alumno" en la landing page. */}
+        {/* Paso 3: el lado derecho muestra controles y acceso a roles */}
         <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          {/* Botón de Acceso a Roles */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('access')}
+            className={`min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+              activeTab === 'access'
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                : 'bg-slate-900/80 text-slate-300 hover:text-white border-slate-700/60 hover:bg-slate-800'
+            }`}
+            title="Seleccionar rol de usuario (Estudiante, Representante, Docente, Admin)"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">Acceso / Roles</span>
+          </button>
 
           {/* Student Selector Switcher or Auth Badge */}
           {authenticatedStudentId && !isDemoStudent && activeTab !== 'home' ? (
@@ -134,7 +146,7 @@ export const Navbar: React.FC = () => {
             <button
               type="button"
               onClick={() => openAuthModal()}
-              className="inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-950/30 transition-all transform hover:scale-105"
+              className="inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-950/40 transition-all transform hover:scale-105"
             >
               <Lock className="w-3.5 h-3.5" />
               <span>Iniciar Sesión</span>

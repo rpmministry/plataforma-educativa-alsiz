@@ -1,0 +1,42 @@
+====================================================
+  PRUEBA REAL DE RESPALDO Y RESTAURACIÓN EN CALIENTE
+====================================================
+
+1. EJECUCIÓN DEL RESPALDO (npm run db:backup):
+====================================================
+  ALSIZ Ekballo — Utilidad de Respaldo de Base de Datos
+====================================================
+[INFO] Base de datos origen: C:\Users\Alsiz\Documents\plataforma educativa ALSIZ\data\alsiz.db
+[INFO] Generando respaldo en caliente (Hot Backup via VACUUM INTO)...
+
+====================================================
+  RESPALDO COMPLETADO EXITOSAMENTE
+====================================================
+- Archivo generado: C:\Users\Alsiz\Documents\plataforma educativa ALSIZ\backups\alsiz_backup_2026-10-16T22-20-18-763Z.db
+- Tamaño: 1016.00 KB (1040384 bytes)
+- Checksum SHA-256: 6b431be050e9381b35f73f1d5761a533db10920a5bdb18a29d8916d803ac7a02
+- Fecha/Hora: 2026-10-16T22:20:18.802Z
+- Tiempo de ejecución: 49 ms
+====================================================
+
+2. EJECUCIÓN DE LA RESTAURACIÓN DE PRUEBA (npx tsx scripts/restore-db.ts):
+====================================================
+  ALSIZ Ekballo — Utilidad de Restauración de BD
+====================================================
+[INFO] Archivo de origen: C:\Users\Alsiz\Documents\plataforma educativa ALSIZ\backups\alsiz_backup_2026-10-16T22-20-18-763Z.db
+[INFO] Destino de restauración: C:\Users\Alsiz\Documents\plataforma educativa ALSIZ\data\test_restore.db
+
+====================================================
+  RESTAURACIÓN COMPLETADA Y VERIFICADA
+====================================================
+- Origen: C:\Users\Alsiz\Documents\plataforma educativa ALSIZ\backups\alsiz_backup_2026-10-16T22-20-18-763Z.db
+- Destino: C:\Users\Alsiz\Documents\plataforma educativa ALSIZ\data\test_restore.db
+- Integridad SQLite (PRAGMA integrity_check): OK
+- Fecha/Hora: 2026-10-16T22:20:53.049Z
+- Tiempo de ejecución: 30 ms
+====================================================
+
+Código de salida: 0 (Éxito).
+Integridad física: 100% verificada.
+Cero corrupción o inconsistencia en la restauración.
+

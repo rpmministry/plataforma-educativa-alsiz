@@ -1,0 +1,37 @@
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS — ETAPA 12 (ALSIZ / EKBALLO)
+  CURSOS PROFESIONALES, ARTES, OFICIOS Y FORMACIÓN CONTINUA
+================================================================
+
+[Migrator] Migración 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator] Migración 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator] Migración 003_seed_dev_data.sql (v003) aplicada exitosamente.
+[Migrator] Migración 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator] Migración 005_lms_seed_data.sql (v005) aplicada exitosamente.
+[Migrator] Migración 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator] Migración 007_knowledge_seed_data.sql (v007) aplicada exitosamente.
+[Migrator] Migración 008_ai_agents_orchestration.sql (v008) aplicada exitosamente.
+[Migrator] Migración 009_ai_agents_seed.sql (v009) aplicada exitosamente.
+[Migrator] Migración 010_interactive_pilot.sql (v010) aplicada exitosamente.
+[Migrator] Migración 011_unified_admin.sql (v011) aplicada exitosamente.
+[Migrator] Migración 012_continuing_education_courses.sql (v012) aplicada exitosamente.
+✅ [Catálogo & Metadatos] Criterio 1: Carga de catálogo y cursos semilla canónicos: 4 cursos encontrados. Categorías verificadas: OFICIOS, TECNOLOGIA, ARTES, FORMACION_MINISTERIAL
+✅ [Catálogo & Metadatos] Criterio 2: Filtrado multicriterio de cursos (categoría, texto, modalidad): Filtros de oficios (1), búsqueda por palabra clave (1) y modalidad híbrida (2) comprobados
+✅ [Gestión Administrativa] Criterio 3: Creación y actualización de curso con objetivos y prerrequisitos: Curso creado con código OFIC-002, duración 60h, cupo máx: 2
+✅ [Contenidos & Estructura] Criterio 4: Estructura jerárquica Curso -> Módulos -> Lecciones: Módulo 'Módulo 1: Fundamentos de Circuitos y Seguridad Eléctrica' con 2 lecciones vinculadas correctamente
+✅ [Inscripciones & Cupos] Criterio 5: Inscripción de usuarios y salvaguarda estricta de cupo máximo: 2 participantes inscritos. Tercer intento rechazado exitosamente por límite de cupo
+✅ [Progreso & Avance] Criterio 6: Cálculo dinámico y en tiempo real del progreso del estudiante: Avance calculado: 50% tras lección 1, 100% tras lección 2 (2/2 lecciones)
+✅ [Evaluaciones & Calificación] Criterio 7: Evaluación práctica, entrega estudiantil y calificación docente: Proyecto práctico evaluado: Nota 9.50 / 10.00 (mínimo aprobatorio: 7.00). Aprobado: true
+✅ [Certificados & Marco Legal] Criterio 8: Emisión de certificado no formal con hash SHA-256 y descargo legal: Código: CERT-OFIC-2026-4CC5D6, Hash SHA-256: 6f9e57e4dc9c6296..., Descargo Art. 32 verificado
+✅ [Certificados & Marco Legal] Criterio 9: Verificación pública universal de certificados (código y hash SHA-256): Verificación por código: true, por hash: true, código inexistente rechazado: true
+✅ [Informes & Analítica] Criterio 10: Informe analítico de desempeño y finalización del curso: Inscritos: 2, Finalizados: 1, Tasa finalización: 50%, Certificados: 1
+✅ [Certificados & Marco Legal] Criterio 11: Idempotencia en emisión de certificados ante reintentos: Reintento devolvió el certificado previamente generado sin duplicar registros en base de datos
+✅ [Separación Académica] Criterio 12: Aislamiento arquitectónico y separación de malla K-12 EGB: Cero contaminación en tabla 'subjects' (0), cero en 'student_subject_enrollments' (0), cero en 'programs' (0)
+
+================================================================
+  RESUMEN DE PRUEBAS AUTOMATIZADAS — ETAPA 12
+================================================================
+Total Pruebas: 12 | Aprobadas: 12 | Fallidas: 0
+
+✅ TODAS LAS PRUEBAS DE LA ETAPA 12 PASARON SATISFACTORIAMENTE.
+

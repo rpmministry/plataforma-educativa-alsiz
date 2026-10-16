@@ -4,6 +4,7 @@ import { StudentAvatar } from '../common/StudentAvatar';
 import { WorldHeaderBanner } from '../common/WorldCharacters';
 import { DevocionalCard } from './DevocionalCard';
 import { PageHeader } from '../layout/PageHeader';
+import { DevelopmentBadge } from '../common/StateFeedback';
 import {
   Play,
   Calendar,
@@ -83,7 +84,10 @@ export const StudentDashboard: React.FC = () => {
     <div className="space-y-6 sm:space-y-8">
       
       {/* Única puerta de entrada: widgets + clases del día en una sola vista */}
-      <PageHeader title="Mi Espacio de Estudio" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <PageHeader title="Mi Espacio de Estudio" />
+        <DevelopmentBadge stage="Etapa 04" label="Entorno de Desarrollo" />
+      </div>
 
       {/* Student Movie World Banner */}
       <WorldHeaderBanner
@@ -294,6 +298,73 @@ export const StudentDashboard: React.FC = () => {
               <p className="text-xs text-slate-400">Selecciona otro día en la barra superior para explorar las clases.</p>
             </div>
           )}
+
+          {/* Seguimiento por Competencias (Etapa 06 - Actividad vs Dominio Demostrado) */}
+          <div className="p-5 sm:p-6 rounded-3xl bg-[#121820] border border-[#283545] space-y-4 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  <Award className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                    <span>Seguimiento de Competencias MINEDUC</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Normativa Art. 32
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Diferenciación estricta entre actividades entregadas y dominio conceptual demostrado.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-mono">
+                <span className="text-slate-400">Dominio Requerido:</span>
+                <span className="text-amber-400 font-bold">≥ 7.00 / 10.00</span>
+              </div>
+            </div>
+
+            {/* Métricas diferenciadas: Actividades vs Dominio */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3 rounded-2xl bg-[#0A0D11]/70 border border-[#283545]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Destrezas</span>
+                <p className="text-xl font-black text-white mt-0.5">18</p>
+                <span className="text-[10px] text-slate-500">Malla 2026-2027</span>
+              </div>
+              <div className="p-3 rounded-2xl bg-[#0A0D11]/70 border border-[#283545]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Entregadas</span>
+                <p className="text-xl font-black text-indigo-300 mt-0.5">12</p>
+                <span className="text-[10px] text-indigo-400/80">Actividades listas</span>
+              </div>
+              <div className="p-3 rounded-2xl bg-[#0A0D11]/70 border border-emerald-500/30 bg-emerald-500/5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Dominio Demostrado</span>
+                <p className="text-xl font-black text-emerald-300 mt-0.5">9</p>
+                <span className="text-[10px] text-emerald-400/80">≥ 7.00 alcanzado</span>
+              </div>
+              <div className="p-3 rounded-2xl bg-[#0A0D11]/70 border border-amber-500/30 bg-amber-500/5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Sin Dominio / Refuerzo</span>
+                <p className="text-xl font-black text-amber-300 mt-0.5">3</p>
+                <span className="text-[10px] text-amber-400/80">Entregado &lt; 7.00</span>
+              </div>
+            </div>
+
+            {/* Barra de progreso de dominio real */}
+            <div className="space-y-1.5 pt-1">
+              <div className="flex justify-between text-xs text-slate-400">
+                <span>Progreso hacia Perfil de Egreso y Acreditación</span>
+                <span className="font-mono text-emerald-400 font-bold">50% de Dominio Consolidado</span>
+              </div>
+              <div className="h-2.5 w-full bg-[#0A0D11] rounded-full overflow-hidden flex border border-[#283545]">
+                <div style={{ width: '50%' }} className="bg-emerald-500 h-full rounded-full transition-all" title="Dominio demostrado" />
+                <div style={{ width: '16.6%' }} className="bg-amber-500/70 h-full transition-all" title="Actividad completada sin alcanzar dominio" />
+              </div>
+              <div className="flex items-center gap-4 text-[10px] text-slate-400 pt-1">
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Dominio Demostrado (Verificado)</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500" /> Actividad Entregada (Refuerzo Requerido)</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-slate-700" /> Por Iniciar</span>
+              </div>
+            </div>
+          </div>
 
           {/* Subjects Progress Grid */}
           <div className="space-y-4 pt-2">

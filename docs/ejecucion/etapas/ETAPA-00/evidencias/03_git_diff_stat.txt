@@ -1,0 +1,29 @@
+=== COMPROBACION DE DIFERENCIAS (GIT DIFF) ===
+Fecha: 2026-10-16T07:36:14-05:00
+
+1. git diff --stat
+(Salida vacía: no hay cambios no preparados en archivos rastreados)
+
+2. git diff --cached --stat
+(Salida vacía: no hay cambios en el área de preparación / staging)
+
+3. git status --short --branch
+## etapa-00-inicializacion-y-linea-base
+?? "DOCUMENTOS EKBALLO/"
+?? WISDOM-SCHOOL-SHOWCASE.md
+?? docs/
+
+4. git branch -a
+* etapa-00-inicializacion-y-linea-base
+  main
+  remotes/origin/HEAD -> origin/main
+  remotes/origin/main
+  remotes/origin/master
+
+5. git remote -v
+origin	https://github.com/rpmministry/plataforma-educativa-alsiz.git (fetch)
+origin	https://github.com/rpmministry/plataforma-educativa-alsiz.git (push)
+
+6. git log -1 --oneline
+fdaa63a fix(login): mostrar el banner verde tras iniciar sesion en iPad
+

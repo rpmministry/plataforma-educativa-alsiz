@@ -310,6 +310,8 @@ export interface Subject {
   progressPercentage: number;
   classesCompleted: number;
   totalClasses: number;
+  category?: 'TRONCAL_MINEDUC' | 'FORMACION_CRISTIANA' | 'COMPLEMENTARIA' | 'AMPLIACION_INTERNACIONAL' | string;
+  weeklyHours?: number;
 }
 
 export interface WorkAnalysisResult {
@@ -363,11 +365,17 @@ export interface ScheduleEntry {
   isRecess?: boolean;
 }
 
+export type UserRole = 'student' | 'representative' | 'teacher' | 'admin';
+
 export type NavigationTab = 
   | 'home'
+  | 'access'
   | 'space'
   | 'subjects'
+  | 'subject-detail'
   | 'schedule'
   | 'classes'
-  | 'progress';
+  | 'progress'
+  | 'parent'
+  | 'admin';
 

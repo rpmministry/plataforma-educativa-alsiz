@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSchool } from '../../context/SchoolContext';
 import { PageHeader } from '../layout/PageHeader';
+import { DevelopmentBadge } from '../common/StateFeedback';
 import {
   TrendingUp,
   Award,
@@ -47,9 +48,12 @@ export const ProgressView: React.FC = () => {
       
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400">
-          <TrendingUp className="w-4 h-4" />
-          <span>Seguimiento y Registro Académico</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-400">
+            <TrendingUp className="w-4 h-4" />
+            <span>Seguimiento y Registro Académico</span>
+          </div>
+          <DevelopmentBadge stage="Etapa 04" label="Métricas de Desarrollo" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
           Progreso Académico de {currentStudent.name}

@@ -12,6 +12,7 @@ import { ClassVideoPlayer } from './ClassVideoPlayer';
 import { MicroLessonPlayer, MICRO_TOTAL } from './MicroLessonPlayer';
 import { ClassTeacherChat } from './ClassTeacherChat';
 import { LessonTimeline } from './LessonTimeline';
+import { InteractivePilotSandbox } from './InteractivePilotSandbox';
 import { PageHeader } from '../layout/PageHeader';
 import {
   ListTodo, Upload, Sparkles, ExternalLink,
@@ -48,10 +49,24 @@ const SUBTAB_HINTS: Record<ActiveSubTab, string> = {
 export const DailyClassView: React.FC = () => {
   const [isReviewWeek, setIsReviewWeek] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isPilotAvailable, setIsPilotAvailable] = useState<boolean>(false);
+  const [showInteractivePilot, setShowInteractivePilot] = useState<boolean>(false);
 
   useEffect(() => {
     setIsMounted(true);
     setIsReviewWeek(new Date() < new Date('2026-09-07T00:00:00'));
+
+    // Consultar disponibilidad del piloto interactivo
+    fetch('/api/v1/pilot/status')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.success && data.data?.pilotEnabled) {
+          setIsPilotAvailable(true);
+        }
+      })
+      .catch(() => {
+        setIsPilotAvailable(false);
+      });
   }, []);
 
   const {
@@ -250,6 +265,16 @@ export const DailyClassView: React.FC = () => {
                 <span className="text-xs text-slate-400 font-medium">{currentClass.date}</span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                {isPilotAvailable && !showInteractivePilot && (
+                  <button
+                    onClick={() => setShowInteractivePilot(true)}
+                    className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-black bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white shadow-md transition-all touch-lift"
+                    title="Explora la clase con simulación multiagente y trazado de rayos"
+                  >
+                    <Cpu className="w-4 h-4 text-cyan-200" />
+                    <span>Piloto Interactivo (Beta)</span>
+                  </button>
+                )}
                 {/* Descarga de la guía didáctica SIEMPRE visible (inscritos y demo) */}
                 <button
                   onClick={handleDownloadDailyGuides}
@@ -278,8 +303,16 @@ export const DailyClassView: React.FC = () => {
             </div>
           </div>
 
-          {/* SUB-TAB 1: CLASE EN VIVO — EL PROFESOR IA PROTAGONIZA EL ESPACIO CENTRAL */}
-          {activeSubTab === 'content' && (
+          {showInteractivePilot ? (
+            <InteractivePilotSandbox
+              subjectCode={subject?.id || 'subj-fis-bgu-01'}
+              lessonTheme={currentClass.theme}
+              onExit={() => setShowInteractivePilot(false)}
+            />
+          ) : (
+            <>
+              {/* SUB-TAB 1: CLASE EN VIVO — EL PROFESOR IA PROTAGONIZA EL ESPACIO CENTRAL */}
+              {activeSubTab === 'content' && (
             <div className="space-y-6 animate-fade-in">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 rounded-3xl bg-gradient-to-r from-indigo-900/80 to-slate-900 border-2 border-indigo-500/30 shadow-xl">
                 <div>
@@ -489,6 +522,8 @@ export const DailyClassView: React.FC = () => {
                 </button>
               </div>
             </div>
+          )}
+            </>
           )}
 
         </>
