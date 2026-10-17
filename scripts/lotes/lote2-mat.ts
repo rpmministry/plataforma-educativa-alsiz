@@ -565,3 +565,4 @@ export const LOTE_02_MAT: CurriculumLote = {
     }
   ]
 };
+

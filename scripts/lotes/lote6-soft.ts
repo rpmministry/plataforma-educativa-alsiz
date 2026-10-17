@@ -236,3 +236,4 @@ export const LOTE_06_SOFT: CurriculumLote = {
     }
   ]
 };
+

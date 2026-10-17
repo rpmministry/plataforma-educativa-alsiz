@@ -54,3 +54,4 @@ La etapa se encuentra completamente concluida a nivel local y documentada en `do
 - **No se han fusionado ramas con `main`.**
 - **No se ha iniciado la Etapa 06B ni ninguna etapa posterior.**
 - **Se detiene la ejecución a la espera de la autorización expresa del usuario.**
+

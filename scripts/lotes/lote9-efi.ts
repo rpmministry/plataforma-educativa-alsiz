@@ -124,3 +124,4 @@ export const LOTE_09_EFI: CurriculumLote = {
     }
   ]
 };
+

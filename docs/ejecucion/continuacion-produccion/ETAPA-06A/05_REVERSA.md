@@ -53,3 +53,4 @@ Si se desea conservar la documentación o los scripts en `scripts/lotes/`, pero 
    ```powershell
    npx tsc --noEmit
    ```
+

@@ -458,3 +458,4 @@ export const LOTE_03_CNI: CurriculumLote = {
     }
   ]
 };
+

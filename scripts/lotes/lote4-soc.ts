@@ -348,3 +348,4 @@ export const LOTE_04_SOC: CurriculumLote = {
     }
   ]
 };
+

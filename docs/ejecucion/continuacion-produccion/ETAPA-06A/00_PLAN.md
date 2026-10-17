@@ -76,3 +76,4 @@ Cada lección diaria debe contener sin excepción los siguientes 18 campos pedag
 - Unicidad absoluta de IDs de clases (25/25) e IDs de recursos (50/50).
 - 0 alteraciones en los archivos de Avril (`dailyClassesAvril.ts`, `avrilCurriculumDataPart*.ts`).
 - Generación y persistencia de evidencias reproducibles en `docs/ejecucion/continuacion-produccion/ETAPA-06A/evidencias/`.
+

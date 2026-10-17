@@ -38,3 +38,4 @@
 | **Ruptura de compilación de TypeScript** | ALTA | MEDIA | Verificación continua con `npx tsc --noEmit` hasta obtener código de salida 0 sin ningún warning. | MITIGADO |
 | **Peligro de enlaces rotos o inapropiados para menores** | ALTA | BAJA | Validador automatizado con reglas estrictas que abortan la compilación si detecta strings prohibidos (`dQw4w9WgXcQ`, `wisdom-school.edu`). | MITIGADO |
 | **Inconsistencias de despliegue o push prematuro** | ALTA | BAJA | Cumplimiento de la regla de gobernanza: no push remoto, no merge a main, detención tras validación local. | MITIGADO |
+

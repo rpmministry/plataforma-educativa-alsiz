@@ -576,3 +576,4 @@ export const LOTE_01_LEN: CurriculumLote = {
     }
   ]
 };
+

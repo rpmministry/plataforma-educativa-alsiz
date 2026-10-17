@@ -125,3 +125,4 @@ export const LOTE_07_REL: CurriculumLote = {
     }
   ]
 };
+

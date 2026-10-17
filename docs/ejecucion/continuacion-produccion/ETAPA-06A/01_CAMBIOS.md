@@ -95,3 +95,4 @@ Arquitectura modular para la generación y validación independiente por materia
 | 07 | Rel. con Dios | `class-rel-gael-01` | El Jardín del Creador y la mayordomía | `EKB.4.1` (Ekballo) | YouVersion Kids Bible |
 | 08 | Arte (ECA) | `class-art-gael-01` | Upcycling y escultura 3D con reciclaje | `ECA.2.1.1` (MINEDUC) | Quick, Draw! & Tate Kids |
 | 09 | Ed. Física | `class-efi-gael-01` | Circuito psicomotriz y juego limpio | `EF.2.1.1` (MINEDUC) | GoNoodle Kids Movement |
+
