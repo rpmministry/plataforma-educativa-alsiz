@@ -105,6 +105,9 @@ export interface LLMRequest {
   temperature?: number;
   maxTokens?: number;
   forceProvider?: string;
+  timeoutMs?: number;
+  studentId?: string;
+  isManualUserAction?: boolean;
 }
 
 export interface LLMResponse {
@@ -119,9 +122,56 @@ export interface LLMResponse {
   safetyFlags?: string[];
 }
 
+export interface ProviderStatusInfo {
+  name: string;
+  status: 'CONFIGURED' | 'BLOCKED_SECRET_MISSING' | 'AVAILABLE';
+  model: string;
+  priority: number;
+  isPrimary: boolean;
+  isFallback?: boolean;
+}
+
+export interface AIHealthReport {
+  status: 'HEALTHY' | 'DEGRADED' | 'OFFLINE';
+  timestamp: string;
+  activeProvider: string;
+  activeCascadeOrder?: string[];
+  providers: ProviderStatusInfo[];
+  quotaPolicy: {
+    maxRequestsPerMinute: number;
+    maxDailyPerStudent: number;
+    mode: string;
+  };
+}
+
+export type AIErrorCode =
+  | 'AI_ERROR_AUTH'
+  | 'AI_ERROR_TIMEOUT'
+  | 'AI_ERROR_QUOTA'
+  | 'AI_ERROR_MODEL_UNAVAILABLE'
+  | 'AI_ERROR_NETWORK'
+  | 'AI_ERROR_RATE_LIMIT'
+  | 'AI_ERROR_BAD_REQUEST'
+  | 'AI_ALL_PROVIDERS_FAILED';
+
+export class AIProviderError extends Error {
+  code: AIErrorCode;
+  retryable: boolean;
+  statusCode: number;
+
+  constructor(code: AIErrorCode, message: string, retryable = false, statusCode = 500) {
+    super(message);
+    this.name = 'AIProviderError';
+    this.code = code;
+    this.retryable = retryable;
+    this.statusCode = statusCode;
+  }
+}
+
 export interface ILLMProvider {
   readonly name: string;
   isAvailable(): boolean;
   generateResponse(request: LLMRequest): Promise<LLMResponse>;
 }
+
 

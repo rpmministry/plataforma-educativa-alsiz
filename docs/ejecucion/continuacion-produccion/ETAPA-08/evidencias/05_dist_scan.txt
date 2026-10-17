@@ -1,0 +1,6 @@
+﻿===========================================================
+  ALSIZ ΓÇö Escaneo Est├ítico de Seguridad de Bundles (dist/)
+===========================================================
+Archivos analizados: 44
+
+Γ£à CERO SECRETOS DETECTADOS: Los artefactos de frontend no contienen claves ni llamadas directas a proveedores.

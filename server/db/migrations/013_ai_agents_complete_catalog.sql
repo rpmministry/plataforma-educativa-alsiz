@@ -55,31 +55,41 @@ CREATE INDEX IF NOT EXISTS idx_agents_subject ON ai_agents(subject_id);
 
 PRAGMA foreign_keys = ON;
 
--- 2. Asegurar Asignaturas Canónicas en subjects para 4.º EGB Elemental y 8.º EGB Superior
+-- 2. Asegurar Programas y Niveles Canónicos (Estructura Base K-12 para Producción Limpia)
+INSERT OR IGNORE INTO programs (id, code, name, program_type, description, is_active)
+VALUES 
+    ('prog-homeschool', 'EKB-HOMESCHOOL', 'Educación en Casa K-12', 'K12_HOMESCHOOL', 'Currículo integral de homeschooling con alineación MINEDUC y formación cristiana', 1);
+
+INSERT OR IGNORE INTO levels (id, program_id, code, name, order_index, min_recommended_age)
+VALUES
+    ('lvl-elem-4', 'prog-homeschool', 'EGB-ELEM-4', '4.º Grado EGB Elemental', 4, 8),
+    ('lvl-sup-8', 'prog-homeschool', 'EGB-SUP-8', '8.º Grado EGB Superior', 8, 12);
+
+-- 2.1 Asegurar Asignaturas Canónicas en subjects para 4.º EGB Elemental y 8.º EGB Superior
 INSERT OR IGNORE INTO subjects (id, program_id, level_id, code, name, category, weekly_hours, default_teacher_id)
 VALUES
     -- 4.º EGB Elemental (Gael)
-    ('subj-len-401', 'prog-homeschool', 'lvl-elem-4', 'LEN-401', 'Lengua y Literatura', 'TRONCAL_MINEDUC', 5, 'usr-teacher-01'),
-    ('subj-mat-401', 'prog-homeschool', 'lvl-elem-4', 'MAT-401', 'Matemáticas', 'TRONCAL_MINEDUC', 5, 'usr-teacher-01'),
-    ('subj-cni-401', 'prog-homeschool', 'lvl-elem-4', 'CNI-401', 'Ciencias Naturales', 'TRONCAL_MINEDUC', 4, 'usr-teacher-01'),
-    ('subj-soc-401', 'prog-homeschool', 'lvl-elem-4', 'SOC-401', 'Estudios Sociales', 'TRONCAL_MINEDUC', 3, 'usr-teacher-01'),
-    ('subj-ing-401', 'prog-homeschool', 'lvl-elem-4', 'ING-401', 'Inglés', 'AMPLIACION_INTERNACIONAL', 4, 'usr-teacher-01'),
-    ('subj-soft-401', 'prog-homeschool', 'lvl-elem-4', 'SOFT-401', 'Software y Programación', 'COMPLEMENTARIA', 3, 'usr-teacher-01'),
-    ('subj-rel-401', 'prog-homeschool', 'lvl-elem-4', 'REL-401', 'Relación con Dios', 'FORMACION_CRISTIANA', 2, 'usr-teacher-01'),
-    ('subj-art-401', 'prog-homeschool', 'lvl-elem-4', 'ART-401', 'Arte (ECA)', 'TRONCAL_MINEDUC', 2, 'usr-teacher-01'),
-    ('subj-efi-401', 'prog-homeschool', 'lvl-elem-4', 'EFI-401', 'Educación Física', 'TRONCAL_MINEDUC', 2, 'usr-teacher-01'),
+    ('subj-len-401', 'prog-homeschool', 'lvl-elem-4', 'LEN-401', 'Lengua y Literatura', 'TRONCAL_MINEDUC', 5, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-mat-401', 'prog-homeschool', 'lvl-elem-4', 'MAT-401', 'Matemáticas', 'TRONCAL_MINEDUC', 5, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-cni-401', 'prog-homeschool', 'lvl-elem-4', 'CNI-401', 'Ciencias Naturales', 'TRONCAL_MINEDUC', 4, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-soc-401', 'prog-homeschool', 'lvl-elem-4', 'SOC-401', 'Estudios Sociales', 'TRONCAL_MINEDUC', 3, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-ing-401', 'prog-homeschool', 'lvl-elem-4', 'ING-401', 'Inglés', 'AMPLIACION_INTERNACIONAL', 4, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-soft-401', 'prog-homeschool', 'lvl-elem-4', 'SOFT-401', 'Software y Programación', 'COMPLEMENTARIA', 3, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-rel-401', 'prog-homeschool', 'lvl-elem-4', 'REL-401', 'Relación con Dios', 'FORMACION_CRISTIANA', 2, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-art-401', 'prog-homeschool', 'lvl-elem-4', 'ART-401', 'Arte (ECA)', 'TRONCAL_MINEDUC', 2, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-efi-401', 'prog-homeschool', 'lvl-elem-4', 'EFI-401', 'Educación Física', 'TRONCAL_MINEDUC', 2, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
     -- 8.º EGB Superior (Avril)
-    ('subj-len-801', 'prog-homeschool', 'lvl-sup-8', 'LEN-801', 'Lengua y Literatura', 'TRONCAL_MINEDUC', 4, 'usr-teacher-01'),
-    ('subj-mat-801', 'prog-homeschool', 'lvl-sup-8', 'MAT-801', 'Matemáticas', 'TRONCAL_MINEDUC', 5, 'usr-teacher-01'),
-    ('subj-cni-801', 'prog-homeschool', 'lvl-sup-8', 'CNI-801', 'Ciencias Naturales', 'TRONCAL_MINEDUC', 4, 'usr-teacher-01'),
-    ('subj-soc-801', 'prog-homeschool', 'lvl-sup-8', 'SOC-801', 'Estudios Sociales', 'TRONCAL_MINEDUC', 4, 'usr-teacher-01'),
-    ('subj-ing-801', 'prog-homeschool', 'lvl-sup-8', 'ING-801', 'Inglés', 'AMPLIACION_INTERNACIONAL', 5, 'usr-teacher-01'),
-    ('subj-soft-801', 'prog-homeschool', 'lvl-sup-8', 'SOFT-801', 'Software y Prog.', 'COMPLEMENTARIA', 3, 'usr-teacher-01'),
-    ('subj-pol-801', 'prog-homeschool', 'lvl-sup-8', 'POL-801', 'Ciencias Políticas', 'COMPLEMENTARIA', 2, 'usr-teacher-01'),
-    ('subj-adm-801', 'prog-homeschool', 'lvl-sup-8', 'ADM-801', 'Admin. y Marketing', 'COMPLEMENTARIA', 2, 'usr-teacher-01'),
-    ('subj-rel-801', 'prog-homeschool', 'lvl-sup-8', 'REL-801', 'Relación con Dios', 'FORMACION_CRISTIANA', 2, 'usr-teacher-01'),
-    ('subj-art-801', 'prog-homeschool', 'lvl-sup-8', 'ART-801', 'Arte (ECA)', 'TRONCAL_MINEDUC', 2, 'usr-teacher-01'),
-    ('subj-efi-801', 'prog-homeschool', 'lvl-sup-8', 'EFI-801', 'Educación Física', 'TRONCAL_MINEDUC', 2, 'usr-teacher-01');
+    ('subj-len-801', 'prog-homeschool', 'lvl-sup-8', 'LEN-801', 'Lengua y Literatura', 'TRONCAL_MINEDUC', 4, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-mat-801', 'prog-homeschool', 'lvl-sup-8', 'MAT-801', 'Matemáticas', 'TRONCAL_MINEDUC', 5, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-cni-801', 'prog-homeschool', 'lvl-sup-8', 'CNI-801', 'Ciencias Naturales', 'TRONCAL_MINEDUC', 4, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-soc-801', 'prog-homeschool', 'lvl-sup-8', 'SOC-801', 'Estudios Sociales', 'TRONCAL_MINEDUC', 4, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-ing-801', 'prog-homeschool', 'lvl-sup-8', 'ING-801', 'Inglés', 'AMPLIACION_INTERNACIONAL', 5, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-soft-801', 'prog-homeschool', 'lvl-sup-8', 'SOFT-801', 'Software y Prog.', 'COMPLEMENTARIA', 3, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-pol-801', 'prog-homeschool', 'lvl-sup-8', 'POL-801', 'Ciencias Políticas', 'COMPLEMENTARIA', 2, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-adm-801', 'prog-homeschool', 'lvl-sup-8', 'ADM-801', 'Admin. y Marketing', 'COMPLEMENTARIA', 2, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-rel-801', 'prog-homeschool', 'lvl-sup-8', 'REL-801', 'Relación con Dios', 'FORMACION_CRISTIANA', 2, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-art-801', 'prog-homeschool', 'lvl-sup-8', 'ART-801', 'Arte (ECA)', 'TRONCAL_MINEDUC', 2, (SELECT id FROM users WHERE id = 'usr-teacher-01')),
+    ('subj-efi-801', 'prog-homeschool', 'lvl-sup-8', 'EFI-801', 'Educación Física', 'TRONCAL_MINEDUC', 2, (SELECT id FROM users WHERE id = 'usr-teacher-01'));
 
 -- 3. Catálogo de Fuentes Aprobadas del Centro de Conocimiento para las 20 Materias
 INSERT OR IGNORE INTO knowledge_sources (

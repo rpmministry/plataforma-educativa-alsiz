@@ -270,6 +270,8 @@ export class AgentService {
       safetyRestrictions: agent.safety_restrictions,
       language: options?.language || agent.default_language,
       forceProvider: options?.forceProvider,
+      studentId,
+      isManualUserAction: true,
     });
 
     // 5. Registrar respuesta del Agente
@@ -283,12 +285,14 @@ export class AgentService {
       conversationId,
       llmResponse.content,
       JSON.stringify(llmResponse.citationTags),
-      JSON.stringify(ragChunks.map((c) => ({ tag: c.citationTag, source: c.sourceCode }))),
+      JSON.stringify(ragChunks.map((c) => ({ tag: c.citationTag, source: c.sourceCode, title: c.sourceTitle, snippet: c.contentText.slice(0, 100) }))),
       JSON.stringify({
         provider: llmResponse.providerName,
         model: llmResponse.modelName,
         latencyMs: llmResponse.latencyMs,
         isFallback: llmResponse.isFallback,
+        citationsFound: llmResponse.citationTags,
+        chunksRetrievedCount: ragChunks.length,
       }),
       llmResponse.safetyFlags ? JSON.stringify(llmResponse.safetyFlags) : null
     );
@@ -300,7 +304,7 @@ export class AgentService {
     db.prepare(`
       INSERT INTO ai_telemetry_logs (
         id, agent_code, provider_name, model_name, latency_ms, tokens_prompt, tokens_completion, status_code
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 200)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       `tel-${crypto.randomUUID().slice(0, 12)}`,
       agent.code,
@@ -308,7 +312,8 @@ export class AgentService {
       llmResponse.modelName,
       llmResponse.latencyMs,
       llmResponse.tokensPrompt,
-      llmResponse.tokensCompletion
+      llmResponse.tokensCompletion,
+      llmResponse.isFallback ? 206 : 200
     );
 
     const studentMessage = db.prepare('SELECT * FROM ai_messages WHERE id = ?').get(studentMsgId) as unknown as AIMessage;
