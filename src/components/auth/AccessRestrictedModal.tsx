@@ -68,7 +68,7 @@ export const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({ is
 
         <div className="p-6 sm:p-8 space-y-5 overflow-y-auto overscroll-contain">
           <p className="text-sm text-slate-300 leading-relaxed">
-            El correo que intentas usar no se encuentra inscrito en <strong className="text-white">Wisdom School</strong>. Si deseas inscribir a tu hijo(a) o acceder a un plan de estudios, comunícate directamente con administración:
+            El correo que intentas usar no se encuentra inscrito en la <strong className="text-white">Plataforma Educativa ALSIZ</strong>. Si deseas inscribir a tu hijo(a) o acceder a un plan de estudios de homeschooling, comunícate directamente con administración:
           </p>
 
           {email && (

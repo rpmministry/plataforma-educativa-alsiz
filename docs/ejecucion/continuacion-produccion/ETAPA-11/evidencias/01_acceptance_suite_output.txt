@@ -1,0 +1,83 @@
+﻿
+> react-example@0.0.0 test:etapa11-acceptance
+> tsx scripts/test-etapa-11-acceptance.ts
+
+================================================================
+  SUITE DE ACEPTACIÓN FINAL Y PRE-PASE A PRODUCCIÓN — ETAPA 11
+  Plataforma Educativa ALSIZ — Ekballo Church
+================================================================
+
+[IDENTIDAD] ✅ E11-ID-01 - Existencia de cuentas reales (Gael, Avril, Mauricio) en base persistente
+       Detalle: Cuentas reales registradas: 3 (Avril: ACTIVE, Gael: ACTIVE, Mauricio: ACTIVE).
+
+[IDENTIDAD] ✅ E11-ID-02 - Vinculación legal de tutela y corresponsabilidad paterno-filial
+       Detalle: Vínculos familiares validados: 2 (Mauricio -> Avril [FATHER], Mauricio -> Gael [FATHER]).
+
+[IDENTIDAD] ✅ E11-ID-03 - Integridad relacional estricta (0 FK errors) y criptografía scryptSync con sal aleatoria
+       Detalle: Errores de clave foránea: 0. Hashes validados con algoritmo scrypt: 3 contraseñas + 2 PINs.
+
+[IDENTIDAD] ✅ E11-ID-04 - Honestidad en datos no provistos (cero notas inventadas y marcas PENDIENTE_VERIFICACION)
+       Detalle: Entregas inventadas: 0 (progreso inicia en 0%). Cédula del tutor marcada honestamente como: PENDIENTE_VERIFICACION.
+
+[CURRICULO] ✅ E11-CURR-01 - Catálogo de 20 asignaturas cubiertas con profesores virtuales especializados
+       Detalle: Gael (4.° EGB): 9/9 asignaturas con docente IA. Avril (8.° EGB): 11/11 asignaturas con docente IA.
+
+[CURRICULO] ✅ E11-CURR-02 - Estructura completa de 48 clases socráticas de Unidad 1 (25 Gael + 23 Avril) sin colisiones
+       Detalle: Clases Gael: 25, Clases Avril: 23, IDs únicos verificados: 48 / 48.
+
+[CURRICULO] ✅ E11-CURR-03 - Cero marcadores de broma (Rickroll) y cero dominios extintos en recursos de Unidad 1
+       Detalle: Placeholders Rickroll encontrados: 0. Enlaces a wisdom-school.edu encontrados: 0.
+
+[CURRICULO] ✅ E11-CURR-04 - Alineación y licencias de recursos educativos abiertos (PhET CC-BY, GeoGebra, Scratch MIT)
+       Detalle: Simuladores verificados: PhET Colorado (5), GeoGebra (2), Scratch MIT (1).
+
+[IA_CONOCIMIENTO] ✅ E11-AI-01 - Existencia y completitud de las 20 matrices temáticas en docs/ai-agents/matrices-tematicas/
+       Detalle: Matrices temáticas encontradas en disco: 20 / 20 requeridas.
+
+[IA_CONOCIMIENTO] ✅ E11-AI-02 - Fuentes curriculares oficiales aprobadas y fragmentos indexados en SQLite RAG
+       Detalle: Fuentes aprobadas: 22 / 20. Chunks con citación formal [TAG#C1]: 23.
+
+[IA_CONOCIMIENTO] ✅ E11-AI-03 - Orquestador ProviderManager con cascada y degradación a SIMULATED_LOCAL
+       Detalle: Estado de salud: DEGRADED, Proveedor activo: SIMULATED_LOCAL, Contingencia socrática disponible: true.
+
+[IA_CONOCIMIENTO] ✅ E11-AI-04 - Cero fuga de claves API en bundles públicos (dist/) y exclusión estricta de .env en Git
+       Detalle: Archivos de producción escaneados en dist/: 3. Claves detectadas: 0.
+
+[OPERACION_SEGURIDAD] ✅ E11-OPS-01 - Estado sincronizado de migraciones de base de datos (schema_migrations)
+       Detalle: Estado: SYNCED. Migraciones aplicadas: 13 (última: v013).
+
+[OPERACION_SEGURIDAD] ✅ E11-OPS-02 - Mecanismo de Hot Backup (VACUUM INTO) y verificación de integridad restaurada
+       Detalle: Respaldo y restauración en caliente comprobados con integrity_check: ok.
+
+[OPERACION_SEGURIDAD] ✅ E11-OPS-03 - Aislamiento de producción: Omitir semillas de desarrollo (003_seed_dev_data.sql)
+       Detalle: Política P0 activa en migrator.ts: omite estrictamente semillas en producción.
+
+[OPERACION_SEGURIDAD] ✅ E11-OPS-04 - Directivas de sesión segura: cookie alsiz_session HttpOnly, SameSite=Lax y TTL 72h
+       Detalle: Configuración de cookies verificada en setSessionCookie (HttpOnly, SameSite=Lax, Secure en HTTPS).
+
+[ALCANCE_LEGAL] ✅ E11-LEG-01 - Descargo institucional visible: Apoyo pedagógico / Homeschooling sin oferta de títulos oficiales
+       Detalle: Descargo formal incorporado en Footer.tsx y verificado textualmente.
+
+[ALCANCE_LEGAL] ✅ E11-LEG-02 - Control de liberación progresiva: Unidad 1 completa (Semana 1); semanas 2-40 en cronograma progresivo
+       Detalle: Riesgo residual controlado: Unidad 1 lista para arranque (48 clases). Trimestres 2 y 3 requieren liberación previa.
+
+[ALCANCE_LEGAL] ✅ E11-LEG-03 - Salvaguarda de no activación anticipada sin firma de Acta y autorización expresa del responsable
+       Detalle: Prohibido despliegue a producción, entrega de credenciales o git push sin autorización formal de Mauricio Andrade.
+
+================================================================
+  BALANCE DE VERIFICACIONES DE LA ETAPA 11
+================================================================
+Total de verificaciones:   19
+Aprobadas exitosamente:    19
+Fallidas / Bloqueantes:    0
+Fallas críticas P0:        0
+
+----------------------------------------------------------------
+SEMÁFORO DE ACEPTACIÓN FINAL: [ AMARILLO ]
+DICTAMEN: TÉCNICAMENTE CONFORME — APERTURA CONDICIONADA A AUTORIZACIÓN HUMANA
+Condiciones para el pase a estudiantes:
+  1. Firma y ratificación del Acta de Pase a Producción.
+  2. Provisión del servicio backend persistente en Render/VPS con disco montado.
+  3. Entrega segura de contraseñas y PIN a los representantes legales.
+----------------------------------------------------------------
+

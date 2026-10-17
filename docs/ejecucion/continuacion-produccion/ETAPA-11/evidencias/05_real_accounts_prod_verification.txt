@@ -1,0 +1,38 @@
+﻿================================================================
+  VERIFICACIÓN POST-MIGRACIÓN DE CUENTAS EN PRODUCCIÓN
+  Base de Datos: data/alsiz.db
+================================================================
+
+[1] Usuarios reales en producción: 3
+  - [STUDENT] ID: usr-real-avril | User: avril.andrade | Status: ACTIVE
+  - [STUDENT] ID: usr-real-gael | User: gael.andrade | Status: ACTIVE
+  - [REPRESENTATIVE] ID: usr-real-rep-mauricio | User: mauricio.andrade | Status: ACTIVE
+
+[2] Perfiles estudiantiles y matrículas: 2
+  - Estudiante: ALSIZ-8VO-AVR | Nivel: 8.º Grado EGB Superior (EGB-SUP-8) | Matrícula: ACTIVE
+  - Estudiante: ALSIZ-4TO-GAE | Nivel: 4.º Grado EGB Elemental (EGB-ELEM-4) | Matrícula: ACTIVE
+
+[3] Vínculos familiares de corresponsabilidad: 2
+  - Tutor: Mauricio Andrade Luna -> Alumno: stu-real-avril | Parentesco: FATHER | Primario: true
+  - Tutor: Mauricio Andrade Luna -> Alumno: stu-real-gael | Parentesco: FATHER | Primario: true
+
+[4] Conteo de Malla y Materiales Académicos:
+  - Asignaturas: 20 / 20
+  - Matrículas por materia: 20 / 20
+  - Clases Socráticas: 43 / 43
+  - Recursos Didácticos: 86 / 86
+  - Evaluaciones Formativas: 129 / 129
+
+[5] Integridad de Claves Foráneas (PRAGMA foreign_key_check): 0 errores
+
+[6] Criptografía NIST (scryptSync):
+  - Hashes de contraseña válidos: true
+  - Hashes de PIN válidos: true
+
+[7] Libro Mayor de Auditoría LOPDP:
+  - Evento: STUDENT_MIGRATION_CONTROLLED | ID: aud-real-3581c9c10724 | Fecha: 2026-10-17 15:04:24
+
+================================================================
+  VERIFICACIÓN EN PRODUCCIÓN: 100% CONFORME Y COMPLETA
+================================================================
+

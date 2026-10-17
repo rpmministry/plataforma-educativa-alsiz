@@ -65,7 +65,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-white">Wisdom Homeschool Ecuador</h2>
+              <h2 className="text-xl font-bold text-white">Plataforma Educativa ALSIZ • Ekballo Church</h2>
               <p className="text-sm text-slate-400">
                 Se detectó una discrepancia temporal al cargar los datos de la plataforma.
               </p>

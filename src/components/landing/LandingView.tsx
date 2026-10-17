@@ -396,7 +396,7 @@ export const LandingView: React.FC = () => {
             Interacción Socrática en Tiempo Real
           </h2>
           <p className="text-sm text-slate-300">
-            Los profesores virtuales de Wisdom School utilizan el Método Socrático para formular preguntas guiadas y pistas progresivas en lugar de regalar respuestas mecánicas.
+            Los profesores virtuales de la Plataforma Educativa ALSIZ utilizan el Método Socrático para formular preguntas guiadas y pistas progresivas en lugar de regalar respuestas mecánicas.
           </p>
         </div>
 

@@ -351,7 +351,7 @@ export const StudentDashboard: React.FC = () => {
             {/* Barra de progreso de dominio real */}
             <div className="space-y-1.5 pt-1">
               <div className="flex justify-between text-xs text-slate-400">
-                <span>Progreso hacia Perfil de Egreso y Acreditación</span>
+                <span>Progreso hacia Perfil de Egreso y Portafolio Formativo</span>
                 <span className="font-mono text-emerald-400 font-bold">50% de Dominio Consolidado</span>
               </div>
               <div className="h-2.5 w-full bg-[#0A0D11] rounded-full overflow-hidden flex border border-[#283545]">

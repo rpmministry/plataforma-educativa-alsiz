@@ -229,7 +229,7 @@ try {
                 type="email"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="ej. estudiante@wisdomschool.edu"
+                placeholder="ej. estudiante@alsiz.local"
                 className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
                 autoComplete="email"
               />
