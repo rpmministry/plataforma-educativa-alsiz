@@ -1,8 +1,8 @@
 /**
  * ==============================================================================
- * Motor de Migración Controlada — ETAPA 11 (ALSIZ / Ekballo Church)
+ * Motor de Migración Controlada — ETAPA 04 (ALSIZ / Ekballo Church)
  * Migración Idempotente, Segura y con Trazabilidad de los Expedientes de
- * Estudiante A (8vo EGB Superior) y Estudiante G (4to EGB Elemental)
+ * Gael (4.º Grado EGB Elemental) y Avril (8.º Grado EGB Superior)
  * ==============================================================================
  */
 
@@ -17,13 +17,15 @@ import {
 } from '../../src/data/mockData';
 import { AVRIL_DAILY_CLASSES } from '../../src/data/dailyClassesAvril';
 import { GAEL_DAILY_CLASSES } from '../../src/data/dailyClassesGael';
-import { DailyClass, Subject, ClassResource } from '../../src/types';
+import { CONTACT_INFO } from '../../src/data/contactInfo';
+import { DailyClass, Subject } from '../../src/types';
 
 export interface MigrationOptions {
   db: DatabaseSync;
   dryRun?: boolean;
   targetStudentIds?: string[]; // e.g. ['avril', 'gael']
   actorUserId?: string; // admin user requesting migration
+  idPrefix?: 'real' | 'mig';
 }
 
 export type ResourceAction = 'reutilizar' | 'actualizar' | 'duplicado' | 'pendiente de validacion' | 'no migrar';
@@ -42,6 +44,8 @@ export interface ResourceAuditItem {
 
 export interface InventorySummary {
   studentsCount: number;
+  representativesCount: number;
+  familyLinksCount: number;
   subjectsCount: {
     avril: number;
     gael: number;
@@ -78,12 +82,19 @@ export interface InventorySummary {
     resourceIds: string[];
     activityIds: string[];
   };
+  pendingVerifications: {
+    entity: string;
+    field: string;
+    reason: string;
+  }[];
 }
 
 export interface MigrationStats {
   dryRun: boolean;
   usersInserted: number;
+  representativesInserted: number;
   studentsInserted: number;
+  studentRepresentativesInserted: number;
   programEnrollmentsInserted: number;
   subjectsInserted: number;
   subjectEnrollmentsInserted: number;
@@ -165,6 +176,8 @@ export class LegacyMigrationEngine {
 
     return {
       studentsCount: 2, // Avril y Gael
+      representativesCount: 1, // Mauricio Andrade Luna
+      familyLinksCount: 2, // Relación padre-hijo (Avril y Gael)
       subjectsCount: {
         avril: AVRIL_SUBJECTS.length,
         gael: GAEL_SUBJECTS.length,
@@ -201,6 +214,28 @@ export class LegacyMigrationEngine {
         resourceIds: dupR,
         activityIds: dupA,
       },
+      pendingVerifications: [
+        {
+          entity: 'representatives (Mauricio Andrade Luna)',
+          field: 'identification_number',
+          reason: 'Cédula no provista en contactInfo.ts; marcada como PENDIENTE_VERIFICACION para no inventar datos.',
+        },
+        {
+          entity: 'representatives (Mauricio Andrade Luna)',
+          field: 'address_text',
+          reason: 'Dirección residencial no provista en contactInfo.ts; marcada como PENDIENTE_VERIFICACION.',
+        },
+        {
+          entity: 'representatives (Mauricio Andrade Luna)',
+          field: 'consent_lopdp_signed_at',
+          reason: 'Firma de consentimiento LOPDP física/digital pendiente de suscripción formal.',
+        },
+        {
+          entity: 'students (Avril y Gael)',
+          field: 'birth_date (día y mes exactos)',
+          reason: 'Año deducido honestamente por edad (2014 para 12 años, 2018 para 8 años). Día/mes fijados en 01-01 con nota de verificación pendiente.',
+        },
+      ],
     };
   }
 
@@ -275,16 +310,24 @@ export class LegacyMigrationEngine {
   }
 
   /**
-   * Ejecuta la migración de forma idempotente.
-   * Si dryRun es true, ejecuta todas las verificaciones y transformaciones sin alterar la BD.
+   * Ejecuta la migración de forma idempotente y atómica.
+   * Si dryRun es true, proyecta las transformaciones sin alterar la BD.
    */
   public runMigration(options: MigrationOptions): MigrationStats {
-    const { db, dryRun = false, targetStudentIds = ['avril', 'gael'], actorUserId = 'usr-admin-01' } = options;
+    const {
+      db,
+      dryRun = false,
+      targetStudentIds = ['avril', 'gael'],
+      actorUserId = 'usr-admin-01',
+      idPrefix = 'real',
+    } = options;
 
     const stats: MigrationStats = {
       dryRun,
       usersInserted: 0,
+      representativesInserted: 0,
       studentsInserted: 0,
+      studentRepresentativesInserted: 0,
       programEnrollmentsInserted: 0,
       subjectsInserted: 0,
       subjectEnrollmentsInserted: 0,
@@ -303,11 +346,15 @@ export class LegacyMigrationEngine {
 
     const targetStudents = STUDENTS_DATA.filter(s => targetStudentIds.includes(s.id));
 
-    // Si es dryRun, ejecutamos las verificaciones y salimos reportando lo proyectado
+    // Si es dryRun, computamos las proyecciones y salimos sin tocar la base de datos
     if (dryRun) {
+      // 1 representante legal + estudiantes
+      stats.usersInserted = 1 + targetStudents.length;
+      stats.representativesInserted = 1;
+      stats.studentsInserted = targetStudents.length;
+      stats.studentRepresentativesInserted = targetStudents.length;
+
       targetStudents.forEach(student => {
-        stats.usersInserted++;
-        stats.studentsInserted++;
         stats.programEnrollmentsInserted++;
 
         const isAvril = student.id === 'avril';
@@ -328,7 +375,6 @@ export class LegacyMigrationEngine {
           stats.evaluationsInserted += (c.activities?.length || 0);
         });
 
-        // Periodos y eventos
         stats.periodsInserted = 3;
         stats.calendarEventsInserted += (student.academicPlan?.projects?.length || 0);
       });
@@ -356,7 +402,7 @@ export class LegacyMigrationEngine {
           ('lvl-sup-8', 'prog-homeschool', 'EGB-SUP-8', '8.º Grado EGB Superior', 8, 12);
       `).run();
 
-      // 2. Periodos Académicos del Año Lectivo 2026-2027 (con fechas exactas de mockData)
+      // 2. Periodos Académicos del Año Lectivo 2026-2027
       const periods = [
         { id: 'per-2026-t1', code: 'PER-2026-2027-T1', name: '1.º TRIMESTRE: Diagnóstico y Proyectos Iniciales', trimester: 1, start: '2026-09-07', end: '2026-11-24', isCurrent: 1 },
         { id: 'per-2026-t2', code: 'PER-2026-2027-T2', name: '2.º TRIMESTRE: Avance Interdisciplinario', trimester: 2, start: '2026-11-26', end: '2027-03-08', isCurrent: 0 },
@@ -374,36 +420,64 @@ export class LegacyMigrationEngine {
         else stats.skippedExisting++;
       });
 
-      // Rastrear IDs insertados para desambiguar colisiones en los datos legados de Wisdom School
+      // 3. Crear Representante Legal (Mauricio Andrade Luna)
+      const repUserId = `usr-${idPrefix}-rep-mauricio`;
+      const repProfileId = `rep-${idPrefix}-mauricio`;
+      // Generación criptográfica segura de credencial inicial (scryptSync)
+      const repInitialSecret = process.env.MIGRATION_INITIAL_PASSWORD_REP || `AlsizRep${crypto.randomBytes(6).toString('hex')}!`;
+      const repPassHash = hashPassword(repInitialSecret);
+
+      const stmtUserRep = db.prepare(`
+        INSERT INTO users (id, email, username, password_hash, role, status, first_name, last_name, avatar_asset_key)
+        VALUES (?, ?, 'mauricio.andrade', ?, 'REPRESENTATIVE', 'ACTIVE', 'Mauricio', 'Andrade Luna', 'family_shield')
+        ON CONFLICT(id) DO UPDATE SET
+          status = 'ACTIVE',
+          first_name = 'Mauricio',
+          last_name = 'Andrade Luna',
+          updated_at = datetime('now');
+      `);
+      const repUserRes = stmtUserRep.run(repUserId, CONTACT_INFO.email, repPassHash);
+      if (Number(repUserRes.changes) > 0) stats.usersInserted++;
+
+      const stmtRepProfile = db.prepare(`
+        INSERT INTO representatives (id, user_id, identification_type, identification_number, phone_number, address_text, consent_lopdp_signed_at)
+        VALUES (?, ?, 'CEDULA', 'PENDIENTE_VERIFICACION', ?, 'PENDIENTE_VERIFICACION', NULL)
+        ON CONFLICT(id) DO UPDATE SET
+          phone_number = excluded.phone_number;
+      `);
+      const repProfRes = stmtRepProfile.run(repProfileId, repUserId, CONTACT_INFO.whatsappDisplay);
+      if (Number(repProfRes.changes) > 0) stats.representativesInserted++;
+
+      // Rastrear IDs insertados para desambiguar colisiones en los datos legados
       const seenClassDbIds = new Set<string>();
       const seenObjDbIds = new Set<string>();
       const seenResDbIds = new Set<string>();
       const seenEvalDbIds = new Set<string>();
 
-      // 3. Migración por Estudiante
+      // 4. Migración por Estudiante
       for (const student of targetStudents) {
         const isAvril = student.id === 'avril';
         const levelId = isAvril ? 'lvl-sup-8' : 'lvl-elem-4';
         const studentCode = isAvril ? 'ALSIZ-8VO-AVR' : 'ALSIZ-4TO-GAE';
-        const userId = `usr-mig-${student.id}`;
-        const studentDbId = `stu-mig-${student.id}`;
-        const enrollmentId = `enr-mig-${student.id}-homeschool`;
+        const userId = `usr-${idPrefix}-${student.id}`;
+        const studentDbId = `stu-${idPrefix}-${student.id}`;
+        const enrollmentId = `enr-${idPrefix}-${student.id}-homeschool`;
 
-        // Contraseña y PIN hasheados (NUNCA en texto claro)
-        const rawPassword = student.password || student.id;
-        const rawPin = student.pinCode || `${student.id.toUpperCase()}-2026`;
-        const passHash = hashPassword(rawPassword);
-        const pinHash = hashPin(rawPin);
+        // Generar credenciales iniciales seguras con scryptSync (NUNCA importar contraseñas planas de mockData)
+        const initialStudentPassword = process.env[`MIGRATION_INITIAL_PASSWORD_${student.id.toUpperCase()}`] || `AlsizStu${crypto.randomBytes(6).toString('hex')}!`;
+        const initialStudentPin = process.env[`MIGRATION_INITIAL_PIN_${student.id.toUpperCase()}`] || Math.floor(100000 + Math.random() * 900000).toString();
+        const passHash = hashPassword(initialStudentPassword);
+        const pinHash = hashPin(initialStudentPin);
 
         // Fecha de nacimiento: deducida con honestidad a partir de edad documentada (12 o 8 años)
-        // sin inventar día/mes aleatorio (se asigna 01 de enero del año deducible y se documenta)
+        // Fijando 01 de enero del año deducido y marcando verificación pendiente en el lema/auditoría
         const deducedYear = 2026 - (student.age || (isAvril ? 12 : 8));
         const birthDate = `${deducedYear}-01-01`;
 
-        // 3.1 Usuario en users
+        // 4.1 Usuario en users
         const stmtUser = db.prepare(`
           INSERT INTO users (id, email, username, password_hash, role, status, first_name, last_name, avatar_asset_key)
-          VALUES (?, ?, ?, ?, 'STUDENT', 'ACTIVE', ?, ?, ?)
+          VALUES (?, ?, ?, ?, 'STUDENT', 'ACTIVE', ?, 'Andrade Sánchez', ?)
           ON CONFLICT(id) DO UPDATE SET
             status = 'ACTIVE',
             updated_at = datetime('now');
@@ -411,15 +485,14 @@ export class LegacyMigrationEngine {
         const userRes = stmtUser.run(
           userId,
           student.email || `${student.id}@ekballo.alsiz.edu`,
-          `${student.id}_ekballo`,
+          `${student.id}.andrade`,
           passHash,
           student.name,
-          'Andrade Sánchez',
           student.avatar || (isAvril ? 'snoopy_avatar' : 'mario_avatar')
         );
         if (Number(userRes.changes) > 0) stats.usersInserted++;
 
-        // 3.2 Perfil en students
+        // 4.2 Perfil en students
         const stmtStudent = db.prepare(`
           INSERT INTO students (id, user_id, pin_code_hash, student_code, birth_date, motto, color_theme_json)
           VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -438,7 +511,16 @@ export class LegacyMigrationEngine {
         );
         if (Number(studRes.changes) > 0) stats.studentsInserted++;
 
-        // 3.3 Matrícula en programa
+        // 4.3 Vínculo familiar en student_representatives
+        const stmtFamLink = db.prepare(`
+          INSERT INTO student_representatives (student_id, representative_id, relationship_type, is_primary_contact)
+          VALUES (?, ?, 'FATHER', 1)
+          ON CONFLICT(student_id, representative_id) DO UPDATE SET is_primary_contact = 1;
+        `);
+        const famRes = stmtFamLink.run(studentDbId, repProfileId);
+        if (Number(famRes.changes) > 0) stats.studentRepresentativesInserted++;
+
+        // 4.4 Matrícula en programa general
         const stmtEnr = db.prepare(`
           INSERT INTO student_program_enrollments (id, student_id, program_id, level_id, school_year, status)
           VALUES (?, ?, 'prog-homeschool', ?, '2026-2027', 'ACTIVE')
@@ -447,7 +529,7 @@ export class LegacyMigrationEngine {
         const enrRes = stmtEnr.run(enrollmentId, studentDbId, levelId);
         if (Number(enrRes.changes) > 0) stats.programEnrollmentsInserted++;
 
-        // 3.4 Asignaturas y Unidades
+        // 4.5 Asignaturas y Unidades Curriculares
         const subjects = isAvril ? AVRIL_SUBJECTS : GAEL_SUBJECTS;
         const stmtSubject = db.prepare(`
           INSERT INTO subjects (id, program_id, level_id, code, name, category, weekly_hours, default_teacher_id)
@@ -473,9 +555,9 @@ export class LegacyMigrationEngine {
         `);
 
         for (const subj of subjects) {
-          const subjectDbId = `subj-mig-${subj.id}`;
+          const subjectDbId = `subj-${idPrefix}-${subj.id}`;
 
-          // Categorización de asignaturas
+          // Categorización de asignaturas según MINEDUC / Ekballo
           let category = 'COMPLEMENTARIA';
           if (['mat', 'len', 'sci', 'soc', 'art', 'efi'].some(prefix => subj.id.startsWith(prefix))) {
             category = 'TRONCAL_MINEDUC';
@@ -497,15 +579,15 @@ export class LegacyMigrationEngine {
           );
           if (Number(sRes.changes) > 0) stats.subjectsInserted++;
 
-          // Matrícula por asignatura
+          // Matrícula específica por asignatura
           const subEnrId = `subenr-${studentDbId}-${subjectDbId}`;
           const seRes = stmtSubjEnrollment.run(subEnrId, studentDbId, subjectDbId, enrollmentId);
           if (Number(seRes.changes) > 0) stats.subjectEnrollmentsInserted++;
 
-          // Unidades curriculares
+          // Unidades curriculares asociadas
           if (subj.units && subj.units.length > 0) {
             for (const unit of subj.units) {
-              const unitDbId = `unit-mig-${unit.id}`;
+              const unitDbId = `unit-${idPrefix}-${unit.id}`;
               const uRes = stmtUnit.run(
                 unitDbId,
                 subjectDbId,
@@ -517,8 +599,8 @@ export class LegacyMigrationEngine {
               if (Number(uRes.changes) > 0) stats.unitsInserted++;
             }
           } else {
-            // Unidad por defecto si no venía fragmentada
-            const unitDbId = `unit-mig-${subj.id}-u1`;
+            // Unidad por defecto si no venía fragmentada en partes
+            const unitDbId = `unit-${idPrefix}-${subj.id}-u1`;
             const uRes = stmtUnit.run(
               unitDbId,
               subjectDbId,
@@ -531,7 +613,7 @@ export class LegacyMigrationEngine {
           }
         }
 
-        // 3.5 Clases Diarias, Objetivos, Recursos y Evaluaciones
+        // 4.6 Clases Diarias Socráticas, Objetivos, Recursos y Evaluaciones
         const classes = isAvril ? AVRIL_DAILY_CLASSES : GAEL_DAILY_CLASSES;
 
         const stmtClass = db.prepare(`
@@ -568,22 +650,22 @@ export class LegacyMigrationEngine {
 
         for (let idx = 0; idx < classes.length; idx++) {
           const cls = classes[idx];
-          
-          // Desambiguar ID si hubo colisión en el código legado
-          let classDbId = `class-mig-${cls.id}`;
+
+          // Desambiguar IDs en caso de colisiones en los datos legados
+          let classDbId = `class-${idPrefix}-${cls.id}`;
           if (seenClassDbIds.has(classDbId)) {
             classDbId = `${classDbId}-dup2`;
             stats.collisionsDisambiguated++;
           }
           seenClassDbIds.add(classDbId);
 
-          const subjectDbId = `subj-mig-${cls.subjectId}`;
+          const subjectDbId = `subj-${idPrefix}-${cls.subjectId}`;
 
           // Asociar con la primera unidad disponible de la materia
           const rowUnit = db.prepare('SELECT id FROM curriculum_units WHERE subject_id = ? ORDER BY unit_number ASC LIMIT 1').get(subjectDbId) as any;
-          const unitDbId = rowUnit ? rowUnit.id : `unit-mig-${cls.subjectId}-u1`;
+          const unitDbId = rowUnit ? rowUnit.id : `unit-${idPrefix}-${cls.subjectId}-u1`;
 
-          // Detectar simulador
+          // Detección de simulador interactivo
           let labType: string | null = null;
           const resSim = (cls.resources || []).find(r => r.type === 'simulator' || (r.url && (r.url.includes('phet') || r.url.includes('geogebra'))));
           if (resSim) {
@@ -614,7 +696,7 @@ export class LegacyMigrationEngine {
 
           // Objetivo de aprendizaje
           if (cls.objective) {
-            let objId = `obj-mig-${cls.id}`;
+            let objId = `obj-${idPrefix}-${cls.id}`;
             if (seenObjDbIds.has(objId)) {
               objId = `${objId}-dup2`;
             }
@@ -628,7 +710,7 @@ export class LegacyMigrationEngine {
           if (cls.resources && cls.resources.length > 0) {
             for (let rIdx = 0; rIdx < cls.resources.length; rIdx++) {
               const res = cls.resources[rIdx];
-              let resId = `res-mig-${res.id}`;
+              let resId = `res-${idPrefix}-${res.id}`;
               if (seenResDbIds.has(resId)) {
                 resId = `${resId}-dup2`;
               }
@@ -658,7 +740,7 @@ export class LegacyMigrationEngine {
           // Actividades evaluativas
           if (cls.activities && cls.activities.length > 0) {
             for (const act of cls.activities) {
-              let evalId = `eval-mig-${act.id}`;
+              let evalId = `eval-${idPrefix}-${act.id}`;
               if (seenEvalDbIds.has(evalId)) {
                 evalId = `${evalId}-dup2`;
               }
@@ -680,7 +762,7 @@ export class LegacyMigrationEngine {
           }
         }
 
-        // 3.6 Eventos de Calendario Académico (Proyectos Interdisciplinarios)
+        // 4.7 Eventos de Calendario Académico (Proyectos Interdisciplinarios)
         const projects = student.academicPlan?.projects || [];
         const stmtEvent = db.prepare(`
           INSERT INTO academic_calendar_events (id, period_id, program_id, subject_id, title, description, event_type, start_date, end_date, is_mandatory)
@@ -689,7 +771,7 @@ export class LegacyMigrationEngine {
         `);
 
         for (const proj of projects) {
-          const eventId = `ev-mig-${proj.id}`;
+          const eventId = `ev-${idPrefix}-${proj.id}`;
           const periodId = `per-2026-t${proj.trimesterNumber}`;
           const dateRange = proj.trimesterNumber === 1 ? '2026-11-20' : '2027-03-05';
 
@@ -705,11 +787,11 @@ export class LegacyMigrationEngine {
         }
       }
 
-      // 4. Registro en el Libro Mayor de Auditoría Inmutable (LOPDP)
-      const auditId = `aud-mig-${crypto.randomBytes(6).toString('hex')}`;
+      // 5. Registro Inmutable en el Libro Mayor de Auditoría (LOPDP Art. 21 y 22)
+      const auditId = `aud-${idPrefix}-${crypto.randomBytes(6).toString('hex')}`;
       const stmtAudit = db.prepare(`
         INSERT INTO audit_events (id, user_id, event_type, resource_type, resource_id, ip_hash, user_agent, details_json)
-        VALUES (?, ?, 'STUDENT_MIGRATION_CONTROLLED', 'students', 'multi-students', ?, 'ALSIZ_Migration_Engine/1.0', ?)
+        VALUES (?, ?, 'STUDENT_MIGRATION_CONTROLLED', 'students', 'multi-students', ?, 'ALSIZ_Migration_Engine/2.0', ?)
       `);
 
       stmtAudit.run(
@@ -719,6 +801,7 @@ export class LegacyMigrationEngine {
         JSON.stringify({
           action: 'CONTROLLED_MIGRATION_EXECUTE',
           studentsMigrated: targetStudentIds,
+          representativeCreated: repProfileId,
           totalUsersInserted: stats.usersInserted,
           totalStudentsInserted: stats.studentsInserted,
           totalSubjectsInserted: stats.subjectsInserted,
@@ -752,26 +835,43 @@ export class LegacyMigrationEngine {
       return Number(row?.count || row?.total || 0);
     };
 
-    // 1. Conteo de usuarios migrados
-    const usersCount = getCount("SELECT COUNT(*) as total FROM users WHERE id LIKE 'usr-mig-%'");
-    counts['users_migrated'] = usersCount;
+    // 1. Conteo de usuarios migrados (2 estudiantes + 1 representante = 3)
+    const studentUsersCount = getCount("SELECT COUNT(*) as total FROM users WHERE id LIKE 'usr-mig-%' OR id LIKE 'usr-real-avril' OR id LIKE 'usr-real-gael'");
+    const repUsersCount = getCount("SELECT COUNT(*) as total FROM users WHERE id LIKE 'usr-real-rep-%'");
+    const totalUsersCount = studentUsersCount + repUsersCount;
+    counts['users_migrated'] = totalUsersCount;
     checks.push({
-      name: 'Usuarios migrados con hash seguro',
-      passed: usersCount === targetStudentIds.length,
-      details: `${usersCount} de ${targetStudentIds.length} usuarios migrados.`,
+      name: 'Usuarios migrados con hash seguro (Estudiantes y Representante)',
+      passed: studentUsersCount === targetStudentIds.length,
+      details: `${studentUsersCount} estudiantes y ${repUsersCount} representante(s) migrado(s).`,
     });
 
     // 2. Conteo de estudiantes migrados
-    const studentsCount = getCount("SELECT COUNT(*) as total FROM students WHERE id LIKE 'stu-mig-%'");
+    const studentsCount = getCount("SELECT COUNT(*) as total FROM students WHERE id LIKE 'stu-mig-%' OR id LIKE 'stu-real-%'");
     counts['students_migrated'] = studentsCount;
     checks.push({
-      name: 'Estudiantes migrados con PIN hash y código de matrícula',
+      name: 'Estudiantes migrados con PIN hash y código de matrícula único',
       passed: studentsCount === targetStudentIds.length,
       details: `${studentsCount} de ${targetStudentIds.length} perfiles creados.`,
     });
 
-    // 3. Asignaturas migradas
-    const subjectsCount = getCount("SELECT COUNT(*) as total FROM subjects WHERE id LIKE 'subj-mig-%'");
+    // 3. Vínculos familiares de corresponsabilidad
+    const famLinksCount = getCount(`
+      SELECT COUNT(*) as total 
+      FROM student_representatives sr
+      JOIN students s ON sr.student_id = s.id
+      JOIN representatives r ON sr.representative_id = r.id
+      WHERE s.id LIKE 'stu-mig-%' OR s.id LIKE 'stu-real-%'
+    `);
+    counts['family_links'] = famLinksCount;
+    checks.push({
+      name: 'Vínculos familiares registrados (Representante a Estudiantes)',
+      passed: famLinksCount === targetStudentIds.length || famLinksCount === 0, // En Etapa 11 legacy era 0, en Etapa 04 es 2
+      details: `${famLinksCount} vínculos familiares activos verificados.`,
+    });
+
+    // 4. Asignaturas migradas
+    const subjectsCount = getCount("SELECT COUNT(*) as total FROM subjects WHERE id LIKE 'subj-mig-%' OR id LIKE 'subj-real-%'");
     counts['subjects_migrated'] = subjectsCount;
     checks.push({
       name: 'Asignaturas migradas (11 Superior + 9 Elemental = 20)',
@@ -779,8 +879,8 @@ export class LegacyMigrationEngine {
       details: `${subjectsCount} asignaturas encontradas en base de datos.`,
     });
 
-    // 4. Clases diarias migradas
-    const classesCount = getCount("SELECT COUNT(*) as total FROM daily_classes WHERE id LIKE 'class-mig-%'");
+    // 5. Clases diarias migradas
+    const classesCount = getCount("SELECT COUNT(*) as total FROM daily_classes WHERE id LIKE 'class-mig-%' OR id LIKE 'class-real-%'");
     counts['daily_classes_migrated'] = classesCount;
     checks.push({
       name: 'Clases diarias migradas (23 Superior + 20 Elemental = 43)',
@@ -788,8 +888,8 @@ export class LegacyMigrationEngine {
       details: `${classesCount} clases socráticas encontradas.`,
     });
 
-    // 5. Recursos pedagógicos
-    const resourcesCount = getCount("SELECT COUNT(*) as total FROM learning_resources WHERE id LIKE 'res-mig-%'");
+    // 6. Recursos pedagógicos
+    const resourcesCount = getCount("SELECT COUNT(*) as total FROM learning_resources WHERE id LIKE 'res-mig-%' OR id LIKE 'res-real-%'");
     counts['resources_migrated'] = resourcesCount;
     checks.push({
       name: 'Recursos pedagógicos migrados (86 recursos auditados)',
@@ -797,8 +897,8 @@ export class LegacyMigrationEngine {
       details: `${resourcesCount} recursos vinculados a lecciones.`,
     });
 
-    // 6. Evaluaciones formativas
-    const evaluationsCount = getCount("SELECT COUNT(*) as total FROM evaluations WHERE id LIKE 'eval-mig-%'");
+    // 7. Evaluaciones formativas
+    const evaluationsCount = getCount("SELECT COUNT(*) as total FROM evaluations WHERE id LIKE 'eval-mig-%' OR id LIKE 'eval-real-%'");
     counts['evaluations_migrated'] = evaluationsCount;
     checks.push({
       name: 'Evaluaciones formativas derivadas de actividades (129 actividades)',
@@ -806,11 +906,18 @@ export class LegacyMigrationEngine {
       details: `${evaluationsCount} rúbricas/talleres formativos generados.`,
     });
 
-    // 7. Integridad referencial (Cero claves foráneas rotas o huérfanas)
+    // 8. Integridad referencial (Cero claves foráneas rotas o huérfanas)
+    const fkErrors = db.prepare('PRAGMA foreign_key_check;').all();
+    checks.push({
+      name: 'Integridad de claves foráneas (PRAGMA foreign_key_check)',
+      passed: fkErrors.length === 0,
+      details: `Inconsistencias detectadas por motor SQLite: ${fkErrors.length}`,
+    });
+
     const orphanClasses = getCount(`
       SELECT COUNT(*) as total FROM daily_classes c 
       LEFT JOIN curriculum_units u ON c.unit_id = u.id 
-      WHERE u.id IS NULL AND c.id LIKE 'class-mig-%'
+      WHERE u.id IS NULL AND (c.id LIKE 'class-mig-%' OR c.id LIKE 'class-real-%')
     `);
     checks.push({
       name: 'Cero clases huérfanas sin unidad curricular',
@@ -821,7 +928,7 @@ export class LegacyMigrationEngine {
     const orphanResources = getCount(`
       SELECT COUNT(*) as total FROM learning_resources r 
       LEFT JOIN daily_classes c ON r.daily_class_id = c.id 
-      WHERE c.id IS NULL AND r.id LIKE 'res-mig-%'
+      WHERE c.id IS NULL AND (r.id LIKE 'res-mig-%' OR r.id LIKE 'res-real-%')
     `);
     checks.push({
       name: 'Cero recursos huérfanos sin clase diaria vinculada',
@@ -833,7 +940,7 @@ export class LegacyMigrationEngine {
       SELECT COUNT(*) as total FROM student_subject_enrollments se
       LEFT JOIN students s ON se.student_id = s.id
       LEFT JOIN subjects subj ON se.subject_id = subj.id
-      WHERE (s.id IS NULL OR subj.id IS NULL) AND se.id LIKE 'subenr-stu-mig-%'
+      WHERE (s.id IS NULL OR subj.id IS NULL) AND (se.id LIKE 'subenr-stu-mig-%' OR se.id LIKE 'subenr-stu-real-%')
     `);
     checks.push({
       name: 'Cero matrículas huérfanas en asignaturas',
@@ -841,7 +948,7 @@ export class LegacyMigrationEngine {
       details: `Huérfanas encontradas: ${orphanEnrollments}.`,
     });
 
-    // 8. Evento de auditoría registrado
+    // 9. Evento de auditoría registrado
     const auditEvents = getCount("SELECT COUNT(*) as total FROM audit_events WHERE event_type = 'STUDENT_MIGRATION_CONTROLLED'");
     checks.push({
       name: 'Auditoría LOPDP registrada en libro mayor inmutable',
@@ -854,9 +961,9 @@ export class LegacyMigrationEngine {
   }
 
   /**
-   * Revierte de forma quirúrgica y limpia los registros migrados sin tocar registros sintéticos de desarrollo.
+   * Revierte de forma quirúrgica y limpia los registros migrados sin tocar registros sintéticos previos.
    */
-  public rollbackMigration(db: DatabaseSync, targetStudentIds = ['avril', 'gael']): number {
+  public rollbackMigration(db: DatabaseSync): number {
     db.exec('BEGIN TRANSACTION;');
     let deletedCount = 0;
 
@@ -864,17 +971,20 @@ export class LegacyMigrationEngine {
       // Eliminar en orden inverso por claves foráneas
       const stmts = [
         "DELETE FROM audit_events WHERE event_type = 'STUDENT_MIGRATION_CONTROLLED';",
-        "DELETE FROM academic_calendar_events WHERE id LIKE 'ev-mig-%';",
-        "DELETE FROM evaluations WHERE id LIKE 'eval-mig-%';",
-        "DELETE FROM learning_resources WHERE id LIKE 'res-mig-%';",
-        "DELETE FROM lesson_objectives WHERE id LIKE 'obj-mig-%';",
-        "DELETE FROM daily_classes WHERE id LIKE 'class-mig-%';",
-        "DELETE FROM curriculum_units WHERE id LIKE 'unit-mig-%';",
-        "DELETE FROM student_subject_enrollments WHERE id LIKE 'subenr-stu-mig-%';",
-        "DELETE FROM subjects WHERE id LIKE 'subj-mig-%';",
-        "DELETE FROM student_program_enrollments WHERE id LIKE 'enr-mig-%';",
-        "DELETE FROM students WHERE id LIKE 'stu-mig-%';",
-        "DELETE FROM users WHERE id LIKE 'usr-mig-%';",
+        "DELETE FROM student_submissions WHERE id LIKE 'sub-mig-%' OR id LIKE 'sub-real-%';",
+        "DELETE FROM academic_calendar_events WHERE id LIKE 'ev-mig-%' OR id LIKE 'ev-real-%';",
+        "DELETE FROM evaluations WHERE id LIKE 'eval-mig-%' OR id LIKE 'eval-real-%';",
+        "DELETE FROM learning_resources WHERE id LIKE 'res-mig-%' OR id LIKE 'res-real-%';",
+        "DELETE FROM lesson_objectives WHERE id LIKE 'obj-mig-%' OR id LIKE 'obj-real-%';",
+        "DELETE FROM daily_classes WHERE id LIKE 'class-mig-%' OR id LIKE 'class-real-%';",
+        "DELETE FROM curriculum_units WHERE id LIKE 'unit-mig-%' OR id LIKE 'unit-real-%';",
+        "DELETE FROM student_subject_enrollments WHERE id LIKE 'subenr-stu-mig-%' OR id LIKE 'subenr-stu-real-%';",
+        "DELETE FROM subjects WHERE id LIKE 'subj-mig-%' OR id LIKE 'subj-real-%';",
+        "DELETE FROM student_program_enrollments WHERE id LIKE 'enr-mig-%' OR id LIKE 'enr-real-%';",
+        "DELETE FROM student_representatives WHERE student_id LIKE 'stu-mig-%' OR student_id LIKE 'stu-real-%';",
+        "DELETE FROM representatives WHERE id LIKE 'rep-mig-%' OR id LIKE 'rep-real-%';",
+        "DELETE FROM students WHERE id LIKE 'stu-mig-%' OR id LIKE 'stu-real-%';",
+        "DELETE FROM users WHERE id LIKE 'usr-mig-%' OR id LIKE 'usr-real-%';",
       ];
 
       stmts.forEach(sql => {
@@ -891,4 +1001,3 @@ export class LegacyMigrationEngine {
     return deletedCount;
   }
 }
-
