@@ -1,0 +1,36 @@
+================================================================
+EVIDENCIA: SUITES DE REGRESIÓN DE ETAPAS 05 A 14 Y BUILD
+Plataforma Educativa ALSIZ para Ekballo Church
+================================================================
+Fecha: 2026-10-16T23:49:38Z
+Entorno: Node.js 22.14 / TypeScript 5.8 / tsx 4.21
+
+RESUMEN DE PRUEBAS AUTOMATIZADAS REPRODUCIDAS:
+- Etapa 05 (Seguridad, RBAC, Criptografía scrypt, Anti-IDOR, Backups): 16/16 PASÓ (100%)
+- Etapa 06 (LMS Académico, Matrículas, Portafolio, Boletín MINEDUC): 25/25 PASÓ (100%)
+- Etapa 07 (Centro de Conocimiento RAG, Exclusión de fuentes): 12/12 PASÓ (100%)
+- Etapa 08 (Agentes IA Socráticos, Orquestación, Anti-Jailbreak, RBAC): 17/17 PASÓ (100%)
+- Etapa 09 (Gobernanza de Agentes, Historial de Interacciones): 10/10 PASÓ (100%)
+- Etapa 10 (Piloto Interactivo, Monitoreo de Sesiones Socráticas): 10/10 PASÓ (100%)
+- Etapa 11 (Consola de Administración Unificada, Telemetría LOPDP): 16/16 PASÓ (100%)
+- Etapa 12 (Educación Continua, Cursos Libres, Certificados SHA-256): 12/12 PASÓ (100%)
+- Etapa 13 (Auditoría Integral y Cumplimiento de Aislamiento): 10/10 PASÓ (100%)
+- Etapa 14 (Despliegue, Empaquetado, Manuales Operativos y Health Check): 12/12 PASÓ (100%)
+
+TOTAL DE PRUEBAS DE REGRESIÓN: 130/130 APROBADAS (0 FALLOS)
+
+COMPILACIÓN Y ANÁLISIS ESTÁTICO:
+- npm run lint (tsc --noEmit): Código 0 (0 errores de tipado)
+- npm run build (vite build + esbuild server.cjs + api-server.js):
+  * dist/index.html (2.25 kB)
+  * dist/assets/index-...js (1,398.19 kB)
+  * dist/assets/index-...css (154.39 kB)
+  * dist/server.cjs (308.1 kB)
+  * api-server.js (307.0 kB)
+  * Estado: Éxito (Código 0)
+- npm run health:
+  * Base de datos: HEALTHY (12 migraciones validadas)
+  * Artefactos: Validados
+  * Proveedores IA: Booleans de configuración verificados sin divulgar claves
+================================================================
+

@@ -16,7 +16,11 @@ export function computeChecksum(content: string): string {
   return crypto.createHash('sha256').update(content.trim(), 'utf8').digest('hex');
 }
 
-export function runMigrations(customDb?: DatabaseSync): MigrationResult[] {
+export interface MigrationOptions {
+  skipDevSeeds?: boolean;
+}
+
+export function runMigrations(customDb?: DatabaseSync, options?: MigrationOptions): MigrationResult[] {
   const db = customDb || getDb();
   const results: MigrationResult[] = [];
 
@@ -65,6 +69,20 @@ export function runMigrations(customDb?: DatabaseSync): MigrationResult[] {
           `[Migrator] ADVERTENCIA: La migración ${file} tiene un checksum distinto al registrado en BD. Registrado: ${existingChecksum?.slice(0, 8)}, Actual: ${checksum.slice(0, 8)}`
         );
       }
+      results.push({
+        version,
+        name: file,
+        checksum,
+        status: 'SKIPPED',
+      });
+      continue;
+    }
+
+    // Política P0 de Seguridad: Omitir estrictamente semillas de desarrollo en producción
+    const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+    const shouldSkipDevSeed = (isProduction || options?.skipDevSeeds) && (file.toLowerCase().includes('seed') || version === '003');
+    if (shouldSkipDevSeed) {
+      console.log(`[Migrator] Omitiendo migración de datos semilla (${file}) por política de seguridad de producción.`);
       results.push({
         version,
         name: file,

@@ -159,7 +159,9 @@ try {
     }
   }, [isOpen]);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
@@ -168,22 +170,20 @@ try {
       return;
     }
 
-    const result = loginStudent(identifier, password);
-    if (result.success && result.student) {
-      // Clear form fields immediately on successful login
-      setIdentifier('');
-      setPassword('');
-      // El correo del PIN es un efecto secundario independiente: fire-and-forget, nunca bloquea
-      // ni revierte la sesión (loginStudent ya aplicó el estado de forma síncrona).
-      fetch('/api/send-pin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: result.student.email, pinCode: result.student.pinCode }),
-      }).catch(() => { /* si falla el correo, la sesión ya quedó iniciada */ });
-      // Cerrar el modal en el MISMO tick: el landing refleja la sesión con el banner verde.
-      onClose();
-    } else {
-      setErrorMsg(result.error || 'Credenciales incorrectas. Revisa tu correo y contraseña.');
+    setIsSubmitting(true);
+    try {
+      const result = await loginStudent(identifier, password);
+      if (result.success && result.student) {
+        setIdentifier('');
+        setPassword('');
+        onClose();
+      } else {
+        setErrorMsg(result.error || 'Credenciales incorrectas. Revisa tu correo y contraseña.');
+      }
+    } catch {
+      setErrorMsg('Error de comunicación con el servidor al iniciar sesión.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -279,10 +279,11 @@ try {
 
             <button
               type="submit"
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-950/50 transition-all flex items-center justify-center gap-2 transform active:scale-95"
+              disabled={isSubmitting}
+              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-bold text-sm shadow-xl shadow-indigo-950/50 transition-all flex items-center justify-center gap-2 transform active:scale-95"
             >
               <UserCheck className="w-4 h-4" />
-              <span>Ingresar al Colegio Virtual</span>
+              <span>{isSubmitting ? 'Ingresando...' : 'Ingresar al Colegio Virtual'}</span>
             </button>
           </form>
 

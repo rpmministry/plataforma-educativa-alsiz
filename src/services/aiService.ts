@@ -119,27 +119,7 @@ export function renderMarkdownToHtml(content: string): string {
   return rendered.filter(Boolean).join('');
 }
 
-// ==========================================
-// CAZADOR DE MODELOS AUXILIARES (OPENROUTER)
-// ==========================================
-let cachedFreeModels: string[] = [];
-async function getFreeOpenRouterModels(): Promise<string[]> {
-  if (cachedFreeModels.length > 0) return cachedFreeModels;
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/models");
-    const data = await res.json();
-    let freeModels = data.data.filter((m: any) => parseFloat(m.pricing?.prompt || "1") === 0 && parseFloat(m.pricing?.completion || "1") === 0).map((m: any) => m.id);
-    
-    // Priorizamos familias de modelos conocidas por calidad en modo gratuito.
-    const FAMILIES = ['qwen', 'google/gemini', 'deepseek', 'meta-llama', 'mistral', 'gemma', 'glm', 'kimi', 'nemotron'];
-    const rank = (id: string) => { const i = FAMILIES.findIndex((f) => id.startsWith(f)); return i === -1 ? 99 : i; };
-    freeModels.sort((a: string, b: string) => rank(a) - rank(b));
-    if (freeModels.length > 0) { cachedFreeModels = freeModels; return cachedFreeModels; }
-  } catch (error) { 
-    console.warn("[Motor IA Auxiliar] Falló la obtención dinámica de lista. Usando lista estática."); 
-  }
-  return ["nvidia/nemotron-3.5-lightning:free", "nex-agi/nex-n2.5-mini:free", "poolside/laguna-s-2.1:free"];
-}
+
 
 async function fetchWithTimeout(resource: string, options: RequestInit, timeoutMs: number) {
   const controller = new AbortController();
@@ -424,8 +404,8 @@ export async function requestLessonPlan(req: {
   } catch { /* caché corrupta o no disponible: seguimos con la red */ }
 
   const controller = new AbortController();
-  // Un plan grande en modelos gratuitos puede tardar; el resultado se cachea, así que solo pesa la 1ª vez del día.
-  const PLAN_TIMEOUT_MS = Number(import.meta.env.VITE_LESSON_PLAN_TIMEOUT_MS || 90000);
+  // Un plan grande en modelos puede tardar; el resultado se cachea, así que solo pesa la 1ª vez del día.
+  const PLAN_TIMEOUT_MS = 90000;
   const timeoutId = setTimeout(() => controller.abort(), PLAN_TIMEOUT_MS);
   try {
     const res = await fetch('/api/ai/lesson-plan', {
@@ -456,13 +436,10 @@ export async function requestLessonPlan(req: {
 }
 
 // ==========================================
-// FASE A: JERARQUÍA EN EL SERVIDOR (Qwen 3.8 Flash → OpenCode → Gemini 3.7 Flash)
-// Las claves viven solo en el servidor. Cualquier fallo (red, 404, 503, timeout)
-// devuelve null y la llamada continúa hacia la FASE B (ruta directa del cliente,
-// idéntica a la implementación anterior = respaldo de contingencia).
+// ACCESO EXCLUSIVO VÍA SERVIDOR (Seguridad P0: Cero claves en cliente)
 // ==========================================
 async function tryServerTeacherHierarchy(req: TeacherChatRequest): Promise<string | null> {
-  const SERVER_TIMEOUT_MS = Number(import.meta.env.VITE_AI_SERVER_TIMEOUT_MS || 25000);
+  const SERVER_TIMEOUT_MS = 25000;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), SERVER_TIMEOUT_MS);
   try {
@@ -495,209 +472,23 @@ async function tryServerTeacherHierarchy(req: TeacherChatRequest): Promise<strin
 }
 
 // ==========================================
-// FUNCIÓN CENTRAL: IA DEL PROFESOR CON REINTENTOS
+// FUNCIÓN CENTRAL: IA DEL PROFESOR (EXCLUSIVO VÍA SERVIDOR)
 // ==========================================
 export async function askAITeacher(req: TeacherChatRequest): Promise<string> {
-  // FASE A — jerarquía administrada en el servidor (mejor fidelidad, claves ocultas).
+  // Comunicación transparente y segura a través de la API propia del servidor
   try {
     const serverReply = await tryServerTeacherHierarchy(req);
-    if (serverReply) return serverReply;
-  } catch {
-    /* silencio deliberado: se cae a la FASE B */
-  }
-
-  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
-  const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
-  
-  const GEMINI_TIMEOUT = 15000; 
-  const OPENROUTER_TIMEOUT = 8000;
-
-const systemInstruction = `
-    Eres ${req.teacher.name}, el Director de la Clase de ${req.subject.name}. Actúas como el profesor guía principal de esta sesión magistral privada para ${req.student.name}.
-    Contexto de la clase actual: "${req.dailyClass?.theme}".
-    Objetivo: ${req.dailyClass?.objective}.
-    ${req.guideContext && typeof req.guideContext.explicacion === 'string' && req.guideContext.explicacion.trim()
-      ? `
-    La guía impresa de hoy para este estudiante dice exactamente esto:
-
-    EXPLICACIÓN:
-    ${req.guideContext.explicacion}
-
-    PREGUNTAS DE LA GUÍA:
-    ${(req.guideContext.preguntas || []).map((p, i) => `${i + 1}. (${p.tipo || 'pregunta'}) ${p.pregunta}`).join('\n')}
-
-    Si el estudiante te pregunta sobre cualquiera de estas preguntas, o te pide ayuda para responderlas, guíalo con el método socrático para que llegue a la respuesta él mismo usando la EXPLICACIÓN de arriba — NUNCA le dictes la respuesta completa de una vez. Si te copia o lee una de estas preguntas, reconócela como parte de su guía de hoy (puedes decir algo como "Esa es la pregunta N de tu guía") y ayúdalo a pensarla, no a copiarla.`
-      : req.guideContext === null
-      ? `
-    Este estudiante TODAVÍA NO tiene la guía impresa de hoy generada. Si te pregunta por "su guía", díselo con claridad (por ejemplo: "Tu guía de hoy todavía no está lista, pero puedo explicarte el tema igual") y NO inventes preguntas ni contenido de guía.`
-      : ''}
-
-    METODOLOGÍA OBLIGATORIA DEL DIRECTOR DE CLASE — RUTA DE APRENDIZAJE ACTIVO:
-
-    PASO 1 — BIENVENIDA BREVE A LA RUTA (PROHIBIDO EXPONER LA TEORÍA AQUÍ):
-    - La teoría ya NO se entrega en el chat: la plataforma se la muestra al alumno en la "Ruta Interactiva" (tarjetas de micro-lecciones 1..N con teoría corta, analogía, ejemplo y un reto de opción múltiple).
-    - Tu primera línea debe ser un saludo cálido + invitarlo a avanzar por sus mini-lecciones. NUNCA repitas una exposición larga ni todas las definiciones del tema.
-
-    PASO 2 — COMPAÑERO DE VERIFICACIÓN:
-    - Cuando el alumno te cuente qué lección está viendo o responda a ella, haz UNA sola pregunta corta de razonamiento sobre ese punto específico y espera su respuesta.
-    - Si falla o duda: no des la respuesta; indaga por qué pensó así y muéstrale amablemente la grieta en su lógica. Si acierta: felicítalo con energía y pídele el siguiente paso de la ruta.
-
-    PASO 3 — REEXPLICACIÓN AFECTUOSA (CUANDO NO SE ENTIENDE):
-    - Si pide ayuda o evidencia confusión sobre un concepto: reexplicalo SOLO a ÉL, en máximo 4 líneas, con lenguaje más sencillo, una analogía nueva o un ejemplo de su vida. Nunca vuelques toda la teoría otra vez; solo el punto dudosos.
-    - Luego verifica con una mini-pregunta y solo entonces déjalo continuar su ruta.
-
-    PASO 4 — Laboratorio Digital:
-    - Cuando el alumno termine sus mini-lecciones, anímalo a entrar al "Laboratorio Digital" (el botón grande de la pantalla de éxito) para ver el video/simulador.
-
-    PASO 5 — Taller Práctico y Evidencia:
-    - Después lo esperas en el "Taller Práctico", ayudándolo con cada actividad y celebrando cuando suba su evidencia. Cierra con una reflexión breve que conecte el tema con su vida.
-
-    REGLAS GENERALES:
-    - TODOS tus mensajes deben ser BREVES (máximo 80 palabras); la teoría extensa le corresponde a las tarjetas de micro-lecciones, nunca a ti. La única excepción: si el alumno pide explícitamente "explícamelo todo", le das un resumen por lecciones en ≤120 palabras.
-    - Mantén siempre el contexto de la lección que el alumno menciona; si no dice cuál, pregúntale en 5 palabras en qué mini-lección va.
-    - Eres su guía. Tono amigable, motivador y sumamente claro. Usa Markdown en español.
-  `;
-
-  let primaryErrorMsg = "";
-
-  // El valor pegado a veces es un OAuth Client ID (…apps.googleusercontent.com), que NUNCA funciona como API key de Gemini:
-  // detectarlo aquí evita quemar 15 s en reintentos inútiles y deja pasar al Motor Auxiliar Gratuito.
-  const GEMINI_KEY_SHAPE_OK = /^AIza[0-9A-Za-z_-]{10,}$/.test(GEMINI_API_KEY.trim()) || /^AQ\.[0-9A-Za-z_.-]{10,}$/.test(GEMINI_API_KEY.trim());
-  if (GEMINI_API_KEY && !GEMINI_KEY_SHAPE_OK) {
-    console.warn("[Red Neural] ⚠️ VITE_GEMINI_API_KEY no tiene formato de API key de Gemini (parece OAuth Client ID u otro valor). Se omite el motor primario y se usará la IA gratuita de OpenRouter. Consigue la key real en https://aistudio.google.com/apikey");
-  }
-
-  const GEMINI_KEY_AVAILABLE = !!import.meta.env.VITE_GEMINI_API_KEY && import.meta.env.VITE_GEMINI_API_KEY !== "TU_CLAVE_AQUI" && GEMINI_KEY_SHAPE_OK;
-  const OPENROUTER_KEY_AVAILABLE = !!import.meta.env.VITE_OPENROUTER_API_KEY && import.meta.env.VITE_OPENROUTER_API_KEY !== "PEGA_AQUI_TU_CLAVE_OPENROUTER";
-
-  // Build conversation history
-  let geminiContents = req.conversationHistory.map(msg => ({
-    role: msg.role === 'model' ? 'model' : 'user',
-    parts: [{ text: msg.content }]
-  }));
-  
-  if (geminiContents.length > 0 && geminiContents[0].role === 'model') geminiContents.shift(); 
-  geminiContents.push({ role: 'user', parts: [{ text: req.message }] });
-
-  // TRIAL 1: Gemini 3.6 Flash with retries
-  if (GEMINI_KEY_AVAILABLE) {
-    try {
-      const geminiResponse = await fetchWithRetry(async () => {
-        console.log("[Red Neural] Contactando motor primario: Gemini 3.6 Flash...");
-        const response = await fetchWithTimeout(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              system_instruction: { parts: [{ text: systemInstruction }] },
-              contents: geminiContents,
-              generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
-            }),
-          },
-          GEMINI_TIMEOUT
-        );
-
-        const geminiData = await response.json();
-        
-        if (geminiData.candidates && geminiData.candidates.length > 0) {
-          console.log("[Red Neural] ✔️ Respuesta exitosa de Gemini 3.6 Flash");
-          return geminiData.candidates[0].content.parts[0].text;
-        }
-        
-        if (geminiData.error) {
-          const errMessage = String(geminiData.error.message || geminiData.error.status || '');
-          if (/API key not valid|API_KEY_INVALID|PERMISSION_DENIED|UNAUTHENTICATED|INVALID_ARGUMENT|BAD REQUEST/i.test(errMessage)) {
-            throw new FatalAIError(`Google rechazó la credencial/petición: ${errMessage}`);
-          }
-          throw new Error(`Error oficial de Google: ${errMessage}`);
-        }
-        throw new Error("Respuesta inválida o vacía de Gemini");
-      });
-      
-      return geminiResponse;
-    } catch (geminiError: any) {
-      const fatal = geminiError?.name === 'FatalAIError';
-      primaryErrorMsg = geminiError?.name === 'AbortError' ? 'Tiempo de espera agotado (Timeout)' : geminiError?.message;
-      console.warn(fatal
-        ? `[Red Neural] ⚠️ Motor primario descartado al instante (error terminal): ${primaryErrorMsg}`
-        : `[Red Neural] ⚠️ Motor primario falló tras ${MAX_RETRIES} reintentos. Motivo: ${primaryErrorMsg}`);
+    if (serverReply && typeof serverReply === 'string' && serverReply.trim()) {
+      return serverReply.trim();
     }
+  } catch (err: any) {
+    console.warn('[TeacherChat] Error de comunicación con el servidor de IA:', err?.message || err);
   }
 
-  // FALLBACK LOCAL if no keys configured
-  if (!GEMINI_KEY_AVAILABLE && !OPENROUTER_KEY_AVAILABLE) {
-    console.warn("[Modo Demo] API keys no configuradas. Usando IA pedagógica local.");
-    
-    const fallbackResponses: Record<string, string> = {
-      'Modelado algebraico': `Excelente pregunta, ${req.student.name}. Vamos a pensar en esto juntos: si tuvieras que contar alguna historia con números, ¿qué parte te gustaría contar primero? La ecuación es como una historia matemática: tenemos una historia que contar (el resultado) y queremos descubrir qué pasó antes. ¿Cuál sería el primer paso para reconstruir esa historia?`,
-      'Estructura celular': `¡Qué interesante que quieras saber sobre células, ${req.student.name}! Imagina que una célula es como una casita muy pequeñita. ¿Qué crees que necesitaría para funcionar bien? Piensa en los ingredientes que necesitaría para "vivir" y organizarse. Cada parte de la casita tiene un trabajo especial.`,
-      'Fotosíntesis': `${req.student.name}, qué buena intuición sobre las plantas. Imagina que las hojas son como pequeñas fábricas. ¿Qué ingredientes crees que necesitan para producir algo? La luz es como el "combustible", el agua es como la "materia prima", y el oxígeno es lo que "sobrante" producen. ¿Te imaginas una fábrica que solo produce algo cuando tiene luz?`,
-      'default': `${req.student.name}, excelente reflexión. Según la pedagogía socrática, no se busca una respuesta clave, sino construir pensamiento. ¿Podrías profundizar: qué ejemplo concreto de tu vida cotidiana podrías usar para ilustrar este concepto? Cada conexión que haces es un paso hacia el verdadero aprendizaje.`
-    };
-    
-    const theme = req.dailyClass?.theme || '';
-    const response = fallbackResponses[theme] || fallbackResponses.default;
-    return `${response}\n\n¿Te gustaría explorar otro aspecto o conectar esto con algo más que ya sabes?`;
-  }
+  // Estado honesto de contingencia (sin inventar falsas respuestas locales ni simular IA real)
+  return `¡Hola, ${req.student.name}! En este momento la conexión con el profesor virtual no está disponible (modo de contingencia sin conexión).
 
-  // TRIAL 2: OpenRouter fallback with retries
-  console.log("[Motor Auxiliar] Activando IA Auxiliar (OpenRouter) con reintentos...");
-  
-  if (!OPENROUTER_KEY_AVAILABLE) {
-    throw new Error("No tienes configurada tu clave API de OpenRouter en el código.");
-  }
-
-  const openRouterMessages = [
-    { role: 'system', content: systemInstruction },
-    ...req.conversationHistory.map(msg => ({ role: msg.role === 'model' ? 'assistant' : 'user', content: msg.content })),
-    { role: 'user', content: req.message }
-  ];
-
-  const freeModelsToTry = await getFreeOpenRouterModels();
-  let lastAuxError = "Todos los modelos auxiliares rechazaron la conexión.";
-
-  for (const modelId of freeModelsToTry) {
-    try {
-      const orResponse = await fetchWithRetry(async () => {
-        console.log(`[Motor Auxiliar] Intentando con: ${modelId}...`);
-        const response = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: { 
-              "Authorization": `Bearer ${OPENROUTER_API_KEY}`, 
-              "HTTP-Referer": "https://wisdom-school.edu", 
-              "X-Title": "Wisdom School", 
-              "Content-Type": "application/json" 
-            },
-            body: JSON.stringify({ model: modelId, messages: openRouterMessages, temperature: 0.7 })
-          }, OPENROUTER_TIMEOUT);
-        
-        const orData = await response.json();
-        
-        if (orData.choices && orData.choices.length > 0) {
-          console.log(`[Motor Auxiliar] ✔️ Rescate exitoso usando: ${modelId}`);
-          return orData.choices[0].message.content;
-        }
-
-        if (orData.error) {
-          throw new Error(`Error en ${modelId}: ${orData.error.message}`);
-        }
-        throw new Error(`Respuesta inválida de ${modelId}`);
-      });
-      
-      return orResponse;
-    } catch (e: any) { 
-      lastAuxError = `Fallo definitivo con ${modelId}: ${e.message}`;
-      console.warn(`[Motor Auxiliar] ⚠️ ${lastAuxError}`);
-      continue; 
-    }
-  }
-  
-  console.error("[Corte de Energía IA] Ambos motores fallaron tras reintentos:", lastAuxError);
-
-  return `¡Uy, ${req.student.name}! Se me trabó la voz un momento. 🙈
-
-No pasa nada: **tu avance sigue guardado**. Puedes volver a escribir tu idea, o repasar la ficha de la lección de arriba mientras se recupera la conexión.`;
+No te preocupes: **tu avance sigue guardado**. Puedes repasar la ficha y los conceptos de la clase arriba, o consultar con tu tutor familiar mientras se restablece el servicio.`;
 }
 
 export async function analyzeWork(req: AnalyzeWorkRequest): Promise<WorkAnalysisResult> {

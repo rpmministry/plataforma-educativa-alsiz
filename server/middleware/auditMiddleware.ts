@@ -1,4 +1,4 @@
-import { getDb } from '../db/database';
+import { getDatabaseAdapter } from '../db/dal';
 import { generateUuid, hashIp } from '../auth/crypto';
 
 export interface AuditEventParams {
@@ -55,17 +55,15 @@ export function sanitizeAuditDetails(obj: any): any {
  */
 export function recordAuditEvent(params: AuditEventParams): void {
   try {
-    const db = getDb();
+    const db = getDatabaseAdapter();
     const id = generateUuid();
     const ipHash = hashIp(params.ip || '127.0.0.1');
     const sanitizedDetails = params.details ? JSON.stringify(sanitizeAuditDetails(params.details)) : null;
 
-    const stmt = db.prepare(`
+    db.execute(`
       INSERT INTO audit_events (id, user_id, event_type, resource_type, resource_id, ip_hash, user_agent, details_json)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-    `);
-
-    stmt.run(
+    `, [
       id,
       params.userId || null,
       params.eventType,
@@ -74,7 +72,9 @@ export function recordAuditEvent(params: AuditEventParams): void {
       ipHash,
       params.userAgent || null,
       sanitizedDetails
-    );
+    ]).catch((err: any) => {
+      console.warn('[Audit] Fallo registrando evento de auditoría asíncrono:', err?.message || err);
+    });
   } catch (err: any) {
     // La auditoría no debe abortar la ejecución de negocio, pero debe advertir en consola segura
     console.warn('[Audit] Fallo registrando evento de auditoría:', err?.message || err);

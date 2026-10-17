@@ -1,0 +1,42 @@
+================================================================
+EVIDENCIA: CONEXIÓN, MIGRACIONES Y TEST E2E EN TURSO CLOUD
+Plataforma Educativa ALSIZ para Ekballo Church
+================================================================
+Fecha: 2026-10-16T23:49:04Z
+Base Remota: Turso Cloud (libSQL sobre HTTPS)
+Protocolo de Conexión: @libsql/client v0.18.0
+Variables Verificadas: TURSO_DATABASE_URL (presente), TURSO_AUTH_TOKEN (presente)
+
+1. APLICACIÓN DE MIGRACIONES EN TURSO CLOUD:
+------------------------------------------------------------
+[Migrator Turso] Migración 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator Turso] Migración 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator Turso] Migración 003_seed_dev_data.sql (v003) aplicada exitosamente.
+[Migrator Turso] Migración 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator Turso] Migración 005_lms_seed_data.sql (v005) aplicada exitosamente.
+[Migrator Turso] Migración 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator Turso] Migración 007_knowledge_seed_data.sql (v007) aplicada exitosamente.
+[Migrator Turso] Migración 008_ai_agents_orchestration.sql (v008) aplicada exitosamente.
+[Migrator Turso] Migración 009_ai_agents_seed.sql (v009) aplicada exitosamente.
+[Migrator Turso] Migración 010_interactive_pilot.sql (v010) aplicada exitosamente.
+[Migrator Turso] Migración 011_unified_admin.sql (v011) aplicada exitosamente.
+[Migrator Turso] Migración 012_continuing_education_courses.sql (v012) aplicada exitosamente.
+Resultado: 12 migraciones aplicadas en Turso Cloud sin errores.
+
+2. SUITE E2E (npm run test:turso):
+------------------------------------------------------------
+✅ Conexión con Base de Datos Remota (Turso): SELECT 1 ejecutado con éxito en Turso libSQL.
+✅ Persistencia de Estudiante Sintético en Turso: Usuario usr-test-1792194538533 y Estudiante STU-TEST-8763 insertados con hashes scrypt.
+✅ Login Real con Contraseña (HTTP 200 + Token + Set-Cookie): Token emitido. Cookie HttpOnly presente: true
+✅ Consulta de Sesión Activa /api/v1/auth/me: Identidad validada: userId=usr-test-1792194538533, role=STUDENT
+✅ Login Táctil con PIN numérico de 4 dígitos (/api/v1/auth/pin-login): Autenticación por PIN exitosa para STU-TEST-8763
+✅ Protección Anti-IDOR (Aislamiento Estudiantil en Turso): Acceso a expediente no propio rechazado con HTTP 403 (FORBIDDEN_STUDENT_ACCESS)
+✅ Servicio Transaccional de Email (Resend/Simulated): Proveedor: RESEND, MensajeId: 01a1471e-7e51-7395-8df9-2fedb36b1408
+✅ Cierre de Sesión Real e Invalidación en BD (/api/v1/auth/logout): Token revocado en Turso y cookie limpiada.
+✅ Bloqueo de Token Revocado tras Logout: Estado tras logout: HTTP 401 UNAUTHORIZED
+🧹 Limpieza de registros sintéticos de prueba en Turso completada.
+
+Total: 9 | Aprobadas: 9 | Fallidas: 0
+Código de salida: 0 (OK)
+================================================================
+

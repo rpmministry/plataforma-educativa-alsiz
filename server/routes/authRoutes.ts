@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { getDb } from '../db/database';
+import { getDatabaseAdapter } from '../db/dal';
 import { verifyPassword, verifyPin, hashToken, generateUuid } from '../auth/crypto';
 import { createSession, invalidateSession } from '../auth/sessionService';
 import { AuthenticatedRequest, requireAuth, extractSessionToken } from '../middleware/authMiddleware';
@@ -47,14 +47,13 @@ function setSessionCookie(res: Response, token: string): void {
 authRouter.post('/login', authRateLimiter, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { identifier, password } = loginSchema.parse(req.body);
-    const db = getDb();
+    const db = getDatabaseAdapter();
     const cleanId = identifier.trim().toLowerCase();
 
-    const user = db
-      .prepare(
-        'SELECT * FROM users WHERE LOWER(email) = ? OR LOWER(username) = ?'
-      )
-      .get(cleanId, cleanId) as any;
+    const user = await db.queryOne<any>(
+      'SELECT * FROM users WHERE LOWER(email) = ? OR LOWER(username) = ?',
+      [cleanId, cleanId]
+    );
 
     if (!user || !verifyPassword(password, user.password_hash)) {
       recordAuditEvent({
@@ -90,7 +89,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response, n
     }
 
     // Crear sesión de servidor
-    const { token, session } = createSession(user.id, user.role as UserRole, req.ip || '127.0.0.1', req.get('user-agent'));
+    const { token, session } = await createSession(user.id, user.role as UserRole, req.ip || '127.0.0.1', req.get('user-agent'));
     setSessionCookie(res, token);
 
     recordAuditEvent({
@@ -133,17 +132,15 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response, n
 authRouter.post('/pin-login', authRateLimiter, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { studentCode, pinCode } = pinLoginSchema.parse(req.body);
-    const db = getDb();
+    const db = getDatabaseAdapter();
     const cleanCode = studentCode.trim().toUpperCase();
 
-    const studentRow = db
-      .prepare(`
-        SELECT s.*, u.id as user_id, u.username, u.email, u.role, u.status, u.first_name, u.last_name, u.avatar_asset_key
-        FROM students s
-        JOIN users u ON u.id = s.user_id
-        WHERE UPPER(s.student_code) = ? OR UPPER(s.id) = ?
-      `)
-      .get(cleanCode, cleanCode) as any;
+    const studentRow = await db.queryOne<any>(`
+      SELECT s.*, u.id as user_id, u.username, u.email, u.role, u.status, u.first_name, u.last_name, u.avatar_asset_key
+      FROM students s
+      JOIN users u ON u.id = s.user_id
+      WHERE UPPER(s.student_code) = ? OR UPPER(s.id) = ?
+    `, [cleanCode, cleanCode]);
 
     if (!studentRow || !studentRow.pin_code_hash || !verifyPin(pinCode, studentRow.pin_code_hash)) {
       recordAuditEvent({
@@ -178,7 +175,7 @@ authRouter.post('/pin-login', authRateLimiter, async (req: Request, res: Respons
       return;
     }
 
-    const { token, session } = createSession(
+    const { token, session } = await createSession(
       studentRow.user_id,
       'STUDENT',
       req.ip || '127.0.0.1',
@@ -223,10 +220,10 @@ authRouter.post('/pin-login', authRateLimiter, async (req: Request, res: Respons
  * POST /api/v1/auth/logout
  * Cierre de sesión seguro con revocación inmediata del token en base de datos
  */
-authRouter.post('/logout', (req: Request, res: Response) => {
+authRouter.post('/logout', async (req: Request, res: Response) => {
   const token = extractSessionToken(req);
   if (token) {
-    invalidateSession(token);
+    await invalidateSession(token);
   }
   // Eliminar cookie del cliente
   res.setHeader('Set-Cookie', 'alsiz_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
@@ -256,22 +253,23 @@ authRouter.get('/me', requireAuth, (req: AuthenticatedRequest, res: Response) =>
 authRouter.post('/recover-access', authRateLimiter, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { identifier } = recoverSchema.parse(req.body);
-    const db = getDb();
+    const db = getDatabaseAdapter();
     const cleanId = identifier.trim().toLowerCase();
 
-    const user = db
-      .prepare('SELECT id, email FROM users WHERE LOWER(email) = ? OR LOWER(username) = ?')
-      .get(cleanId, cleanId) as any;
+    const user = await db.queryOne<any>(
+      'SELECT id, email FROM users WHERE LOWER(email) = ? OR LOWER(username) = ?',
+      [cleanId, cleanId]
+    );
 
     if (user) {
       const resetToken = generateUuid();
       const resetTokenHash = hashToken(resetToken);
       const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString(); // 1 hora
 
-      db.prepare(`
+      await db.execute(`
         INSERT INTO password_resets (id, user_id, reset_token_hash, expires_at)
         VALUES (?, ?, ?, ?);
-      `).run(generateUuid(), user.id, resetTokenHash, expiresAt);
+      `, [generateUuid(), user.id, resetTokenHash, expiresAt]);
 
       recordAuditEvent({
         userId: user.id,
@@ -296,4 +294,3 @@ authRouter.post('/recover-access', authRateLimiter, async (req: Request, res: Re
     next(err);
   }
 });
-

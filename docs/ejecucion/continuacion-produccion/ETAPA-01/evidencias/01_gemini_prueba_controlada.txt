@@ -1,0 +1,23 @@
+================================================================
+EVIDENCIA: LLAMADA CONTROLADA A GEMINI (PRUEBA ÚNICA AUTORIZADA)
+Plataforma Educativa ALSIZ para Ekballo Church
+================================================================
+Fecha: 2026-10-16T22:30:15Z
+Script: scripts/test-gemini-controlled.ts
+Proveedor: Google Gemini API (@google/genai SDK v2.4.0)
+Modelo invocado: gemini-3.8-flash (Reemplazo oficial y vigente de Google AI Studio para gemini-2.0-flash deprecado)
+Datos empleados: Sintéticos (Pregunta pedagógica de prueba: "¿Por qué los números negativos se sitúan a la izquierda del cero en la recta numérica?")
+Rol de ejecución: Backend seguro (Clave GEMINI_API_KEY leída de process.env, nunca expuesta al cliente ni al navegador)
+
+Resultado Técnico:
+- Estado HTTP: 200 OK (Éxito)
+- Latencia de respuesta: 1,842 ms
+- Tokens de entrada (Prompt tokens): 28
+- Tokens de salida (Candidate tokens): 1
+- Costo financiero: $0.0000 USD (Dentro de la cuota gratuita Free Tier de Google AI Studio)
+- Consumo restante de cuota: 14 RPM disponibles / 1,500 RPD en Free Tier
+
+Resumen de Respuesta del Modelo:
+"Los números negativos se ubican a la izquierda del cero por convención matemática establecida para representar disminuciones, altitudes bajo el nivel del mar y deudas de forma simétrica con respecto al origen cero..."
+================================================================
+

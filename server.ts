@@ -14,6 +14,9 @@ import knowledgeRouter from './server/routes/knowledgeRoutes';
 import agentRouter from './server/routes/agentRoutes';
 import { pilotRouter } from './server/routes/pilotRoutes';
 import { continuingEducationRouter } from './server/routes/continuingEducationRoutes';
+import { sendStudentPinEmail } from './server/email/emailService';
+import { validateProductionSessionSecret } from './server/auth/crypto';
+import { ProviderManager } from './server/agents/providers/providerManager';
 
 // Carga de variables locales SOLO fuera de Vercel (allí el entorno las inyecta).
 if (!process.env.VERCEL) {
@@ -21,11 +24,21 @@ if (!process.env.VERCEL) {
   dotenv.config({ path: '.env.local' });
 }
 
-// Inicialización de la base de datos relacional y migraciones versionadas
+// Validación obligatoria de seguridad P0 en producción: SESSION_SECRET
 try {
-  runMigrations();
-} catch (migErr: any) {
-  console.error('[Server] Advertencia inicializando base de datos:', migErr?.message || migErr);
+  validateProductionSessionSecret();
+} catch (secErr: any) {
+  console.error('[SecurityGuard] ERROR CRÍTICO DE SEGURIDAD:', secErr.message);
+  process.exit(1);
+}
+
+// Inicialización de la base de datos relacional y migraciones versionadas (solo fuera de serverless)
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+  try {
+    runMigrations();
+  } catch (migErr: any) {
+    console.error('[Server] Advertencia inicializando base de datos:', migErr?.message || migErr);
+  }
 }
 
 // Base del proyecto. En Vercel process.cwd() es /var/task; en local, la raíz del repo.
@@ -171,31 +184,22 @@ app.get('/api/students/avatars-status', (req: Request, res: Response) => {
   res.json({ results });
 });
 
-// Paso 9b: envía el PIN por email al iniciar sesión
+// Paso 9b: envía el PIN por email al iniciar sesión usando Resend con fallback a SMTP
 app.post('/api/send-pin', async (req: Request, res: Response) => {
-  const { email, pinCode } = req.body;
+  const { email, pinCode, studentName } = req.body;
   if (!email || !pinCode) {
     return res.status(400).json({ error: 'Missing email or pinCode' });
   }
   try {
-    const { default: nodemailer } = await import('nodemailer');
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
+    const result = await sendStudentPinEmail({
+      toEmail: email,
+      pinCode,
+      studentName,
     });
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Tu PIN de acceso a Wisdom School',
-      text: `Hola,\n\nTu PIN de acceso es: ${pinCode}\nUtilízalo para ingresar a la plataforma.\n\n¡Éxitos!\n`,
-    });
-    res.json({ success: true });
-  } catch (e) {
-    console.error('Error sending PIN email', e);
-    res.status(500).json({ error: 'Failed to send email' });
+    res.json({ success: true, result });
+  } catch (e: any) {
+    console.error('Error sending PIN email:', e);
+    res.status(500).json({ error: e?.message || 'Failed to send email' });
   }
 });
 
@@ -228,17 +232,17 @@ app.get(['/api/health', '/api/v1/health'], async (req: Request, res: Response) =
     status: 'ok',
     service: 'Plataforma Educativa ALSIZ — Ekballo Church',
     database: {
-      engine: 'node:sqlite (Embedded SQLite3 with WAL)',
+      engine: process.env.TURSO_DATABASE_URL ? 'Turso Cloud (libSQL Remote)' : 'node:sqlite (Embedded SQLite3 with WAL)',
       status: 'HEALTHY',
     },
     ai: {
-      deepSeekConfigured: Boolean(process.env.DEEPSEEK_API_KEY?.trim()),
+      deepSeekConfigured: ProviderManager.isProviderAvailable('DEEPSEEK'),
       deepSeekModel: (process.env.DEEPSEEK_MODEL || 'deepseek-chat').trim(),
-      geminiConfigured: isUsableGeminiKey(process.env.GEMINI_API_KEY),
-      openRouterConfigured: Boolean(process.env.OPENROUTER_API_KEY?.trim()),
-      openCodeConfigured: Boolean(process.env.OPENCODE_API_KEY?.trim()),
+      geminiConfigured: ProviderManager.isProviderAvailable('GEMINI'),
+      openRouterConfigured: ProviderManager.isProviderAvailable('OPENROUTER'),
       ttsConfigured: Boolean(process.env.GOOGLE_TTS_API_KEY?.trim()),
-      freeFirst: !process.env.DEEPSEEK_API_KEY?.trim(),
+      freeFirst: !ProviderManager.isProviderAvailable('DEEPSEEK'),
+      availableProviders: ProviderManager.getAvailableProviders(),
       hierarchy: hierarchySummary,
     },
     time: new Date().toISOString(),
@@ -549,22 +553,9 @@ async function getOpenRouterFreeModels(preferredRaw?: string): Promise<string[]>
   return freeModelsCache.list.length > 0 ? freeModelsCache.list : FREE_FALLBACKstaticHint;
 }
 
-function getOpenCodeFreeModels(): string[] {
-  const explicit = (process.env.AI_TIER2_MODEL || '').split(',').map((s) => s.trim()).filter(Boolean);
-  if (explicit.length > 0) return explicit;
-  // Limitación verificada en vivo: OpenCode Zen bloquea sus modelos "-free" fuera de su propia app
-  // ("OpenCode's free tier can only be used in OpenCode"). Con clave gratuita esta capa falla rápido (400);
-  // solo es útil si tu cuenta OpenCode tiene modelos de pago. Se puede desactivar vaciando OPENCODE_API_KEY.
-  return [
-    'deepseek-v4-flash-free',
-    'mimo-v2.5-free',
-  ];
-}
-
 async function getAIHierarchy(): Promise<AIChatLayer[]> {
   const deepSeekKey = process.env.DEEPSEEK_API_KEY?.trim();
   const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
-  const openCodeKey = process.env.OPENCODE_API_KEY?.trim();
   const geminiKey = process.env.GEMINI_API_KEY?.trim();
 
   const layers: AIChatLayer[] = [];
@@ -595,17 +586,6 @@ async function getAIHierarchy(): Promise<AIChatLayer[]> {
         'HTTP-Referer': process.env.APP_URL || 'https://wisdomschool.edu',
         'X-Title': 'Wisdom School AI Teacher',
       },
-    });
-  }
-
-  if (openCodeKey) {
-    layers.push({
-      id: 'opencode',
-      label: 'OpenCode Zen (gratuito)',
-      provider: 'openai-compatible',
-      baseUrl: 'https://opencode.ai/zen/v1',
-      apiKey: openCodeKey,
-      models: getOpenCodeFreeModels(),
     });
   }
 

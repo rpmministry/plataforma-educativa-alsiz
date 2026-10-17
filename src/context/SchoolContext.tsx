@@ -33,6 +33,7 @@ import {
 } from '../utils/microcurriculumSchedule';
 import { readCachedGuideContent } from '../services/aiService';
 import type { GuideAiContent } from '../utils/guideGenerator';
+import { authApi, emailApi } from '../services/apiClient';
 
 /** Contexto único del profesor IA: materia + clase del día + la guía v4 EXACTA (o null si aún no existe). */
 export interface TeacherContextValue {
@@ -53,10 +54,10 @@ interface SchoolContextType {
   isAuthenticated: boolean;
   currentRole: UserRole;
   setCurrentRole: (role: UserRole) => void;
-  loginStudent: (identifier: string, passOrPin: string) => { success: boolean; student?: Student; error?: string };
+  loginStudent: (identifier: string, passOrPin: string) => Promise<{ success: boolean; student?: Student; error?: string }>;
   /** Aplica una sesión ya validada (p. ej. Google) de forma síncrona, sin forzar navegación. */
   authenticateStudent: (id: StudentId) => void;
-  logoutStudent: () => void;
+  logoutStudent: () => Promise<void>;
   registerNewStudent: (input: NewStudentInput) => { student: Student; credentials: { email: string; pinCode: string; password?: string } };
   isAuthModalOpen: boolean;
   targetLoginStudentId?: string;
@@ -377,18 +378,68 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   };
 
-  const loginStudent = (identifier: string, passOrPin: string) => {
-    const cleanId = identifier.trim().toLowerCase();
-    const cleanSecret = passOrPin.trim().toLowerCase();
-    const found = studentsList.find((s) => s.email?.toLowerCase() === cleanId || s.pinCode?.toLowerCase() === cleanId || s.id.toLowerCase() === cleanId || s.name?.toLowerCase() === cleanId);
+  const loginStudent = async (identifier: string, passOrPin: string): Promise<{ success: boolean; student?: Student; error?: string }> => {
+    const cleanId = identifier.trim();
+    const cleanSecret = passOrPin.trim();
+
+    // 1. Intento de inicio de sesión real en el servidor (/api/v1/auth)
+    try {
+      let apiRes;
+      if (/^\d{4,6}$/.test(cleanSecret)) {
+        apiRes = await authApi.pinLogin(cleanId, cleanSecret);
+      }
+      if (!apiRes || !apiRes.success) {
+        apiRes = await authApi.login(cleanId, cleanSecret);
+      }
+
+      if (apiRes.success && apiRes.data?.user) {
+        const sUser = apiRes.data.user;
+        const found = studentsList.find((s) =>
+          s.id.toLowerCase() === sUser.studentId?.toLowerCase() ||
+          s.email?.toLowerCase() === sUser.email?.toLowerCase() ||
+          s.id.toLowerCase() === sUser.username?.toLowerCase()
+        ) || studentsList.find(s => !s.isDemo) || studentsList[0];
+
+        commitAuthenticatedSession(found.id);
+        if (sUser.role === 'ADMIN') setCurrentRole('admin');
+        else if (sUser.role === 'TEACHER') setCurrentRole('teacher');
+        else if (sUser.role === 'REPRESENTATIVE') setCurrentRole('representative');
+        else setCurrentRole('student');
+
+        if (found.email && found.pinCode) {
+          emailApi.sendPin(found.email, found.pinCode, found.name).catch(() => {});
+        }
+        return { success: true, student: found };
+      }
+    } catch (err) {
+      console.warn('[SchoolContext] Conexión API v1 no disponible, utilizando fallback seguro local:', err);
+    }
+
+    // 2. Fallback local / demo / entorno sin conexión
+    const cleanIdLower = cleanId.toLowerCase();
+    const cleanSecretLower = cleanSecret.toLowerCase();
+    const found = studentsList.find(
+      (s) =>
+        s.email?.toLowerCase() === cleanIdLower ||
+        s.pinCode?.toLowerCase() === cleanIdLower ||
+        s.id.toLowerCase() === cleanIdLower ||
+        s.name?.toLowerCase() === cleanIdLower
+    );
     if (!found) return { success: false, error: 'Estudiante no encontrado.' };
-    
-    if ((found.password?.toLowerCase() === cleanSecret) || (found.pinCode?.toLowerCase() === cleanSecret) || (cleanId === found.pinCode?.toLowerCase() || cleanId === found.id.toLowerCase())) {
-      // Login válido = sesión aplicada de inmediato (no espera a red, timers ni re-render).
+
+    if (
+      found.password?.toLowerCase() === cleanSecretLower ||
+      found.pinCode?.toLowerCase() === cleanSecretLower ||
+      cleanIdLower === found.pinCode?.toLowerCase() ||
+      cleanIdLower === found.id.toLowerCase()
+    ) {
       commitAuthenticatedSession(found.id);
+      if (found.email && found.pinCode) {
+        emailApi.sendPin(found.email, found.pinCode, found.name).catch(() => {});
+      }
       return { success: true, student: found };
     }
-    return { success: false, error: 'Credenciales incorrectas.' };
+    return { success: false, error: 'Credenciales incorrectas. Revisa tu correo y contraseña.' };
   };
 
   const changePassword = (studentId: string, currentPass: string, newPass: string) => {
@@ -410,7 +461,10 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return { success: true };
   };
 
-  const logoutStudent = () => {
+  const logoutStudent = async () => {
+    try {
+      await authApi.logout();
+    } catch { /* no-op */ }
     authRef.current = null;
     setAuthenticatedStudentId(null);
     setCurrentStudentId(null);

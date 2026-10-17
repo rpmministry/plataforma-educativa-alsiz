@@ -1,4 +1,4 @@
-import { getDb } from '../db/database';
+import { getDatabaseAdapter } from '../db/dal';
 import {
   generateSessionToken,
   hashToken,
@@ -9,9 +9,6 @@ import {
   UserRole,
   SessionRow,
   AuthSessionUser,
-  UserRow,
-  StudentRow,
-  RepresentativeRow,
 } from './types';
 
 const DEFAULT_TTL_HOURS = 72;
@@ -21,13 +18,13 @@ export function getSessionTtlHours(): number {
   return !isNaN(envTtl) && envTtl > 0 ? envTtl : DEFAULT_TTL_HOURS;
 }
 
-export function createSession(
+export async function createSession(
   userId: string,
   role: UserRole,
   ip: string,
   userAgent?: string
-): { token: string; session: SessionRow } {
-  const db = getDb();
+): Promise<{ token: string; session: SessionRow }> {
+  const db = getDatabaseAdapter();
   const rawToken = generateSessionToken();
   const tokenHash = hashToken(rawToken);
   const sessionId = generateUuid();
@@ -41,19 +38,17 @@ export function createSession(
   let representativeId: string | null = null;
 
   if (role === 'STUDENT') {
-    const stu = db.prepare('SELECT id FROM students WHERE user_id = ?').get(userId) as { id: string } | undefined;
+    const stu = await db.queryOne<{ id: string }>('SELECT id FROM students WHERE user_id = ?', [userId]);
     studentId = stu ? stu.id : null;
   } else if (role === 'REPRESENTATIVE') {
-    const rep = db.prepare('SELECT id FROM representatives WHERE user_id = ?').get(userId) as { id: string } | undefined;
+    const rep = await db.queryOne<{ id: string }>('SELECT id FROM representatives WHERE user_id = ?', [userId]);
     representativeId = rep ? rep.id : null;
   }
 
-  const insertStmt = db.prepare(`
+  await db.execute(`
     INSERT INTO sessions (id, user_id, token_hash, role, student_id, representative_id, ip_hash, user_agent, expires_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-  `);
-
-  insertStmt.run(
+  `, [
     sessionId,
     userId,
     tokenHash,
@@ -62,8 +57,8 @@ export function createSession(
     representativeId,
     ipHashed,
     userAgent || null,
-    expiresAt
-  );
+    expiresAt,
+  ]);
 
   const sessionRow: SessionRow = {
     id: sessionId,
@@ -81,12 +76,12 @@ export function createSession(
   return { token: rawToken, session: sessionRow };
 }
 
-export function validateSession(rawToken: string): AuthSessionUser | null {
+export async function validateSession(rawToken: string): Promise<AuthSessionUser | null> {
   if (!rawToken || typeof rawToken !== 'string') {
     return null;
   }
 
-  const db = getDb();
+  const db = getDatabaseAdapter();
   const tokenHash = hashToken(rawToken);
   const nowIso = new Date().toISOString();
 
@@ -111,7 +106,7 @@ export function validateSession(rawToken: string): AuthSessionUser | null {
     WHERE s.token_hash = ? AND s.expires_at > ? AND u.status = 'ACTIVE'
   `;
 
-  const row = db.prepare(query).get(tokenHash, nowIso) as any;
+  const row = await db.queryOne<any>(query, [tokenHash, nowIso]);
   if (!row) {
     return null;
   }
@@ -132,24 +127,23 @@ export function validateSession(rawToken: string): AuthSessionUser | null {
   };
 }
 
-export function invalidateSession(rawToken: string): boolean {
+export async function invalidateSession(rawToken: string): Promise<boolean> {
   if (!rawToken) return false;
-  const db = getDb();
+  const db = getDatabaseAdapter();
   const tokenHash = hashToken(rawToken);
-  const result = db.prepare('DELETE FROM sessions WHERE token_hash = ?').run(tokenHash);
-  return Number(result.changes) > 0;
+  const result = await db.execute('DELETE FROM sessions WHERE token_hash = ?', [tokenHash]);
+  return Number(result.rowsAffected) > 0;
 }
 
-export function invalidateAllUserSessions(userId: string): number {
-  const db = getDb();
-  const result = db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId);
-  return Number(result.changes);
+export async function invalidateAllUserSessions(userId: string): Promise<number> {
+  const db = getDatabaseAdapter();
+  const result = await db.execute('DELETE FROM sessions WHERE user_id = ?', [userId]);
+  return Number(result.rowsAffected);
 }
 
-export function cleanupExpiredSessions(): number {
-  const db = getDb();
+export async function cleanupExpiredSessions(): Promise<number> {
+  const db = getDatabaseAdapter();
   const nowIso = new Date().toISOString();
-  const result = db.prepare('DELETE FROM sessions WHERE expires_at <= ?').run(nowIso);
-  return Number(result.changes);
+  const result = await db.execute('DELETE FROM sessions WHERE expires_at <= ?', [nowIso]);
+  return Number(result.rowsAffected);
 }
-

@@ -48,18 +48,23 @@ export function extractSessionToken(req: Request): string | null {
 /**
  * Middleware para autenticar sesión. Adjunta req.user si es válida.
  */
-export function authenticate(req: AuthenticatedRequest, _res: Response, next: NextFunction): void {
+export async function authenticate(req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> {
   const token = extractSessionToken(req);
   if (!token) {
     req.user = undefined;
     return next();
   }
 
-  const sessionUser = validateSession(token);
-  if (sessionUser) {
-    req.user = sessionUser;
-    req.rawSessionToken = token;
-  } else {
+  try {
+    const sessionUser = await validateSession(token);
+    if (sessionUser) {
+      req.user = sessionUser;
+      req.rawSessionToken = token;
+    } else {
+      req.user = undefined;
+    }
+  } catch (err) {
+    console.warn('[AuthMiddleware] Error validando sesión:', err);
     req.user = undefined;
   }
   next();
