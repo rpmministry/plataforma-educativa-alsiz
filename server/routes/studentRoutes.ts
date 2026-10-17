@@ -1,6 +1,6 @@
 import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { getDb } from '../db/database';
+import { getDatabaseAdapter } from '../db/dal';
 import {
   AuthenticatedRequest,
   requireAuth,
@@ -27,7 +27,7 @@ studentRouter.get(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const { studentId } = req.params;
-      const db = getDb();
+      const db = getDatabaseAdapter();
 
       const query = `
         SELECT 
@@ -45,7 +45,7 @@ studentRouter.get(
         WHERE s.id = ? OR s.student_code = ?
       `;
 
-      const student = db.prepare(query).get(studentId, studentId) as any;
+      const student = await db.queryOne(query, [studentId, studentId]);
       if (!student) {
         res.status(404).json({
           success: false,
@@ -70,7 +70,7 @@ studentRouter.get(
         JOIN levels l ON l.id = e.level_id
         WHERE e.student_id = ? AND e.status = 'ACTIVE'
       `;
-      const enrollments = db.prepare(enrollmentsQuery).all(student.id);
+      const enrollments = await db.query(enrollmentsQuery, [student.id]);
 
       recordAuditEvent({
         userId: req.user?.userId,
@@ -115,10 +115,10 @@ studentRouter.get(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const { studentId } = req.params;
-      const db = getDb();
+      const db = getDatabaseAdapter();
 
       // Resolver ID canónico
-      const stu = db.prepare('SELECT id FROM students WHERE id = ? OR student_code = ?').get(studentId, studentId) as any;
+      const stu = await db.queryOne<{ id: string }>('SELECT id FROM students WHERE id = ? OR student_code = ?', [studentId, studentId]);
       if (!stu) {
         res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Estudiante no encontrado.' } });
         return;
@@ -139,7 +139,7 @@ studentRouter.get(
         WHERE e.student_id = ? AND e.status = 'ACTIVE'
       `;
 
-      const subjects = db.prepare(subjectsQuery).all(stu.id);
+      const subjects = await db.query(subjectsQuery, [stu.id]);
 
       res.json({
         success: true,
@@ -166,9 +166,9 @@ studentRouter.get(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const { studentId } = req.params;
-      const db = getDb();
+      const db = getDatabaseAdapter();
 
-      const stu = db.prepare('SELECT id FROM students WHERE id = ? OR student_code = ?').get(studentId, studentId) as any;
+      const stu = await db.queryOne<{ id: string }>('SELECT id FROM students WHERE id = ? OR student_code = ?', [studentId, studentId]);
       if (!stu) {
         res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Estudiante no encontrado.' } });
         return;
@@ -193,7 +193,7 @@ studentRouter.get(
         ORDER BY sub.submitted_at DESC
       `;
 
-      const submissions = db.prepare(submissionsQuery).all(stu.id);
+      const submissions = await db.query(submissionsQuery, [stu.id]);
 
       res.json({
         success: true,
@@ -221,20 +221,23 @@ studentRouter.put(
     try {
       const { studentId } = req.params;
       const validated = updateProfileSchema.parse(req.body);
-      const db = getDb();
+      const db = getDatabaseAdapter();
 
-      const stu = db.prepare('SELECT id FROM students WHERE id = ? OR student_code = ?').get(studentId, studentId) as any;
+      const stu = await db.queryOne<{ id: string }>('SELECT id FROM students WHERE id = ? OR student_code = ?', [studentId, studentId]);
       if (!stu) {
         res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Estudiante no encontrado.' } });
         return;
       }
 
       if (validated.motto !== undefined || validated.colorThemeJson !== undefined) {
-        db.prepare(`
+        await db.execute(
+          `
           UPDATE students 
           SET motto = COALESCE(?, motto), color_theme_json = COALESCE(?, color_theme_json)
           WHERE id = ?
-        `).run(validated.motto ?? null, validated.colorThemeJson ?? null, stu.id);
+        `,
+          [validated.motto ?? null, validated.colorThemeJson ?? null, stu.id]
+        );
       }
 
       recordAuditEvent({

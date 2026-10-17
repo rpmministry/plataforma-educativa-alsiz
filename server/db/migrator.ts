@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { getDb } from './database';
+import { IDatabaseAdapter, getDatabaseAdapter } from './dal';
 
 export interface MigrationResult {
   version: string;
@@ -225,6 +226,206 @@ export function checkMigrationsStatus(customDb?: DatabaseSync): MigrationHealth 
       mismatchedVersions,
     };
   } catch (err: any) {
+    return {
+      status: 'UNINITIALIZED',
+      totalMigrationsOnDisk: 0,
+      appliedCount: 0,
+      latestVersion: null,
+      pendingVersions: [],
+      mismatchedVersions: [],
+    };
+  }
+}
+
+export async function runMigrationsAsync(
+  customAdapter?: IDatabaseAdapter,
+  options?: MigrationOptions
+): Promise<MigrationResult[]> {
+  const adapter = customAdapter || getDatabaseAdapter();
+  const results: MigrationResult[] = [];
+
+  // 1. Asegurar tabla de control de versiones
+  await adapter.executeMultiple(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      version TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      checksum_sha256 TEXT NOT NULL,
+      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+
+  // 2. Localizar directorio de migraciones
+  const migrationsDir = path.resolve(__dirname, 'migrations');
+  if (!fs.existsSync(migrationsDir)) {
+    console.warn(`[MigratorAsync] Carpeta de migraciones no encontrada en ${migrationsDir}`);
+    return results;
+  }
+
+  // 3. Obtener y ordenar archivos SQL
+  const files = fs
+    .readdirSync(migrationsDir)
+    .filter((f) => f.endsWith('.sql'))
+    .sort();
+
+  // 4. Consultar migraciones aplicadas previamente
+  const appliedRows = await adapter.query<{ version: string; checksum_sha256: string }>(
+    'SELECT version, checksum_sha256 FROM schema_migrations ORDER BY version ASC'
+  );
+  const appliedMap = new Map<string, string>(appliedRows.map((r) => [r.version, r.checksum_sha256]));
+
+  for (const file of files) {
+    const filePath = path.join(migrationsDir, file);
+    const content = fs.readFileSync(filePath, 'utf8');
+    const checksum = computeChecksum(content);
+    const version = file.split('_')[0];
+
+    // Verificar si ya fue aplicada
+    if (appliedMap.has(version)) {
+      const existingChecksum = appliedMap.get(version);
+      if (existingChecksum !== checksum) {
+        console.warn(
+          `[MigratorAsync] ADVERTENCIA: La migración ${file} tiene un checksum distinto al registrado en BD. Registrado: ${existingChecksum?.slice(0, 8)}, Actual: ${checksum.slice(0, 8)}`
+        );
+      }
+      results.push({
+        version,
+        name: file,
+        checksum,
+        status: 'SKIPPED',
+      });
+      continue;
+    }
+
+    // Política P0 de Seguridad: Omitir estrictamente semillas de desarrollo en producción
+    const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+    const shouldSkipDevSeed = (isProduction || options?.skipDevSeeds) && (file.toLowerCase().includes('seed') || version === '003');
+    if (shouldSkipDevSeed) {
+      console.log(`[MigratorAsync] Omitiendo migración de datos semilla (${file}) por política de seguridad de producción.`);
+      results.push({
+        version,
+        name: file,
+        checksum,
+        status: 'SKIPPED',
+      });
+      continue;
+    }
+
+    // Aplicar migración de manera asíncrona
+    try {
+      await adapter.executeMultiple(content);
+      await adapter.execute(
+        'INSERT INTO schema_migrations (version, name, checksum_sha256) VALUES (?, ?, ?);',
+        [version, file, checksum]
+      );
+
+      results.push({
+        version,
+        name: file,
+        checksum,
+        status: 'APPLIED',
+      });
+      console.log(`[MigratorAsync] Migración ${file} (v${version}) aplicada exitosamente.`);
+    } catch (err: any) {
+      console.error(`[MigratorAsync] ERROR aplicando migración ${file}:`, err?.message || err);
+      results.push({
+        version,
+        name: file,
+        checksum,
+        status: 'FAILED',
+        error: err?.message || String(err),
+      });
+      throw new Error(`Fallo crítico en migración ${file}: ${err?.message || err}`);
+    }
+  }
+
+  return results;
+}
+
+export async function checkMigrationsStatusAsync(customAdapter?: IDatabaseAdapter): Promise<MigrationHealth> {
+  const adapter = customAdapter || getDatabaseAdapter();
+
+  try {
+    const tableCheck = await adapter.queryOne<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations';"
+    );
+
+    if (!tableCheck) {
+      return {
+        status: 'UNINITIALIZED',
+        totalMigrationsOnDisk: 0,
+        appliedCount: 0,
+        latestVersion: null,
+        pendingVersions: [],
+        mismatchedVersions: [],
+      };
+    }
+
+    const appliedRows = await adapter.query<{ version: string; checksum_sha256: string }>(
+      'SELECT version, checksum_sha256 FROM schema_migrations ORDER BY version ASC'
+    );
+    const appliedMap = new Map<string, string>(appliedRows.map((r) => [r.version, r.checksum_sha256]));
+
+    const migrationsDir = path.resolve(__dirname, 'migrations');
+    if (!fs.existsSync(migrationsDir)) {
+      return {
+        status: 'SYNCED',
+        totalMigrationsOnDisk: 0,
+        appliedCount: appliedRows.length,
+        latestVersion: appliedRows.length > 0 ? appliedRows[appliedRows.length - 1].version : null,
+        pendingVersions: [],
+        mismatchedVersions: [],
+      };
+    }
+
+    const files = fs
+      .readdirSync(migrationsDir)
+      .filter((f) => f.endsWith('.sql'))
+      .sort();
+
+    const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+    const pendingVersions: string[] = [];
+    const mismatchedVersions: string[] = [];
+
+    for (const file of files) {
+      const filePath = path.join(migrationsDir, file);
+      const content = fs.readFileSync(filePath, 'utf8');
+      const checksum = computeChecksum(content);
+      const version = file.split('_')[0];
+
+      const isDevSeed = file.toLowerCase().includes('seed') || version === '003';
+      if (isProduction && isDevSeed) {
+        continue;
+      }
+
+      if (!appliedMap.has(version)) {
+        pendingVersions.push(version);
+      } else {
+        const recorded = appliedMap.get(version);
+        if (recorded !== checksum) {
+          mismatchedVersions.push(version);
+        }
+      }
+    }
+
+    let status: 'SYNCED' | 'PENDING' | 'MISMATCH' | 'UNINITIALIZED' = 'SYNCED';
+    if (mismatchedVersions.length > 0) {
+      status = 'MISMATCH';
+    } else if (pendingVersions.length > 0) {
+      status = 'PENDING';
+    }
+
+    const latest = appliedRows.length > 0 ? appliedRows[appliedRows.length - 1].version : null;
+
+    return {
+      status,
+      totalMigrationsOnDisk: files.length,
+      appliedCount: appliedRows.length,
+      latestVersion: latest,
+      pendingVersions,
+      mismatchedVersions,
+    };
+  } catch {
     return {
       status: 'UNINITIALIZED',
       totalMigrationsOnDisk: 0,

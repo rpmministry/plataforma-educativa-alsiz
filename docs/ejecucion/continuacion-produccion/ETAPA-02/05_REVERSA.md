@@ -1,97 +1,93 @@
 # Procedimiento de Reversión (Rollback) — Etapa 02: Persistencia Real y Arquitectura Temporal de Despliegue
 **Plataforma Educativa ALSIZ — Ekballo Church**  
 **Fecha:** 17 de Octubre de 2026  
-**Rama:** `continuacion-produccion-etapa-02`  
+**Rama:** `feature/arquitectura-vercel-turso`  
 
 ---
 
 ## 1. Alcance de la Reversión
 
-Este procedimiento define los pasos ordenados para revertir los cambios de arquitectura y persistencia introducidos en la **Etapa 02** en caso de fallos críticos, inconsistencias no recuperables o rechazo en la revisión técnica humana.
+Este documento establece el protocolo detallado y ordenado para revertir parcial o totalmente las configuraciones y cambios de código introducidos en la **Etapa 02** (tanto para la arquitectura Vercel + Turso Cloud como para la opción Render + SQLite en disco persistente).
 
 ---
 
 ## 2. Escenarios y Procedimientos de Reversión
 
-### Escenario A: Reversión Completa a Nivel de Control de Versiones (Git)
-Si se decide descartar por completo las modificaciones de la Etapa 02 y retornar al estado base de la Etapa 01:
+### Escenario A: Reversión Rápida de Infraestructura (Switch de Turso Cloud a Render / SQLite)
+Gracias al diseño agnóstico desacoplado del DAL (`IDatabaseAdapter`), **no es necesario cambiar código** para alternar entre proveedores:
 
-1. **Verificar estado de trabajo actual:**
+1. **Para desconectar Turso Cloud y volver a Render/VPS con proxy:**
+   - En el panel de Vercel (**Settings -> Environment Variables**):
+     - Eliminar o vaciar `TURSO_DATABASE_URL` y `TURSO_AUTH_TOKEN`.
+     - Configurar `BACKEND_URL=https://tu-backend.onrender.com`.
+   - Vercel cambiará automáticamente el comportamiento de `api-entry.js` para operar en modo Proxy Reverso.
+2. **Para forzar el uso de SQLite local en un servidor o contenedor:**
+   - En el archivo `.env` del servidor:
+     ```env
+     USE_LOCAL_SQLITE=true
+     DATABASE_PATH=/data/alsiz.db
+     ```
+   - Reiniciar el proceso Node (`pm2 restart alsiz-backend` o `docker compose restart`).
+
+---
+
+### Escenario B: Restauración de Base de Datos desde Respaldo Inmutable
+Antes de la sincronización con Turso, se generó un respaldo físico verificado:
+`backups/alsiz_pre_turso_migracion_20261017.db` (1.14 MB).
+
+Si se detectara alguna discrepancia en la base de datos:
+1. **Restaurar base de datos local SQLite:**
+   ```powershell
+   Copy-Item backups/alsiz_pre_turso_migracion_20261017.db data/alsiz.db -Force
+   ```
+2. **Verificar integridad del archivo restaurado:**
+   ```powershell
+   npm run health
+   ```
+3. **Re-sincronizar Turso Cloud desde el respaldo local (si fuera requerido):**
+   ```powershell
+   # Desde Turso CLI (si está instalado):
+   turso db shell alsiz-db < data/alsiz.db
+   ```
+
+---
+
+### Escenario C: Reversión Completa en Git (Descartar Rama de Trabajo)
+Si el comité técnico de la iglesia decide descartar las adaptaciones de Turso y volver al commit base:
+
+1. **Verificar estado del árbol de trabajo:**
    ```powershell
    git status
    ```
-2. **Volver a la rama de Etapa 01 o descartar la rama de Etapa 02:**
+2. **Cambiar a la rama base aprobada:**
    ```powershell
-   git checkout continuacion-produccion-etapa-01
+   git checkout continuacion-produccion-etapa-02
    ```
-   *(Opcional si se requiere eliminar la rama local sin push previo)*:
+   *(Opcional: eliminar la rama de trabajo local)*:
    ```powershell
-   git branch -D continuacion-produccion-etapa-02
+   git branch -D feature/arquitectura-vercel-turso
    ```
-3. **Restaurar dependencias originales (si se requiere recuperar bun.lock):**
+3. **Restaurar dependencias si fuera necesario:**
    ```powershell
-   git checkout origin/main -- bun.lock
-   npm install
+   npm ci
    ```
 
 ---
 
-### Escenario B: Reversión Operativa de Despliegue en Vercel
-Si el proxy de Vercel (`api-entry.js`) presenta problemas o latencia con el backend persistente:
-
-1. **Restaurar `api-entry.js` original:**
-   ```powershell
-   git checkout c35d468 -- api-entry.js
-   ```
-2. **Verificar `vercel.json`:**
-   Asegurar que las rutas apunten a los manejadores serverless previos o al archivo `api-server.js`.
-3. **Despliegue de rollback en Vercel:**
-   - Desde el panel de Vercel: ir a **Deployments**, seleccionar el despliegue inmediatamente anterior y hacer clic en **Instant Rollback**.
-
----
-
-### Escenario C: Reversión Operativa del Backend Persistente (Render / VPS)
-Si el servicio backend persistente falla al iniciar o la base de datos presenta problemas:
-
-1. **Detener el servicio backend:**
-   - **Render:** Suspender el Web Service desde el dashboard.
-   - **PM2 / VPS:**
-     ```bash
-     pm2 stop alsiz-backend
-     ```
-   - **Docker:**
-     ```bash
-     docker compose down
-     ```
-2. **Restaurar la base de datos SQLite desde el último respaldo verificado:**
-   - Ubicar el último respaldo en `backups/`:
-     ```powershell
-     ls backups/
-     ```
-   - Copiar el respaldo sobre la ruta activa `DATABASE_PATH`:
-     ```bash
-     cp backups/alsiz_pre_etapa02_backup.db /data/alsiz.db
-     ```
-   - Validar integridad del archivo restaurado:
-     ```bash
-     sqlite3 /data/alsiz.db "PRAGMA integrity_check;"
-     ```
-3. **Reiniciar servicio backend:**
-   ```bash
-   pm2 start ecosystem.config.cjs
-   ```
-4. **Comprobar salud:**
-   ```bash
-   curl -s http://localhost:3001/api/health
-   ```
+### Escenario D: Reversión Operativa en Vercel Dashboard
+Si un despliegue en Vercel presenta fallos en tiempo de ejecución:
+1. Acceder al dashboard de [Vercel](https://vercel.com).
+2. Seleccionar el proyecto `plataforma-educativa-alsiz`.
+3. Navegar a la pestaña **Deployments**.
+4. Ubicar el despliegue anterior estable y hacer clic en los tres puntos (`...`) -> **Instant Rollback**.
+5. Vercel redirigirá el tráfico inmediatamente a la versión previa en menos de 5 segundos.
 
 ---
 
 ## 3. Criterios de Éxito de la Reversión
 
-La reversión se considerará exitosa cuando:
-1. `git status` no contenga cambios huérfanos o archivos en conflicto.
-2. `npm run test:security-p0` y `npm run health` se ejecuten sin errores.
-3. El frontend sirva la interfaz de usuario sin errores 500 y las sesiones sigan funcionando con el estado de persistencia previo.
-4. No exista pérdida de datos ni corrupción en el archivo SQLite.
-
+La reversión se considerará concluida con éxito cuando:
+1. `git status` reporte el árbol limpio sin cambios descontrolados.
+2. `npm run health` reporte `database.connected: true` con integridad `ok`.
+3. `npm run test:security-p0` y `npm run test:etapa02` pasen al 100%.
+4. No exista pérdida de sesiones de estudiantes ni corrupción de tablas académicas.

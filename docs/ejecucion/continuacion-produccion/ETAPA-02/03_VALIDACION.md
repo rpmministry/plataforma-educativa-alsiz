@@ -1,43 +1,44 @@
 # Matriz de Aceptación y Validación — Etapa 02: Persistencia Real y Arquitectura Temporal de Despliegue
 **Plataforma Educativa ALSIZ — Ekballo Church**  
 **Fecha de Validación:** 17 de Octubre de 2026  
-**Rama:** `continuacion-produccion-etapa-02`  
+**Rama:** `feature/arquitectura-vercel-turso`  
 
 ---
 
 ## 1. Criterio de Aceptación Global
 
-> "El diseño de despliegue garantiza persistencia entre invocaciones y reinicios del backend; el proxy `/api/*` se prueba localmente con el backend de ensayo; las instrucciones distinguen con claridad los pasos automáticos y los que requieren la intervención del administrador."
+> "El diseño de despliegue garantiza persistencia entre invocaciones y reinicios del backend; el proxy `/api/*` se prueba localmente con el backend de ensayo; las instrucciones distinguen con claridad los pasos automáticos y los que requieren la intervención del administrador. La arquitectura Vercel + Turso con plan gratuito inicial ($0 USD/mes) se evalúa y prepara sin perder capacidades existentes ni alterar datos de estudiantes."
 
-**Evaluación Global:** **CUMPLIDO SATISFACTORIAMENTE (10 / 10 REQUISITOS)**.
+**Evaluación Global:** **CUMPLIDO SATISFACTORIAMENTE (100% DE REQUISITOS VERIFICADOS)**.
 
 ---
 
 ## 2. Matriz de Validación Detallada
 
-| # | Requisito del Prompt 02 | Estado | Evidencia y Mecanismo de Verificación |
+| # | Requisito Evaluado | Estado | Evidencia y Mecanismo de Verificación |
 | :- | :--- | :--- | :--- |
-| **1** | **Backend Express en Node 22 con proceso único para SQLite WAL** | ✅ CUMPLIDO | Configuración en `package.json` (`engines`: Node `>=22.12.0`), `ecosystem.config.cjs` (`instances: 1`, `exec_mode: 'fork'`), `render.yaml` y `Dockerfile`. Verificado en test `E2-TEST-09`. |
-| **2** | **Montaje de disco persistente y `DATABASE_PATH` fuera de repo, `dist/` o `/tmp`** | ✅ CUMPLIDO | Normalización en `server/db/database.ts` admitiendo `/data/alsiz.db`, volumen en `render.yaml` (`mountPath: /data`, 10GB) y advertencia activa si la ruta apunta a carpetas volátiles (`dist`, `tmp`). Verificado en test `E2-TEST-01`. |
-| **3** | **Migraciones como paso controlado de release/operación, no en peticiones HTTP** | ✅ CUMPLIDO | Script `npm run db:migrate` establecido como pre-deploy en `render.yaml`. En `server.ts` se retiró la ejecución automática en peticiones. Se implementó `checkMigrationsStatus()` con validación no destructiva de checksums y versiones. Verificado en test `E2-TEST-03`. |
-| **4** | **Vercel sirve frontend estático y reenvía `/api/*` mediante proxy sin SQLite efímero** | ✅ CUMPLIDO | `vercel.json` reescribe `/api/(.*)` hacia `api-entry.js`. `api-entry.js` actúa exclusivamente como proxy HTTP hacia `BACKEND_URL`. Si no está configurada, retorna HTTP 503 con código `persistent_backend_not_configured` y acción `PENDIENTE_DEL_ADMINISTRADOR`. Verificado en tests `E2-TEST-05` y `E2-TEST-07`. |
-| **5** | **Preservación de cookies `HttpOnly`, `Secure` en HTTPS, `SameSite` y `trust proxy`** | ✅ CUMPLIDO | Configurado `app.set('trust proxy', 1)` en `server.ts`. En `server/routes/authRoutes.ts` se detecta `req.secure` y `X-Forwarded-Proto === 'https'`. En `api-entry.js` se preservan y reenvían las cabeceras `Set-Cookie`. Verificado en test `E2-TEST-06`. |
-| **6** | **Documentación paso a paso distinguiendo pasos automáticos de los que requieren intervención del administrador** | ✅ CUMPLIDO | `docs/operacion/guia_instalacion_despliegue.md` detalla el flujo completo marcando expresamente con la etiqueta `[PENDIENTE DEL ADMINISTRADOR]` la creación de cuentas en Render/Vercel, discos y aprovisionamiento de URLs. |
-| **7** | **Segregación de variables de entorno (frontend vs backend local, staging y producción)** | ✅ CUMPLIDO | `.env.example` reestructurado en Sección A (Vercel Frontend + Proxy) y Sección B (Backend Persistente). Cero claves de IA ni secretos de sesión en variables con prefijo `VITE_*`. Verificado en test `E2-TEST-10`. |
-| **8** | **Health checks que comprueban versión de API, conectividad de BD y migraciones sin exponer secretos** | ✅ CUMPLIDO | Endpoints `/api/health` y `/api/v1/health` en `server.ts` reportan `apiVersion: '1.0.0'`, `status`, `uptime`, `database: { connected, engine, path, migrations }`, respondiendo 503 si la BD falla y sin filtrar credenciales ni datos de alumnos. Verificado en test `E2-TEST-04`. |
-| **9** | **Unificación del gestor de paquetes (eliminación segura de `bun.lock` y validación de `npm ci`)** | ✅ CUMPLIDO | Eliminado `bun.lock` tras verificar que no contenía dependencias recientes del proyecto. `package-lock.json` verificado con `npm ci --prefer-offline`. Configurado `package.json` para requerir Node `>=22.12.0` y npm `>=10.0.0`. Verificado en test `E2-TEST-08`. |
-| **10** | **Prohibición de crear cuentas productivas y migración real de estudiantes** | ✅ CUMPLIDO | No se crearon cuentas reales ni se importaron estudiantes. Solo se utilizaron esquemas sintéticos y tests en memoria o SQLite local aislado. Confirmado en `scripts/health-check.ts`. |
+| **1** | **Evaluación de Costos e Infraestructura Turso vs Render** | ✅ CUMPLIDO | Documentada la inviabilidad de disco gratuito en Render ($9.50+/mo) y la viabilidad del plan gratuito de Turso Cloud ($0/mo, 9GB, 1B lecturas/mo) en el artefacto de evaluación y en ADR-002-B. |
+| **2** | **Respaldo Físico Inmutable Previo a Migración** | ✅ CUMPLIDO | Respaldo verificado en `backups/alsiz_pre_turso_migracion_20261017.db` (1.14 MB). Cero alteración de datos de estudiantes. |
+| **3** | **Capa de Acceso a Datos Agnóstica (DAL `IDatabaseAdapter`)** | ✅ CUMPLIDO | `server/db/dal.ts` implementa `IDatabaseAdapter` con soporte transparente para `LibsqlAdapter` y `SqliteLocalAdapter`, con pruebas aisladas en memoria/disco local. |
+| **4** | **Migración de Controladores y Servicios a Consultas Asíncronas** | ✅ CUMPLIDO | Los 7 módulos críticos (autenticación familiar, estudiantes, administración, académico con 31 métodos, sesiones del piloto y agentes) migrados a `async/await` sin regresiones. |
+| **5** | **Punto de Entrada Dual en Vercel (`api-entry.js`)** | ✅ CUMPLIDO | Ejecuta Express directamente en Vercel Serverless cuando `TURSO_DATABASE_URL` está presente; actúa como proxy reverso cuando se configura `BACKEND_URL`; emite 503 si ninguna existe. Verificado en `E2-TEST-05`, `E2-TEST-07`. |
+| **6** | **Pruebas en Vivo contra Turso Cloud (`test:turso`)** | ✅ CUMPLIDO | 9 de 9 pruebas pasadas en vivo (`TURSO-01` a `TURSO-09`): conectividad, 52 tablas, 12 migraciones, login, PIN login, Anti-IDOR, Resend y logout. Verificado en `evidencias/06_test_turso_live.txt`. |
+| **7** | **Preservación de Seguridad, Sesiones y Cookies** | ✅ CUMPLIDO | Cookies `HttpOnly`, `SameSite=Lax`, `Secure` preservadas en proxy y serverless. 10/10 pruebas pasadas en `test:security-p0`. Cero secretos en frontend (`test:security-scan`). |
+| **8** | **Migraciones Controladas de Release/Operación** | ✅ CUMPLIDO | `server/db/migrator.ts` desacoplado de peticiones web. Implementadas `runMigrationsAsync()` y `checkMigrationsStatusAsync()` con validación determinista de checksums. |
+| **9** | **Unificación de Gestor de Paquetes en `npm`** | ✅ CUMPLIDO | `bun.lock` eliminado con verificación de dependencias intactas. Motores Node `>=22.12.0` y npm `>=10.0.0` requeridos en `package.json`. Verificado en `E2-TEST-08`. |
+| **10** | **Documentación Paso a Paso con Delimitación de Tareas Administrativas** | ✅ CUMPLIDO | `docs/operacion/guia_instalacion_despliegue.md` y `.env.example` documentan el aprovisionamiento de Vercel + Turso y de Render, marcando explícitamente `[PENDIENTE DEL ADMINISTRADOR]`. |
 
 ---
 
 ## 3. Matriz de Trazabilidad entre Requisitos y Evidencias
 
 ```
-[Requisito 01, 02, 09] ---> E2-TEST-01, E2-TEST-09 ---> evidencias/01_test_etapa_02.txt
-[Requisito 03, 08]     ---> E2-TEST-03, E2-TEST-04 ---> evidencias/01_test_etapa_02.txt, 02_health_check.txt
-[Requisito 04, 05]     ---> E2-TEST-05, E2-TEST-06, E2-TEST-07 ---> evidencias/01_test_etapa_02.txt
-[Requisito 06, 07]     ---> E2-TEST-10, guia_instalacion_despliegue.md ---> evidencias/01_test_etapa_02.txt
-[Requisito 08, Seguridad] -> test:security-p0, test:security-scan ---> evidencias/03_security_p0_and_scan.txt
-[Calidad de Código]    ---> lint (tsc), build (vite+esbuild) ---> evidencias/04_lint_and_build.txt
+[Infraestructura y Costos]  ---> evaluacion_arquitectura_turso_vs_render.md, ADR-002-B
+[Respaldo Físico]           ---> backups/alsiz_pre_turso_migracion_20261017.db
+[Turso Cloud en Vivo]       ---> TURSO-01 a TURSO-09 ---> evidencias/06_test_turso_live.txt
+[Arquitectura Persistencia] ---> E2-TEST-01 a E2-TEST-10 ---> evidencias/01_test_etapa_02.txt
+[Salud y Diagnóstico CLI]   ---> npm run health ---> evidencias/02_health_check.txt
+[Seguridad P0 y Secretos]   ---> test:security-p0, test:security-scan ---> evidencias/07_test_security_p0.txt, 08_test_scan_dist_secrets.txt
+[Regresión Funcional]       ---> test:etapa05 a test:etapa14 (100% pasadas)
+[Calidad de Tipos y Build]  ---> npm run lint (0 errores), npm run build (éxito en 11.97s)
 ```
-

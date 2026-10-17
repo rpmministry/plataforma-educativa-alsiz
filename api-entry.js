@@ -148,4 +148,32 @@ async function proxyHandler(req, res) {
   }
 }
 
-module.exports = proxyHandler;
+let expressApp = null;
+function getExpressApp() {
+  if (!expressApp) {
+    try {
+      const serverModule = require('./api-server.js');
+      expressApp = serverModule.default || serverModule.app || serverModule;
+    } catch (loadErr) {
+      console.error('[VercelServerless] Error al cargar api-server.js:', loadErr);
+      throw loadErr;
+    }
+  }
+  return expressApp;
+}
+
+module.exports = async function handler(req, res) {
+  const backendBase = (process.env.BACKEND_URL || process.env.PERSISTENT_BACKEND_URL || '').trim();
+  const tursoUrl = (process.env.TURSO_DATABASE_URL || '').trim();
+
+  if (backendBase) {
+    return proxyHandler(req, res);
+  }
+
+  if (process.env.VERCEL && tursoUrl) {
+    const app = getExpressApp();
+    return app(req, res);
+  }
+
+  return proxyHandler(req, res);
+};

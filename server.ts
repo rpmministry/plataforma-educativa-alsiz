@@ -2,8 +2,9 @@ import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
-import { runMigrations, checkMigrationsStatus } from './server/db/migrator';
+import { runMigrations, checkMigrationsStatus, checkMigrationsStatusAsync } from './server/db/migrator';
 import { isDatabaseConnected } from './server/db/database';
+import { isDatabaseConnectedAsync } from './server/db/dal';
 import { authenticate } from './server/middleware/authMiddleware';
 import { errorHandler } from './server/middleware/errorHandler';
 import { authRouter } from './server/routes/authRoutes';
@@ -245,8 +246,8 @@ app.get(['/api/health', '/api/v1/health'], async (req: Request, res: Response) =
     hierarchySummary = (await getAIHierarchy()).map((layer) => `${layer.label}: ${layer.models.slice(0, 3).join(' | ')}${layer.models.length > 3 ? ` (+${layer.models.length - 3} free más)` : ''}`);
   } catch { /* no debe tumbar el health */ }
 
-  const dbConnected = isDatabaseConnected();
-  const migStatus = checkMigrationsStatus();
+  const dbConnected = await isDatabaseConnectedAsync();
+  const migStatus = await checkMigrationsStatusAsync();
   const isHealthy = dbConnected && (migStatus.status === 'SYNCED' || migStatus.status === 'PENDING');
 
   const payload = {

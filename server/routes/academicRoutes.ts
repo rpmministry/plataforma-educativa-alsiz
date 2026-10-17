@@ -8,7 +8,7 @@ import {
   requireStudentAccess,
 } from '../middleware/authMiddleware';
 import { recordAuditEvent } from '../middleware/auditMiddleware';
-import { getDb } from '../db/database';
+import { getDatabaseAdapter } from '../db/dal';
 
 export const academicRouter = Router();
 
@@ -151,7 +151,7 @@ academicRouter.get(
       const page = req.query.page ? Number(req.query.page) : undefined;
       const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
-      const result = academicService.getPrograms({ activeOnly, programType, page, limit });
+      const result = await academicService.getPrograms({ activeOnly, programType, page, limit });
       res.json({ success: true, ...result, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -166,7 +166,7 @@ academicRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const validated = programSchema.parse(req.body);
-      const program = academicService.createProgram(validated);
+      const program = await academicService.createProgram(validated);
 
       recordAuditEvent({
         userId: req.user?.userId,
@@ -192,7 +192,7 @@ academicRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const validated = levelSchema.parse(req.body);
-      const level = academicService.createLevel(validated);
+      const level = await academicService.createLevel(validated);
       res.status(201).json({ success: true, data: level, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -205,7 +205,7 @@ academicRouter.get(
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const levels = academicService.getLevelsByProgram(req.params.programId);
+      const levels = await academicService.getLevelsByProgram(req.params.programId);
       res.json({ success: true, data: levels, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -219,7 +219,7 @@ academicRouter.get(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const schoolYear = req.query.schoolYear as string;
-      const periods = academicService.getAcademicPeriods(schoolYear);
+      const periods = await academicService.getAcademicPeriods(schoolYear);
       res.json({ success: true, data: periods, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -234,7 +234,7 @@ academicRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const validated = periodSchema.parse(req.body);
-      const period = academicService.createAcademicPeriod(validated);
+      const period = await academicService.createAcademicPeriod(validated);
       res.status(201).json({ success: true, data: period, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -258,7 +258,7 @@ academicRouter.get(
       const page = req.query.page ? Number(req.query.page) : undefined;
       const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
-      const result = academicService.getSubjects({ programId, levelId, category, search, page, limit });
+      const result = await academicService.getSubjects({ programId, levelId, category, search, page, limit });
       res.json({ success: true, ...result, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -273,7 +273,7 @@ academicRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const validated = subjectSchema.parse(req.body);
-      const subject = academicService.createSubject(validated);
+      const subject = await academicService.createSubject(validated);
 
       recordAuditEvent({
         userId: req.user?.userId,
@@ -297,7 +297,7 @@ academicRouter.get(
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const subject = academicService.getSubjectById(req.params.subjectId);
+      const subject = await academicService.getSubjectById(req.params.subjectId);
       if (!subject) {
         res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Asignatura no encontrada.' } });
         return;
@@ -317,7 +317,7 @@ academicRouter.put(
     try {
       const partialSubjectSchema = subjectSchema.partial();
       const validated = partialSubjectSchema.parse(req.body);
-      const updated = academicService.updateSubject(req.params.subjectId, validated);
+      const updated = await academicService.updateSubject(req.params.subjectId, validated);
 
       recordAuditEvent({
         userId: req.user?.userId,
@@ -351,7 +351,7 @@ academicRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const validated = enrollmentSchema.parse(req.body);
-      const enrollment = academicService.enrollStudentInProgram(validated);
+      const enrollment = await academicService.enrollStudentInProgram(validated);
 
       recordAuditEvent({
         userId: req.user?.userId,
@@ -377,7 +377,7 @@ academicRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const validated = subjectEnrollmentSchema.parse(req.body);
-      const enrollment = academicService.enrollStudentInSubject(validated);
+      const enrollment = await academicService.enrollStudentInSubject(validated);
       res.status(201).json({ success: true, data: enrollment, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -391,7 +391,7 @@ academicRouter.get(
   requireStudentAccess,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const enrollments = academicService.getStudentSubjectEnrollments(req.params.studentId);
+      const enrollments = await academicService.getStudentSubjectEnrollments(req.params.studentId);
       res.json({ success: true, data: enrollments, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -410,7 +410,7 @@ academicRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const validated = competencySchema.parse(req.body);
-      const comp = academicService.createCompetency({ ...validated, subjectId: req.params.subjectId });
+      const comp = await academicService.createCompetency({ ...validated, subjectId: req.params.subjectId });
       res.status(201).json({ success: true, data: comp, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -423,7 +423,7 @@ academicRouter.get(
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const compList = academicService.getCompetenciesBySubject(req.params.subjectId);
+      const compList = await academicService.getCompetenciesBySubject(req.params.subjectId);
       res.json({ success: true, data: compList, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -438,7 +438,7 @@ academicRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const validated = unitSchema.parse(req.body);
-      const unit = academicService.createUnit({ ...validated, subjectId: req.params.subjectId });
+      const unit = await academicService.createUnit({ ...validated, subjectId: req.params.subjectId });
       res.status(201).json({ success: true, data: unit, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -451,7 +451,7 @@ academicRouter.get(
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const units = academicService.getUnitsBySubject(req.params.subjectId);
+      const units = await academicService.getUnitsBySubject(req.params.subjectId);
       res.json({ success: true, data: units, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -466,7 +466,7 @@ academicRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const validated = lessonSchema.parse(req.body);
-      const lesson = academicService.createLesson({ ...validated, unitId: req.params.unitId });
+      const lesson = await academicService.createLesson({ ...validated, unitId: req.params.unitId });
       res.status(201).json({ success: true, data: lesson, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -479,7 +479,7 @@ academicRouter.get(
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const lessons = academicService.getLessonsByUnit(req.params.unitId);
+      const lessons = await academicService.getLessonsByUnit(req.params.unitId);
       res.json({ success: true, data: lessons, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -492,7 +492,7 @@ academicRouter.get(
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const lesson = academicService.getLessonById(req.params.lessonId);
+      const lesson = await academicService.getLessonById(req.params.lessonId);
       if (!lesson) {
         res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Lección no encontrada.' } });
         return;
@@ -511,7 +511,7 @@ academicRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const validated = resourceSchema.parse(req.body);
-      const resource = academicService.createResource({ ...validated, dailyClassId: req.params.lessonId });
+      const resource = await academicService.createResource({ ...validated, dailyClassId: req.params.lessonId });
       res.status(201).json({ success: true, data: resource, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -525,7 +525,7 @@ academicRouter.get(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const lang = (req.query.lang as string) || 'es';
-      const resources = academicService.getLessonResources(req.params.lessonId, lang);
+      const resources = await academicService.getLessonResources(req.params.lessonId, lang);
       res.json({
         success: true,
         requestedLanguage: lang,
@@ -549,7 +549,7 @@ academicRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const validated = evaluationSchema.parse(req.body);
-      const evaluation = academicService.createEvaluation({ ...validated, dailyClassId: req.params.lessonId });
+      const evaluation = await academicService.createEvaluation({ ...validated, dailyClassId: req.params.lessonId });
       res.status(201).json({ success: true, data: evaluation, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -562,7 +562,7 @@ academicRouter.get(
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const ev = academicService.getEvaluationById(req.params.evaluationId);
+      const ev = await academicService.getEvaluationById(req.params.evaluationId);
       if (!ev) {
         res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Evaluación no encontrada.' } });
         return;
@@ -595,10 +595,10 @@ academicRouter.post(
 
       // Si el rol es REPRESENTATIVE, verificar vínculo
       if (req.user?.role === 'REPRESENTATIVE') {
-        const db = getDb();
-        const link = db.prepare(`
+        const db = getDatabaseAdapter();
+        const link = await db.queryOne(`
           SELECT 1 FROM student_representatives WHERE student_id = ? AND representative_id = ?
-        `).get(effectiveStudentId, req.user.representativeId);
+        `, [effectiveStudentId, req.user.representativeId]);
         if (!link) {
           res.status(403).json({
             success: false,
@@ -608,7 +608,7 @@ academicRouter.post(
         }
       }
 
-      const submission = academicService.submitActivity({
+      const submission = await academicService.submitActivity({
         studentId: effectiveStudentId!,
         evaluationId: req.params.evaluationId,
         submissionText: validated.submissionText,
@@ -640,7 +640,7 @@ academicRouter.post(
     try {
       const validated = evaluationGradingSchema.parse(req.body);
 
-      const result = academicService.evaluateSubmission({
+      const result = await academicService.evaluateSubmission({
         submissionId: req.params.submissionId,
         evaluatorUserId: req.user!.userId,
         score: validated.score,
@@ -671,7 +671,7 @@ academicRouter.get(
   requireAuth,
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const history = academicService.getSubmissionGradeHistory(req.params.submissionId);
+      const history = await academicService.getSubmissionGradeHistory(req.params.submissionId);
       res.json({ success: true, data: history, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -690,7 +690,7 @@ academicRouter.get(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const subjectId = req.query.subjectId as string;
-      const progress = academicService.getStudentCompetencyProgress(req.params.studentId, subjectId);
+      const progress = await academicService.getStudentCompetencyProgress(req.params.studentId, subjectId);
       res.json({ success: true, data: progress, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -705,7 +705,7 @@ academicRouter.get(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const schoolYear = (req.query.schoolYear as string) || '2026-2027';
-      const report = academicService.generateStudentAcademicReport(req.params.studentId, schoolYear);
+      const report = await academicService.generateStudentAcademicReport(req.params.studentId, schoolYear);
       res.json({ success: true, data: report, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);
@@ -729,7 +729,7 @@ academicRouter.get(
       const fromDate = req.query.fromDate as string;
       const toDate = req.query.toDate as string;
 
-      const events = academicService.getCalendarEvents({
+      const events = await academicService.getCalendarEvents({
         periodId,
         programId,
         subjectId,
@@ -752,7 +752,7 @@ academicRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const validated = calendarEventSchema.parse(req.body);
-      const event = academicService.createCalendarEvent(validated);
+      const event = await academicService.createCalendarEvent(validated);
       res.status(201).json({ success: true, data: event, timestamp: new Date().toISOString() });
     } catch (err) {
       next(err);

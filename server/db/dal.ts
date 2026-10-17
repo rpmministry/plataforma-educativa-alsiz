@@ -226,3 +226,16 @@ export function resetDatabaseAdapter(): void {
   activeAdapter = null;
 }
 
+/**
+ * Comprueba de manera asíncrona la conectividad activa con el motor de base de datos actual (Turso o SQLite local)
+ */
+export async function isDatabaseConnectedAsync(): Promise<boolean> {
+  try {
+    const adapter = getDatabaseAdapter();
+    const res = await adapter.queryOne<{ alive: number }>('SELECT 1 as alive;');
+    return res?.alive === 1;
+  } catch {
+    return false;
+  }
+}
+

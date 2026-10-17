@@ -11,7 +11,7 @@ import { AgentService } from '../agents/agentService';
 import { CoordinationService } from '../agents/coordinationService';
 import { HumanSupervisionService } from '../agents/humanSupervisionService';
 import { ProviderManager } from '../agents/providers/providerManager';
-import { getDb } from '../db/database';
+import { getDatabaseAdapter } from '../db/dal';
 
 const router = Router();
 
@@ -171,7 +171,7 @@ router.get('/conversations', requireAuth, (req: Request, res: Response): void =>
  * GET /api/v1/agents/conversations/:id
  * Obtiene los mensajes de una conversación con control estricto Anti-IDOR
  */
-router.get('/conversations/:id', requireAuth, (req: Request, res: Response): void => {
+router.get('/conversations/:id', requireAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;
     const conv = AgentService.getConversationById(req.params.id);
@@ -196,10 +196,11 @@ router.get('/conversations/:id', requireAuth, (req: Request, res: Response): voi
 
     // 2. Representante solo puede ver las de sus hijos vinculados.
     if (user.role === 'REPRESENTATIVE') {
-      const db = getDb();
-      const link = db.prepare(
-        'SELECT 1 FROM student_representatives WHERE student_id = ? AND representative_id = ?'
-      ).get(conv.student_id, user.representativeId);
+      const db = getDatabaseAdapter();
+      const link = await db.queryOne(
+        'SELECT 1 FROM student_representatives WHERE student_id = ? AND representative_id = ?',
+        [conv.student_id, user.representativeId]
+      );
 
       if (!link) {
         res.status(403).json({
