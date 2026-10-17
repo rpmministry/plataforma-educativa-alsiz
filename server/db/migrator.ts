@@ -13,7 +13,9 @@ export interface MigrationResult {
 }
 
 export function computeChecksum(content: string): string {
-  return crypto.createHash('sha256').update(content.trim(), 'utf8').digest('hex');
+  // Normalizar saltos de línea CRLF a LF para cálculo determinista cross-platform
+  const normalized = content.replace(/\r\n/g, '\n').trim();
+  return crypto.createHash('sha256').update(normalized, 'utf8').digest('hex');
 }
 
 export interface MigrationOptions {
@@ -127,6 +129,111 @@ export function runMigrations(customDb?: DatabaseSync, options?: MigrationOption
   }
 
   return results;
+}
+
+export interface MigrationHealth {
+  status: 'SYNCED' | 'PENDING' | 'MISMATCH' | 'UNINITIALIZED';
+  totalMigrationsOnDisk: number;
+  appliedCount: number;
+  latestVersion: string | null;
+  pendingVersions: string[];
+  mismatchedVersions: string[];
+}
+
+export function checkMigrationsStatus(customDb?: DatabaseSync): MigrationHealth {
+  const db = customDb || getDb();
+
+  try {
+    const tableCheck = db.prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations';"
+    ).get() as { name: string } | undefined;
+
+    if (!tableCheck) {
+      return {
+        status: 'UNINITIALIZED',
+        totalMigrationsOnDisk: 0,
+        appliedCount: 0,
+        latestVersion: null,
+        pendingVersions: [],
+        mismatchedVersions: [],
+      };
+    }
+
+    const appliedRows = db.prepare('SELECT version, checksum_sha256 FROM schema_migrations ORDER BY version ASC').all() as Array<{
+      version: string;
+      checksum_sha256: string;
+    }>;
+    const appliedMap = new Map<string, string>(appliedRows.map((r) => [r.version, r.checksum_sha256]));
+
+    const migrationsDir = path.resolve(__dirname, 'migrations');
+    if (!fs.existsSync(migrationsDir)) {
+      return {
+        status: 'SYNCED',
+        totalMigrationsOnDisk: 0,
+        appliedCount: appliedRows.length,
+        latestVersion: appliedRows.length > 0 ? appliedRows[appliedRows.length - 1].version : null,
+        pendingVersions: [],
+        mismatchedVersions: [],
+      };
+    }
+
+    const files = fs
+      .readdirSync(migrationsDir)
+      .filter((f) => f.endsWith('.sql'))
+      .sort();
+
+    const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+    const pendingVersions: string[] = [];
+    const mismatchedVersions: string[] = [];
+
+    for (const file of files) {
+      const filePath = path.join(migrationsDir, file);
+      const content = fs.readFileSync(filePath, 'utf8');
+      const checksum = computeChecksum(content);
+      const version = file.split('_')[0];
+
+      const isDevSeed = file.toLowerCase().includes('seed') || version === '003';
+      if (isProduction && isDevSeed) {
+        continue;
+      }
+
+      if (!appliedMap.has(version)) {
+        pendingVersions.push(version);
+      } else {
+        const recorded = appliedMap.get(version);
+        if (recorded !== checksum) {
+          mismatchedVersions.push(version);
+        }
+      }
+    }
+
+    let status: 'SYNCED' | 'PENDING' | 'MISMATCH' | 'UNINITIALIZED' = 'SYNCED';
+    if (mismatchedVersions.length > 0) {
+      status = 'MISMATCH';
+    } else if (pendingVersions.length > 0) {
+      status = 'PENDING';
+    }
+
+    const latest = appliedRows.length > 0 ? appliedRows[appliedRows.length - 1].version : null;
+
+    return {
+      status,
+      totalMigrationsOnDisk: files.length,
+      appliedCount: appliedRows.length,
+      latestVersion: latest,
+      pendingVersions,
+      mismatchedVersions,
+    };
+  } catch (err: any) {
+    return {
+      status: 'UNINITIALIZED',
+      totalMigrationsOnDisk: 0,
+      appliedCount: 0,
+      latestVersion: null,
+      pendingVersions: [],
+      mismatchedVersions: [],
+    };
+  }
 }
 
 // Ejecución directa por CLI si se invoca con tsx o node

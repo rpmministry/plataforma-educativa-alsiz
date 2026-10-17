@@ -1,0 +1,46 @@
+# Blueprint de Despliegue para Render.com — Plataforma Educativa ALSIZ
+# Ekballo Church — Opción A: Backend Persistente con Disco Montado
+#
+# ACCIÓN PENDIENTE DEL ADMINISTRADOR:
+# En el panel de Render, conectar el repositorio de GitHub y sincronizar este Blueprint.
+# Configurar las variables de entorno marcadas como sync: false.
+
+services:
+  - type: web
+    name: alsiz-backend-api
+    env: node
+    plan: starter # Requiere plan Starter o superior para soporte de Persistent Disk
+    region: oregon # O la región más cercana a la congregación
+    buildCommand: npm ci && npm run build
+    preDeployCommand: npm run db:migrate # Paso controlado de release: migraciones antes de arrancar
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    disk:
+      name: alsiz-data
+      mountPath: /data
+      sizeGB: 10
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_PATH
+        value: /data/alsiz.db
+      - key: RUN_MIGRATIONS_ON_STARTUP
+        value: "false"
+      - key: TRUST_PROXY
+        value: "1"
+      # Variables sensibles a configurar por el administrador en el panel:
+      - key: SESSION_SECRET
+        sync: false # PENDIENTE DEL ADMINISTRADOR: Mínimo 32 caracteres criptográficamente seguros
+      - key: GEMINI_API_KEY
+        sync: false # PENDIENTE DEL ADMINISTRADOR: Clave de Google AI Studio
+      - key: DEEPSEEK_API_KEY
+        sync: false # Opcional: Clave de DeepSeek
+      - key: OPENROUTER_API_KEY
+        sync: false # Opcional: Clave de OpenRouter
+      - key: RESEND_API_KEY
+        sync: false # PENDIENTE DEL ADMINISTRADOR: Clave de despacho de correos Resend
+      - key: EMAIL_FROM
+        sync: false # PENDIENTE DEL ADMINISTRADOR: Remitente verificado (e.g. no-responder@ekballochurch.org)
+

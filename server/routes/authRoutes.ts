@@ -30,11 +30,12 @@ const recoverSchema = z.object({
 /**
  * Helper para setear la cookie de sesión HttpOnly segura
  */
-function setSessionCookie(res: Response, token: string): void {
+function setSessionCookie(res: Response, token: string, req?: Request): void {
   const isProd = process.env.NODE_ENV === 'production';
+  const isHttps = isProd || Boolean(req?.secure) || req?.headers['x-forwarded-proto'] === 'https';
   const maxAgeSeconds = 72 * 3600; // 72 horas
   let cookieHeader = `alsiz_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
-  if (isProd) {
+  if (isHttps) {
     cookieHeader += '; Secure';
   }
   res.setHeader('Set-Cookie', cookieHeader);
@@ -90,7 +91,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response, n
 
     // Crear sesión de servidor
     const { token, session } = await createSession(user.id, user.role as UserRole, req.ip || '127.0.0.1', req.get('user-agent'));
-    setSessionCookie(res, token);
+    setSessionCookie(res, token, req);
 
     recordAuditEvent({
       userId: user.id,
@@ -181,7 +182,7 @@ authRouter.post('/pin-login', authRateLimiter, async (req: Request, res: Respons
       req.ip || '127.0.0.1',
       req.get('user-agent')
     );
-    setSessionCookie(res, token);
+    setSessionCookie(res, token, req);
 
     recordAuditEvent({
       userId: studentRow.user_id,
@@ -225,8 +226,14 @@ authRouter.post('/logout', async (req: Request, res: Response) => {
   if (token) {
     await invalidateSession(token);
   }
-  // Eliminar cookie del cliente
-  res.setHeader('Set-Cookie', 'alsiz_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
+  // Eliminar cookie del cliente preservando SameSite y Secure
+  const isProd = process.env.NODE_ENV === 'production';
+  const isHttps = isProd || Boolean(req.secure) || req.headers['x-forwarded-proto'] === 'https';
+  let cookieHeader = 'alsiz_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0';
+  if (isHttps) {
+    cookieHeader += '; Secure';
+  }
+  res.setHeader('Set-Cookie', cookieHeader);
   res.json({
     success: true,
     data: { message: 'Sesión finalizada exitosamente.' },

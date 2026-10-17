@@ -2,7 +2,8 @@ import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
-import { runMigrations } from './server/db/migrator';
+import { runMigrations, checkMigrationsStatus } from './server/db/migrator';
+import { isDatabaseConnected } from './server/db/database';
 import { authenticate } from './server/middleware/authMiddleware';
 import { errorHandler } from './server/middleware/errorHandler';
 import { authRouter } from './server/routes/authRoutes';
@@ -32,10 +33,22 @@ try {
   process.exit(1);
 }
 
-// Inicialización de la base de datos relacional y migraciones versionadas (solo fuera de serverless)
+// Inicialización y verificación de base de datos relacional y migraciones versionadas
 if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
   try {
-    runMigrations();
+    if (process.env.NODE_ENV === 'production' && process.env.RUN_MIGRATIONS_ON_STARTUP !== 'true') {
+      const migStatus = checkMigrationsStatus();
+      if (migStatus.status === 'UNINITIALIZED') {
+        console.warn('[Server] Base de datos no inicializada. Aplicando migraciones base...');
+        runMigrations();
+      } else if (migStatus.status === 'PENDING') {
+        console.warn(`[Server] ADVERTENCIA: ${migStatus.pendingVersions.length} migraciones pendientes (${migStatus.pendingVersions.join(', ')}). Ejecute 'npm run db:migrate' en el paso de release.`);
+      } else {
+        console.log(`[Server] Esquema de base de datos verificado: v${migStatus.latestVersion || '000'} (${migStatus.appliedCount} migraciones activas).`);
+      }
+    } else {
+      runMigrations();
+    }
   } catch (migErr: any) {
     console.error('[Server] Advertencia inicializando base de datos:', migErr?.message || migErr);
   }
@@ -45,6 +58,9 @@ if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
 const appRoot = process.cwd();
 
 const app = express();
+
+// Detrás de reverse proxy o reescrituras de Vercel / Nginx / Render, habilitar trust proxy
+app.set('trust proxy', 1);
 
 // Paso 2: desactivamos el ETag para evitar caché agresivo y forzamos una recarga más limpia en frontend durante desarrollo.
 app.disable('etag');
@@ -228,12 +244,24 @@ app.get(['/api/health', '/api/v1/health'], async (req: Request, res: Response) =
   try {
     hierarchySummary = (await getAIHierarchy()).map((layer) => `${layer.label}: ${layer.models.slice(0, 3).join(' | ')}${layer.models.length > 3 ? ` (+${layer.models.length - 3} free más)` : ''}`);
   } catch { /* no debe tumbar el health */ }
-  res.json({
-    status: 'ok',
+
+  const dbConnected = isDatabaseConnected();
+  const migStatus = checkMigrationsStatus();
+  const isHealthy = dbConnected && (migStatus.status === 'SYNCED' || migStatus.status === 'PENDING');
+
+  const payload = {
+    status: isHealthy ? 'ok' : 'degraded',
+    version: '1.0.0',
     service: 'Plataforma Educativa ALSIZ — Ekballo Church',
     database: {
       engine: process.env.TURSO_DATABASE_URL ? 'Turso Cloud (libSQL Remote)' : 'node:sqlite (Embedded SQLite3 with WAL)',
-      status: 'HEALTHY',
+      connected: dbConnected,
+      status: dbConnected ? (migStatus.status === 'SYNCED' ? 'HEALTHY' : 'NEEDS_MIGRATION') : 'DISCONNECTED',
+      migrations: {
+        status: migStatus.status,
+        appliedCount: migStatus.appliedCount,
+        latestVersion: migStatus.latestVersion,
+      },
     },
     ai: {
       deepSeekConfigured: ProviderManager.isProviderAvailable('DEEPSEEK'),
@@ -245,8 +273,16 @@ app.get(['/api/health', '/api/v1/health'], async (req: Request, res: Response) =
       availableProviders: ProviderManager.getAvailableProviders(),
       hierarchy: hierarchySummary,
     },
+    uptime: Math.floor(process.uptime()),
+    environment: process.env.NODE_ENV || 'development',
     time: new Date().toISOString(),
-  });
+  };
+
+  if (!dbConnected) {
+    return res.status(503).json(payload);
+  }
+
+  res.json(payload);
 });
 
 // --- TTS: voz Neuronal2 de Google (la clave vive SOLO en el servidor) ---

@@ -11,7 +11,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { getDatabasePath } from '../server/db/database';
+import { getDatabasePath, isDatabaseConnected } from '../server/db/database';
+import { checkMigrationsStatus } from '../server/db/migrator';
 
 async function runHealthCheck() {
   console.log('====================================================');
@@ -62,8 +63,8 @@ async function runHealthCheck() {
         const migrations = db.prepare(
           'SELECT version, name, applied_at FROM schema_migrations ORDER BY version ASC;'
         ).all() as Array<{ version: string; name: string; applied_at: string }>;
-        console.log(`   - Migraciones registradas: ${migrations.length}`);
-        migrations.forEach((m) => console.log(`     * [v${m.version}] ${m.name} (${m.applied_at})`));
+        const migHealth = checkMigrationsStatus(db);
+        console.log(`   - Estado de migraciones (checkMigrationsStatus): ${migHealth.status} (Aplicadas: ${migHealth.appliedCount}/${migHealth.totalMigrationsOnDisk}, Última: v${migHealth.latestVersion || 'N/A'})`);
       } else {
         console.warn('   - [ADVERTENCIA] No existe tabla schema_migrations.');
       }

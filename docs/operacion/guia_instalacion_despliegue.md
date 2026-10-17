@@ -2,33 +2,56 @@
 ## Plataforma Educativa ALSIZ para Ekballo Church
 
 - **Documento**: `docs/operacion/guia_instalacion_despliegue.md`
-- **Versión**: 1.0.0 (Producción / Staging)
-- **Fecha**: 2026-10-16
+- **Versión**: 2.0.0 (Producción / Arquitectura Opción A)
+- **Fecha**: 2026-10-17
 - **Audiencia**: Administradores de Sistemas, Ingenieros DevOps y Líderes Técnicos
 
 ---
 
-### 1. Arquitectura y Modelos de Despliegue
+### 1. Arquitectura de Despliegue Aprobada (Opción A)
 
-La **Plataforma Educativa ALSIZ** está diseñada como un sistema híbrido de alto rendimiento:
-- **Frontend**: Single Page Application (SPA) desarrollada en React 19, TypeScript 5.8, Tailwind CSS 4 y Vite 6.
-- **Backend**: API RESTful modular en Node.js 22 LTS con Express 4.
-- **Persistencia**: Base de datos relacional transaccional embebida SQLite3 (mediante el módulo nativo de Node.js `node:sqlite`), optimizada con Write-Ahead Logging (`WAL`), claves foráneas activas (`PRAGMA foreign_keys = ON`) y sincronización balanceada (`PRAGMA synchronous = NORMAL`).
+Para garantizar la persistencia de datos del colegio sin riesgo de escrituras volátiles en entornos serverless, la **Plataforma Educativa ALSIZ** adopta formalmente la **Opción A** (registrada en ADR-002):
 
-#### Modelos de Despliegue Soportados:
+```
+                                  [ Navegador del Usuario ]
+                                             │
+                                             ▼
+                      [ Vercel CDN — Frontend Estático y Punto de Entrada ]
+                             https://educacion.ekballochurch.org
+                                       │              │
+                   ┌───────────────────┘              └───────────────────┐
+                   ▼                                                      ▼
+           Rutas Estáticas                                          Rutas /api/*
+       (/, /assets/*, SPA)                                        (api-entry.js Proxy)
+     Servidas desde dist/ en CDN                                          │
+                                                                          ▼
+                                                       [ Backend Node.js 22 LTS Persistente ]
+                                                        (Render / Fly.io / VPS con PM2/Docker)
+                                                                          │
+                                                                          ▼
+                                                              [ Disco Montado Persistente ]
+                                                                     /data/alsiz.db
+                                                                  (SQLite WAL 1 Proceso)
+```
 
-1. **Despliegue Recomendado para Producción Permanente (VPS / Docker / PaaS Persistente)**:
-   - Servidor Linux (Ubuntu 22.04 LTS / 24.04 LTS o Debian 12) con Node.js 22.x LTS.
-   - Gestión de procesos mediante `PM2` o contenedor Docker con volumen montado para `./data/` y `./backups/`.
-   - Reverse Proxy inverso Nginx o Caddy con terminación SSL/TLS (HTTPS obligatorio para cookies seguras y Web APIs de audio/micrófono).
-   - Plataformas PaaS compatibles: Render (con persistent disk en `/data`), Fly.io (con persistent volume), Railway o VPS dedicado (Hetzner, DigitalOcean, Linode, AWS EC2).
+1. **Frontend Estático (Vercel CDN)**:
+   - Compilado con Vite en `./dist`.
+   - Distribuido globalmente por la red CDN de Vercel con latencia ultra-baja y caché óptimo.
+   - Actúa como la URL pública principal para tutores, estudiantes y docentes (`educacion.ekballochurch.org` o `*.vercel.app`).
+   - Cero secretos o claves de IA en el cliente; el bundle solo contiene código de presentación.
 
-2. **Despliegue Serverless (Vercel / AWS Lambda)**:
-   - Configurado en `vercel.json` para hospedar la SPA estática y enrutar las funciones backend en `api-entry.js` -> `api-server.js`.
-   - *Consideración crítica de persistencia*: Las funciones serverless de Vercel son de naturaleza efímera (*stateless*). En este entorno, el directorio de trabajo solo permite escrituras en `/tmp`. Para despliegues productivos permanentes en Vercel, debe utilizarse almacenamiento distribuido/externo (ej. Turso / LibSQL sobre HTTP) o destinar Vercel al frontend y un servidor Node.js dedicado al backend persistente.
+2. **Reescritura Transparente de API (Vercel Proxy)**:
+   - Las peticiones hacia `/api/*` son interceptadas por `api-entry.js` en Vercel.
+   - Reenvía el tráfico con todas las cabeceras (`Authorization`, `Cookie`, `X-Forwarded-*`) hacia el backend persistente definido en la variable de entorno `BACKEND_URL`.
+   - Preserva los encabezados `Set-Cookie` del backend hacia el cliente con flags `HttpOnly`, `SameSite=Lax` y `Secure`.
+   - Si `BACKEND_URL` no está definida, retorna un error 503 claro y estructurado impidiendo cualquier creación de base de datos efímera.
 
-3. **Entorno de Desarrollo Local y Homologación**:
-   - Ejecución mediante `npm run dev` (Vite dev server con HMR + Express) o `npm run start` (servidor compilado de producción local).
+3. **Backend Express Persistente (Node 22 LTS)**:
+   - Proceso único (`instances: 1`, `exec_mode: 'fork'`) ejecutando Node.js 22 LTS.
+   - Hospedado en un servicio con soporte de almacenamiento persistente montado (Render Web Service con Persistent Disk, Fly.io con Volume, o VPS Ubuntu LTS).
+   - Base de datos relacional transaccional embebida SQLite3 vía `node:sqlite` con Write-Ahead Logging (`WAL`), `PRAGMA foreign_keys = ON;`, `PRAGMA busy_timeout = 5000;`.
+   - Las migraciones de esquema (`npm run db:migrate`) se ejecutan como paso controlado de pre-despliegue (*release step*), nunca de forma improvisada en tiempo de petición web.
+   - Aloja exclusivamente en su entorno privado `SESSION_SECRET`, `GEMINI_API_KEY`, `RESEND_API_KEY`, etc.
 
 ---
 
@@ -36,178 +59,147 @@ La **Plataforma Educativa ALSIZ** está diseñada como un sistema híbrido de al
 
 | Componente | Requisito Mínimo | Requisito Recomendado |
 |---|---|---|
-| **Sistema Operativo** | Linux (Ubuntu/Debian), Windows 10/11, macOS | Ubuntu Server 24.04 LTS |
-| **Node.js** | v22.12.0 LTS (requiere soporte nativo `node:sqlite`) | v22.14.0 LTS |
-| **npm** | v10.x o superior | v10.9.x |
-| **Memoria RAM** | 1 GB disponible | 2 GB a 4 GB RAM |
-| **Almacenamiento** | 2 GB libres en disco (SSD recomendado) | 10 GB (para histórico de backups y activos) |
-| **Puertos** | 3000 (HTTP backend/app) | 80/443 (Reverse Proxy Nginx) |
+| **Sistema Operativo (Backend)** | Ubuntu 22.04 LTS o Debian 12 (Bookworm) | Ubuntu Server 24.04 LTS |
+| **Node.js** | v22.12.0 LTS (soporte nativo `node:sqlite`) | v22.14.0 LTS |
+| **npm** | v10.x | v10.9.x (`npm ci` obligatorio) |
+| **Memoria RAM** | 1 GB disponible | 2 GB RAM |
+| **Almacenamiento Persistente** | 5 GB SSD montados en `/data` | 10 GB SSD montados en `/data` |
+| **Puertos de Red** | 3000 o 10000 para el servicio backend | 80/443 (Reverse Proxy Nginx) |
 
 ---
 
-### 3. Procedimiento de Instalación Paso a Paso
+### 3. Procedimiento de Despliegue del Backend Persistente
 
-#### Paso 1: Clonar el Repositorio Oficial
-```bash
-git clone https://github.com/rpmministry/plataforma-educativa-alsiz.git
-cd plataforma-educativa-alsiz
-```
+El backend debe desplegarse y estar operativo **antes** de conectar Vercel.
 
-#### Paso 2: Verificar la Rama Autorizada
-```bash
-# Para verificar la versión a desplegar
-git fetch origin
-git checkout main
-```
+#### Opción 3.1: Despliegue en Render.com (Recomendado para PaaS Administrado)
+1. **[PENDIENTE DEL ADMINISTRADOR]** Crear cuenta en [Render.com](https://render.com) e iniciar sesión.
+2. **[PENDIENTE DEL ADMINISTRADOR]** Conectar el repositorio de GitHub `rpmministry/plataforma-educativa-alsiz`.
+3. Crear un **Web Service** seleccionando el repositorio o aplicar el archivo `render.yaml` incluido:
+   - **Name:** `alsiz-backend-api`
+   - **Environment:** `Node`
+   - **Region:** `Oregon` (o más cercana)
+   - **Branch:** Rama autorizada (`main` tras aprobación)
+   - **Build Command:** `npm ci && npm run build`
+   - **Pre-Deploy Command (Release Step):** `npm run db:migrate`
+   - **Start Command:** `npm run start`
+   - **Plan:** `Starter` (requerido para asociar disco persistente)
+4. **[PENDIENTE DEL ADMINISTRADOR]** Crear y asociar el Persistent Disk:
+   - **Disk Name:** `alsiz-data`
+   - **Mount Path:** `/data`
+   - **Size:** `10 GB`
+5. **[PENDIENTE DEL ADMINISTRADOR]** Configurar Variables de Entorno en el panel de Render:
+   - `NODE_ENV`: `production`
+   - `PORT`: `10000`
+   - `DATABASE_PATH`: `/data/alsiz.db`
+   - `RUN_MIGRATIONS_ON_STARTUP`: `false`
+   - `TRUST_PROXY`: `1`
+   - `SESSION_SECRET`: Generar una cadena de 32+ caracteres criptográficos (`openssl rand -hex 32`).
+   - `GEMINI_API_KEY`: Clave de Google AI Studio.
+   - `RESEND_API_KEY`: Clave de despacho de correos Resend (`re_...`).
+   - `RESEND_FROM_EMAIL`: Remitente verificado (ej. `onboarding@resend.dev` o `no-responder@ekballochurch.org`).
+6. Desplegar el servicio.
+7. **[PENDIENTE DEL ADMINISTRADOR]** Copiar la URL pública generada por Render (ej. `https://alsiz-backend-api.onrender.com`).
+8. Verificar disponibilidad ejecutando:
+   ```bash
+   curl -s https://alsiz-backend-api.onrender.com/api/health
+   # Debe responder HTTP 200 con status "ok" y database.connected: true
+   ```
 
-#### Paso 3: Instalación Limpia y Determinista de Dependencias
-```bash
-# Utilizar npm ci para garantizar que se respeten exactamente las versiones de package-lock.json
-npm ci --prefer-offline
-```
-
-#### Paso 4: Configurar Variables de Entorno
-Copiar el archivo de plantilla a la configuración del entorno:
-```bash
-cp .env.example .env.production
-# O editar directamente .env respetando los permisos de archivo (chmod 600)
-```
-*Consulte la `Guía de Configuración de Entornos` para el detalle de cada variable.*
-
-#### Paso 5: Ejecutar Migraciones de Base de Datos
-Antes de arrancar la aplicación, se debe garantizar la creación de tablas e índices:
-```bash
-npm run db:migrate
-```
-*Salida esperada*: Migraciones v001 a v012 aplicadas o verificadas con éxito.
-
-#### Paso 6: Compilación de Artefactos de Producción
-```bash
-npm run build
-```
-Este comando ejecuta en secuencia:
-1. `vite build`: Compila la SPA de React en la carpeta `./dist`.
-2. `esbuild dev-server.ts`: Genera el bundle de producción del servidor en `dist/server.cjs`.
-3. `esbuild server.ts`: Genera el bundle de la API serverless en `api-server.js`.
-
-#### Paso 7: Diagnóstico Pre-Vuelo (Health Check)
-```bash
-npm run health
-```
-Debe certificar:
-- Archivo de base de datos íntegro (`PRAGMA integrity_check: ok`).
-- 12 migraciones registradas.
-- Artefactos de producción en `dist/` presentes.
-
----
-
-### 4. Ejecución en Producción
-
-#### Opción A: Ejecución Directa con Node.js
-```bash
-NODE_ENV=production PORT=3000 node dist/server.cjs
-```
-
-#### Opción B: Ejecución con Gestor de Procesos PM2 (Recomendado)
-Crear el archivo `ecosystem.config.cjs`:
-```javascript
-module.exports = {
-  apps: [
-    {
-      name: 'alsiz-ekballo-platform',
-      script: 'dist/server.cjs',
-      instances: 1, // Modo single-process por ser SQLite con WAL
-      exec_mode: 'fork',
-      watch: false,
-      env: {
-        NODE_ENV: 'production',
-        PORT: 3000,
-        DATABASE_PATH: './data/alsiz.db'
-      },
-      max_memory_restart: '1G',
-      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-      error_file: './logs/pm2-error.log',
-      out_file: './logs/pm2-out.log',
-      merge_logs: true
-    }
-  ]
-};
-```
-Iniciar y persistir el servicio:
-```bash
-pm2 start ecosystem.config.cjs
-pm2 save
-pm2 startup
-```
+#### Opción 3.2: Despliegue en VPS Linux con PM2 (Ubuntu 22.04 / 24.04 LTS)
+1. **[PENDIENTE DEL ADMINISTRADOR]** Provisionar el servidor VPS y configurar acceso SSH seguro.
+2. Instalar Node.js 22 LTS y PM2:
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   sudo npm install -g pm2
+   ```
+3. Preparar el directorio de persistencia:
+   ```bash
+   sudo mkdir -p /data/backups
+   sudo chown -R $USER:$USER /data
+   chmod 700 /data
+   ```
+4. Clonar el repositorio y compilar:
+   ```bash
+   git clone https://github.com/rpmministry/plataforma-educativa-alsiz.git /var/www/alsiz
+   cd /var/www/alsiz
+   npm ci --prefer-offline
+   ```
+5. Configurar el archivo `.env` en `/var/www/alsiz/.env` con permisos restringidos (`chmod 600 .env`).
+6. Ejecutar migraciones controladas:
+   ```bash
+   npm run db:migrate
+   ```
+7. Compilar artefactos de producción:
+   ```bash
+   npm run build
+   ```
+8. Iniciar el servicio con PM2 (proceso único):
+   ```bash
+   pm2 start ecosystem.config.cjs
+   pm2 save
+   pm2 startup
+   ```
 
 ---
 
-### 5. Configuración de Nginx Reverse Proxy (con HTTPS)
+### 4. Procedimiento de Despliegue del Frontend en Vercel
 
-```nginx
-server {
-    listen 80;
-    server_name educacion.ekballochurch.org;
-    return 301 https://$host$request_uri;
-}
+1. **[PENDIENTE DEL ADMINISTRADOR]** Iniciar sesión en [Vercel](https://vercel.com) e importar el repositorio `rpmministry/plataforma-educativa-alsiz`.
+2. Configuración de Build & Output Settings:
+   - **Framework Preset:** `Vite`
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+   - **Install Command:** `npm ci`
+3. **[PENDIENTE DEL ADMINISTRADOR]** Configurar Variables de Entorno en el panel de Vercel (**Project Settings -> Environment Variables**):
+   - `BACKEND_URL`: Asignar la URL del backend persistente obtenido en el Paso 3 (ej. `https://alsiz-backend-api.onrender.com`).
+   - *Nota de seguridad:* NO configure `SESSION_SECRET`, `GEMINI_API_KEY` ni `RESEND_API_KEY` en Vercel; esos secretos pertenecen exclusivamente al backend.
+4. Desplegar el proyecto en Vercel.
+5. Vercel desplegará los activos estáticos y utilizará `api-entry.js` como proxy reverso hacia `BACKEND_URL`.
+6. **[PENDIENTE DEL ADMINISTRADOR]** Asignar el dominio personalizado del colegio (ej. `educacion.ekballochurch.org`) en el panel de Vercel.
 
-server {
-    listen 443 ssl http2;
-    server_name educacion.ekballochurch.org;
+---
 
-    ssl_certificate /etc/letsencrypt/live/educacion.ekballochurch.org/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/educacion.ekballochurch.org/privkey.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers HIGH:!aNULL:!MD5;
+### 5. Configuración de Red, Cookies y Proxy Reverso
 
-    # Encabezados de Seguridad
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-
-    # Tamaño máximo de carga (para fotos de tareas y documentos)
-    client_max_body_size 50M;
-
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        
-        # Timeouts para streaming de respuestas de IA
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-
-    # Bloquear acceso a archivos sensibles o base de datos por HTTP
-    location ~* \.(db|sql|env|log)$ {
-        deny all;
-        return 404;
-    }
-}
-```
+#### Flujo de Sesión y Cookies:
+- El navegador se comunica con `https://educacion.ekballochurch.org` (Vercel).
+- Al autenticarse (`/api/v1/auth/login` o `/api/v1/auth/student-pin-login`), la petición viaja al proxy de Vercel y este la remite al backend persistente.
+- El backend Express (con `app.set('trust proxy', 1)`) detecta la conexión segura y genera la cookie de sesión:
+  `Set-Cookie: alsiz_session=<token>; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=259200`
+- El proxy de Vercel reenvía exactamente el encabezado `Set-Cookie` al navegador.
+- El navegador almacena la cookie asociada al dominio principal (`educacion.ekballochurch.org`), garantizando que todas las peticiones subsiguientes envíen la cabecera `Cookie: alsiz_session=...` en contexto de primer origen (*first-party*), sin bloqueos de cookies de terceros.
 
 ---
 
 ### 6. Comprobaciones Posteriores al Despliegue (Smoke Tests)
 
-Una vez iniciado el servicio, ejecute las siguientes verificaciones:
-1. **Endpoint de Salud**:
-   ```bash
-   curl -I https://educacion.ekballochurch.org/api/health
-   # Debe responder HTTP 200 OK con JSON de estado.
-   ```
-2. **Acceso al Frontend**:
-   Cargar `https://educacion.ekballochurch.org` en un navegador en modo incógnito; verificar que la página inicial cargue con el logotipo de Ekballo Church y las opciones de acceso.
-3. **Inicio de Sesión y Aislamiento**:
-   Ingresar con un usuario tutor de prueba y verificar que solo se visualicen sus hijos asignados.
-4. **Verificación de Respaldo Inicial**:
-   Ejecutar `npm run db:backup` para generar la copia base del nuevo despliegue.
+Una vez completados los despliegues de backend y frontend:
 
+1. **Chequeo de Salud a través de Vercel**:
+   ```bash
+   curl -i https://<tu-app>.vercel.app/api/health
+   # Salida esperada: HTTP 200 OK con:
+   # {
+   #   "status": "ok",
+   #   "version": "1.0.0",
+   #   "database": { "connected": true, "status": "HEALTHY", "migrations": { "status": "SYNCED" } }
+   # }
+   ```
+
+2. **Verificación de Inyección de Credenciales**:
+   El JSON retornado por `/api/health` debe mostrar `deepSeekConfigured`, `geminiConfigured` y `openRouterConfigured` como booleanos (`true` o `false`), sin jamás mostrar las claves.
+
+3. **Prueba de Autenticación de Estudiante (Sintética)**:
+   - Acceder al frontend en `https://<tu-app>.vercel.app`.
+   - Probar el modal de inicio de sesión con PIN.
+   - En DevTools (pestaña Red), verificar que la petición POST responde con la cabecera `Set-Cookie: alsiz_session=...; Path=/; HttpOnly; SameSite=Lax; Secure`.
+   - Refrescar la página y verificar que la sesión persiste entre recargas.
+
+4. **Prueba de Respaldo Inicial de Base de Datos**:
+   En el servidor persistente, ejecutar:
+   ```bash
+   npm run db:backup
+   ```
+   Confirmar que se crea el archivo `.db` en `/data/backups/`.

@@ -1,0 +1,42 @@
+﻿
+> react-example@0.0.0 health
+> tsx scripts/health-check.ts
+
+====================================================
+  ALSIZ Ekballo ΓÇö Diagn├│stico y Verificaci├│n de Salud
+====================================================
+
+1. Verificaci├│n del Entorno Base:
+   - .env.example presente: SI (OK)
+   - .env presente: SI
+   - .env.local presente: SI
+   - NODE_ENV: development (default)
+
+2. Verificaci├│n de Persistencia y Base de Datos:
+   - Ruta configurada: C:\Users\Alsiz\Documents\plataforma educativa ALSIZ\data\alsiz.db
+   - Tama├▒o del archivo: 1088.00 KB
+   - Integridad f├¡sica (PRAGMA integrity_check): ok
+   - Estado de migraciones (checkMigrationsStatus): SYNCED (Aplicadas: 12/12, ├Ültima: v012)
+   - Estado de entidades principales:
+     * users: 7 registros
+     * students: 2 registros
+     * programs: 18 registros
+     * subjects: 18 registros
+     * knowledge_sources: 2 registros
+     * ai_agents: 3 registros
+     * continuing_courses: 4 registros
+
+3. Verificaci├│n de Artefactos de Producci├│n:
+   - Carpeta dist/ presente: SI
+   - Frontend index.html compilado: SI
+   - Servidor Node compilado (dist/server.cjs): SI
+   - Serverless entry (api-server.js): SI
+
+4. Verificaci├│n de Infraestructura Operativa:
+   - Directorio de respaldos (backups/): SI
+   - Directorio de documentaci├│n operativa (docs/operacion/): SI
+
+====================================================
+  RESULTADO: SISTEMA EN CONDICIONES SALUDABLES (HEALTHY)
+====================================================
+

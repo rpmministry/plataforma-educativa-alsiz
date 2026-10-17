@@ -14,6 +14,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { createClient, Client } from '@libsql/client';
 import path from 'node:path';
 import fs from 'node:fs';
+import { getDb } from './database';
 
 export type DatabaseProviderType = 'TURSO' | 'SQLITE_LOCAL';
 
@@ -110,33 +111,46 @@ export class TursoAdapter implements IDatabaseAdapter {
  */
 export class SqliteLocalAdapter implements IDatabaseAdapter {
   public readonly provider: DatabaseProviderType = 'SQLITE_LOCAL';
-  private db: DatabaseSync;
+  private db: DatabaseSync | null = null;
+  private isCustom: boolean = false;
 
   constructor(customPathOrDb?: string | DatabaseSync) {
     if (customPathOrDb instanceof DatabaseSync) {
       this.db = customPathOrDb;
-    } else {
-      const dbPath = customPathOrDb || path.resolve(process.cwd(), 'data', 'alsiz.db');
+      this.isCustom = true;
+    } else if (typeof customPathOrDb === 'string') {
+      const dbPath = customPathOrDb;
       if (dbPath !== ':memory:') {
         const dir = path.dirname(dbPath);
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       }
       this.db = new DatabaseSync(dbPath);
       this.db.exec('PRAGMA foreign_keys = ON;');
+      this.isCustom = true;
+    } else {
+      this.isCustom = false;
+      this.db = null;
     }
   }
 
+  private getActiveDb(): DatabaseSync {
+    if (this.isCustom && this.db) {
+      return this.db;
+    }
+    return getDb();
+  }
+
   public async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-    return (this.db.prepare(sql).all(...params) as unknown) as T[];
+    return (this.getActiveDb().prepare(sql).all(...params) as unknown) as T[];
   }
 
   public async queryOne<T = any>(sql: string, params: any[] = []): Promise<T | null> {
-    const row = this.db.prepare(sql).get(...params);
+    const row = this.getActiveDb().prepare(sql).get(...params);
     return row ? ((row as unknown) as T) : null;
   }
 
   public async execute(sql: string, params: any[] = []): Promise<ExecuteResult> {
-    const stmt = this.db.prepare(sql);
+    const stmt = this.getActiveDb().prepare(sql);
     const info = stmt.run(...params) as any;
     return {
       rowsAffected: info.changes ?? 0,
@@ -145,31 +159,34 @@ export class SqliteLocalAdapter implements IDatabaseAdapter {
   }
 
   public async executeMultiple(sql: string): Promise<void> {
-    this.db.exec(sql);
+    this.getActiveDb().exec(sql);
   }
 
   public async transaction<T>(fn: (tx: IDatabaseAdapter) => Promise<T>): Promise<T> {
-    this.db.exec('BEGIN TRANSACTION;');
+    const db = this.getActiveDb();
+    db.exec('BEGIN TRANSACTION;');
     try {
       const result = await fn(this);
-      this.db.exec('COMMIT;');
+      db.exec('COMMIT;');
       return result;
     } catch (err) {
       try {
-        this.db.exec('ROLLBACK;');
+        db.exec('ROLLBACK;');
       } catch {}
       throw err;
     }
   }
 
   public async close(): Promise<void> {
-    try {
-      this.db.close();
-    } catch {}
+    if (this.isCustom && this.db) {
+      try {
+        this.db.close();
+      } catch {}
+    }
   }
 
   public getRawSyncDb(): DatabaseSync {
-    return this.db;
+    return this.getActiveDb();
   }
 }
 
@@ -193,7 +210,8 @@ export function getDatabaseAdapter(customAdapter?: IDatabaseAdapter): IDatabaseA
 
   const tursoUrl = process.env.TURSO_DATABASE_URL;
   const tursoToken = process.env.TURSO_AUTH_TOKEN;
-  const forceLocal = process.env.USE_LOCAL_SQLITE === 'true';
+  const isTest = process.env.NODE_ENV === 'test';
+  const forceLocal = process.env.USE_LOCAL_SQLITE === 'true' || isTest;
 
   if (tursoUrl && tursoToken && !forceLocal) {
     activeAdapter = new TursoAdapter(tursoUrl, tursoToken);
