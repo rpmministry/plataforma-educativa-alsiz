@@ -1,0 +1,8 @@
+================================================================
+  COMPROBACIÓN DE TIPOS TYPESCRIPT (tsc --noEmit)
+================================================================
+Comando: npx tsc --noEmit
+Directorio: C:\Users\Alsiz\Documents\plataforma educativa ALSIZ
+Código de salida: 0
+Errores detectados: 0
+Diagnóstico: Compilación limpia sin errores de tipado estático ni regresiones.

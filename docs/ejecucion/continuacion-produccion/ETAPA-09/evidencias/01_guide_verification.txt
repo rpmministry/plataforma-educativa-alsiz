@@ -1,0 +1,27 @@
+================================================================
+  VALIDACIÓN AUTOMATIZADA — ETAPA 09: GUÍA DE CONFIGURACIÓN DE APIS
+================================================================
+
+[C01_ARCHIVO_EXISTE] ✅ Existencia física de la guía de configuración
+       Detalle: Archivo encontrado en C:\Users\Alsiz\Documents\plataforma educativa ALSIZ\docs\operacion\guia_configuracion_apis_piloto.md (24143 bytes)
+[C02_SECCION_GEMINI] ✅ Sección A: Google Gemini documentada con portal, variable, restricciones y rotación
+       Detalle: URLs oficiales: true, Variable: true, Prohibición VITE: true, Advertencia OAuth: true, Restricciones API: true, Rotación: true
+[C03_SECCION_DEEPSEEK] ✅ Sección B: DeepSeek documentado con portal, endpoint de chat, saldo, cascada y rotación
+       Detalle: Portal: true, Endpoint Doc: true, Variable: true, Facturación/Saldo: true, Cascada: true, Rotación: true
+[C04_OPENROUTER_Y_OPENCODE_HONESTIDAD] ✅ Sección C: OpenRouter documentado y OpenCode transparentemente declarado NO conectado
+       Detalle: OpenRouter integrado: true, OpenCode honesto: true, Advertencia no crear cuenta: true
+[C05_INVENTARIO_VARIABLES] ✅ Sección D: Inventario exhaustivo de variables efectivamente leídas por el backend
+       Detalle: Todas las 12 variables documentadas
+[C06_REGLAS_ENTORNOS_Y_VERCEL] ✅ Sección D: Reglas de no versionado, .env.example, redeploy obligatorio en Vercel y emails sintéticos
+       Detalle: .env.example: true, No versionado: true, Vercel Redeploy doc: true, Test sintético: true
+[C07_ARQUITECTURAS_Y_VERIFICACION] ✅ Sección E: Mapeo exacto por plataforma (Vercel vs Backend Persistente / Turso) con ambientes separados
+       Detalle: Opción A: true, Opción B: true, Aislamiento secretos en A: true, Prod/Preview en B: true, Smoke test: true
+[C08_CERO_FUGA_DE_SECRETOS] ✅ Seguridad P0: Ausencia absoluta de claves API, tokens o contraseñas reales en el texto
+       Detalle: Documento limpio: 0 claves o patrones secretos detectados
+[C09_CONSISTENCIA_RUNTIME_BACKEND] ✅ Consistencia técnica con el runtime (OpenCode rechazado en runtime y auditoría sanitizada)
+       Detalle: isProviderAvailable('OPENCODE'): false (Esperado: false), Auditoría booleana sanitizada: true
+
+----------------------------------------------------------------
+RESULTADO DE LA AUDITORÍA DE LA GUÍA: ✅ TODOS LOS CRITERIOS APROBADOS
+Criterios cumplidos: 9 / 9
+----------------------------------------------------------------
