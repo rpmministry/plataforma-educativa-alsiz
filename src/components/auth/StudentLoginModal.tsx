@@ -185,67 +185,67 @@ try {
 
   return (
     <>
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-md bg-[#18181B] border border-[#27272A] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-[#F4F4F5]">
         
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 p-6 sm:p-8 border-b border-slate-800 shrink-0">
+        <div className="relative bg-[#121214] p-6 sm:p-7 border-b border-[#27272A] shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="absolute top-5 right-5 p-2 rounded-xl bg-[#27272A]/70 hover:bg-[#27272A] text-[#A1A1AA] hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
-              <Lock className="w-6 h-6" />
+            <div className="p-3 rounded-xl bg-[#E0A82E]/10 border border-[#E0A82E]/30 text-[#E0A82E]">
+              <Lock className="w-5 h-5" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[11px] font-bold uppercase tracking-wider">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E0A82E]/15 text-[#E0A82E] text-[11px] font-semibold uppercase tracking-wider border border-[#E0A82E]/25">
                 <Shield className="w-3 h-3" />
-                <span>Acceso Privado Protegido</span>
+                <span>Acceso Institucional</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-white mt-1">
-                Ingreso al Colegio Virtual
+              <h2 className="text-xl sm:text-2xl font-bold text-white mt-1">
+                Ingreso a Wisdom Academy
               </h2>
             </div>
           </div>
-          <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-            Ingresa con tu correo y contraseña o usa tu cuenta de Google.
+          <p className="text-xs text-[#A1A1AA] mt-2 leading-relaxed">
+            Ingresa con tu correo institucional y contraseña o continúa con Google.
           </p>
         </div>
 
-        <div className="p-6 sm:p-8 space-y-6 overflow-y-auto overscroll-contain">
+        <div className="p-6 sm:p-7 space-y-6 overflow-y-auto overscroll-contain">
 
           {/* 1. Email/Password Form */}
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-indigo-400" />
+              <label className="text-xs font-semibold text-[#D4D4D8] flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-[#E0A82E]" />
                 <span>Correo Electrónico</span>
               </label>
               <input
                 type="email"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="ej. estudiante@alsiz.local"
-                className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                placeholder="ej. estudiante@wisdomacademy.edu"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#0A0A0A] border border-[#27272A] text-white placeholder-[#71717A] text-sm focus:outline-none focus:border-[#E0A82E] transition-colors"
                 autoComplete="email"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                <KeyRound className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Contraseña</span>
+              <label className="text-xs font-semibold text-[#D4D4D8] flex items-center gap-1.5">
+                <KeyRound className="w-3.5 h-3.5 text-[#E0A82E]" />
+                <span>Contraseña o PIN</span>
               </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#0A0A0A] border border-[#27272A] text-white placeholder-[#71717A] text-sm focus:outline-none focus:border-[#E0A82E] transition-colors"
                 autoComplete="current-password"
               />
             </div>
@@ -256,8 +256,8 @@ try {
                 <div className="relative w-full">
                   <div ref={googleButtonRef} id="google-signin-button" className="w-full"></div>
                   {!googleReady && (
-                    <div className="p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/60 text-center text-xs text-slate-400">
-                      <span>Inicio con Google institucional requiere servidor configurado. Accede con credenciales o PIN institucional.</span>
+                    <div className="p-2.5 rounded-xl bg-[#27272A]/40 border border-[#27272A] text-center text-xs text-[#A1A1AA]">
+                      <span>Inicio con Google institucional disponible al configurar el cliente. Accede con credenciales o PIN.</span>
                     </div>
                   )}
                 </div>
@@ -265,7 +265,7 @@ try {
             </div>
 
             {errorMsg && (
-              <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5 animate-shake">
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5 animate-shake">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>
@@ -274,16 +274,16 @@ try {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-bold text-sm shadow-xl shadow-indigo-950/50 transition-all flex items-center justify-center gap-2 transform active:scale-95"
+              className="w-full py-3 px-6 rounded-xl bg-[#E0A82E] hover:bg-[#B77D06] disabled:opacity-50 text-[#0A0A0A] font-semibold text-sm shadow-md transition-colors flex items-center justify-center gap-2"
             >
               <UserCheck className="w-4 h-4" />
-              <span>{isSubmitting ? 'Ingresando...' : 'Ingresar al Colegio Virtual'}</span>
+              <span>{isSubmitting ? 'Ingresando...' : 'Ingresar a Wisdom Academy'}</span>
             </button>
           </form>
 
           {/* Footer - minimal */}
-          <div className="pt-4 border-t border-slate-800/80 text-center text-xs text-slate-400">
-            <p>¿No tienes cuenta? Contacta a la administración para tu inscripción.</p>
+          <div className="pt-4 border-t border-[#27272A] text-center text-xs text-[#71717A]">
+            <p>Wisdom Academy • Aprender con profundidad. Avanzar con propósito.</p>
           </div>
 
         </div>

@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Users,
   Shield,
+  Sparkles,
 } from 'lucide-react';
 
 interface NavItem {
@@ -24,32 +25,19 @@ interface NavItem {
 export const Sidebar: React.FC = () => {
   const { activeTab, setActiveTab, currentStudent, todayClasses } = useSchool();
 
-  // "Mi Espacio de Estudio" es la única puerta de entrada: fusiona el antiguo
-  // "Mi Espacio" con "Clases del Día". Las clases ya no son una pestaña aparte.
   const navItems: NavItem[] = [
     { id: 'home', label: 'Inicio', icon: Home },
     { id: 'space', label: 'Mi Espacio de Estudio', icon: User, badge: todayClasses.length > 0 ? todayClasses.length.toString() : undefined },
     { id: 'subjects', label: 'Materias', icon: BookMarked },
-    { id: 'schedule', label: 'Horario', icon: CalendarDays },
-    { id: 'progress', label: 'Progreso', icon: TrendingUp },
+    { id: 'schedule', label: 'Horario Escolar', icon: CalendarDays },
+    { id: 'progress', label: 'Progreso y Evaluaciones', icon: TrendingUp },
   ];
 
-  const isAvril = currentStudent.id === 'avril' || currentStudent.id === 'karen';
-
   return (
-    <aside className={`w-56 lg:w-64 xl:w-72 border-r p-4 flex flex-col justify-between hidden md:flex shrink-0 transition-colors duration-300 ${
-      isAvril
-        ? 'bg-slate-900/95 border-amber-500/20'
-        : 'bg-slate-900/95 border-red-500/20'
-    }`}>
+    <aside className="w-56 lg:w-64 xl:w-72 border-r border-[#27272A] bg-[#0A0A0A] p-4 flex flex-col justify-between hidden md:flex shrink-0 transition-colors duration-200">
       <div className="space-y-6">
-        
-        {/* Student Profile Card in Sidebar */}
-        <div className={`p-4 rounded-2xl border shadow-lg space-y-2.5 transition-all ${
-          isAvril
-            ? 'bg-gradient-to-br from-amber-950/40 via-slate-900 to-amber-900/20 border-amber-500/40 shadow-amber-950/20'
-            : 'bg-gradient-to-br from-red-950/40 via-slate-900 to-red-900/20 border-red-500/40 shadow-red-950/20'
-        }`}>
+        {/* Tarjeta de Perfil del Estudiante */}
+        <div className="p-3.5 rounded-2xl border border-[#27272A] bg-[#18181B] space-y-2.5 shadow-sm">
           <div className="flex items-center gap-3">
             <StudentAvatar
               studentId={currentStudent.id}
@@ -57,44 +45,40 @@ export const Sidebar: React.FC = () => {
               size="md"
               editable={true}
             />
-            <div className="overflow-hidden">
-<div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-sm text-white">{currentStudent.name}</span>
+            <div className="overflow-hidden min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-sm text-white truncate">{currentStudent.name}</span>
                 {currentStudent.isDemo && (
-                  <span className="text-[10px] bg-red-500/40 text-red-200 px-1.5 py-0.5 rounded-full">TEST</span>
+                  <span className="text-[9px] bg-[#B42318]/20 text-[#F87171] border border-[#B42318]/30 px-1 py-0.2 rounded font-bold">
+                    DEMO
+                  </span>
                 )}
-                <span className="text-[11px] font-medium text-slate-400">({currentStudent.age}a)</span>
+                <span className="text-[11px] font-medium text-[#71717A]">({currentStudent.age}a)</span>
               </div>
-              <p className={`text-xs font-bold truncate ${isAvril ? 'text-amber-300' : 'text-red-300'}`}>
+              <p className="text-xs font-medium text-[#D4D4D8] truncate">
                 {currentStudent.grade}
               </p>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-white/10 flex items-center justify-between">
-            <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
-              isAvril
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                : 'bg-red-500/20 text-red-300 border-red-500/40'
-            }`}>
-              {isAvril ? '🐶 Mundo Snoopy' : '🍄 Mundo Mario'}
-            </span>
-            <span className="text-[10px] font-bold text-slate-300 font-mono">
-              {isAvril ? '🐾 Woodstock' : '🪙 +10 Coins'}
-            </span>
+          <div className="pt-2 border-t border-[#27272A] flex items-center justify-between text-[11px]">
+            <span className="text-[#A1A1AA] font-medium">Plan Lectivo</span>
+            <span className="text-xs font-mono font-semibold text-[#E0A82E]">2026 - 2027</span>
           </div>
 
-          <p className="text-[11px] text-slate-300 italic line-clamp-2 leading-relaxed">
-            "{currentStudent.motto}"
-          </p>
+          {currentStudent.motto && (
+            <p className="text-[11px] text-[#A1A1AA] italic line-clamp-2 leading-relaxed">
+              "{currentStudent.motto}"
+            </p>
+          )}
         </div>
 
-        {/* Navigation List */}
+        {/* Lista de Navegación */}
         <nav className="space-y-1">
-          <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-            <span>Espacio de Estudio</span>
-            <span className="text-[10px] opacity-75">{isAvril ? '🐶 Peanuts' : '🍄 Level 1'}</span>
+          <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#71717A]">
+            Aprendizaje
           </div>
+
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = isNavItemActive(item.id, activeTab);
@@ -103,26 +87,22 @@ export const Sidebar: React.FC = () => {
                 key={item.id}
                 id={`nav-item-${item.id}`}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-between min-h-[44px] px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`w-full flex items-center justify-between min-h-[40px] px-3 py-2 rounded-xl text-xs transition-all ${
                   isActive
-                    ? isAvril
-                      ? 'bg-amber-500/20 text-amber-200 border border-amber-500/40 shadow-sm'
-                      : 'bg-red-500/20 text-red-200 border border-red-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                    ? 'bg-[#18181B] text-white border-l-2 border-[#E0A82E] font-semibold shadow-sm'
+                    : 'text-[#A1A1AA] hover:text-white hover:bg-[#18181B]/60 font-medium'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Icon className={`w-4 h-4 ${isActive ? (isAvril ? 'text-amber-400' : 'text-red-400') : 'text-slate-400'}`} />
-                  <span>{item.label}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#E0A82E]' : 'text-[#71717A]'}`} />
+                  <span className="truncate">{item.label}</span>
                 </div>
                 {item.badge && (
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                       isActive
-                        ? isAvril
-                          ? 'bg-amber-500/30 text-amber-200'
-                          : 'bg-red-500/30 text-red-200'
-                        : 'bg-slate-800 text-slate-400'
+                        ? 'bg-[#E0A82E]/20 text-[#E0A82E] border border-[#E0A82E]/30'
+                        : 'bg-[#27272A] text-[#A1A1AA]'
                     }`}
                   >
                     {item.badge}
@@ -133,70 +113,64 @@ export const Sidebar: React.FC = () => {
           })}
 
           {/* Sección de Gestión & Roles Institucionales */}
-          <div className="pt-3 border-t border-white/10">
-            <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="pt-4 mt-3 border-t border-[#27272A] space-y-1">
+            <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#71717A]">
               Gestión & Roles
             </div>
 
             <button
               type="button"
               onClick={() => setActiveTab('parent')}
-              className={`w-full flex items-center justify-between min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+              className={`w-full flex items-center justify-between min-h-[38px] px-3 py-2 rounded-xl text-xs transition-all ${
                 activeTab === 'parent'
-                  ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40'
-                  : 'text-slate-400 hover:text-emerald-300 hover:bg-slate-800/50'
+                  ? 'bg-[#18181B] text-white border-l-2 border-[#1B7F4B] font-semibold'
+                  : 'text-[#A1A1AA] hover:text-[#34D399] hover:bg-[#18181B]/60 font-medium'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Users className="w-4 h-4 text-emerald-400" />
-                <span>Portal Padres</span>
+                <Users className="w-4 h-4 text-[#1B7F4B]" />
+                <span>Portal Familias</span>
               </div>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">
-                MINEDUC
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#1B7F4B]/15 text-[#34D399] font-mono">
+                Tutor
               </span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab('admin')}
-              className={`w-full flex items-center justify-between min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+              className={`w-full flex items-center justify-between min-h-[38px] px-3 py-2 rounded-xl text-xs transition-all ${
                 activeTab === 'admin'
-                  ? 'bg-purple-500/20 text-purple-200 border border-purple-500/40'
-                  : 'text-slate-400 hover:text-purple-300 hover:bg-slate-800/50'
+                  ? 'bg-[#18181B] text-white border-l-2 border-[#1D4ED8] font-semibold'
+                  : 'text-[#A1A1AA] hover:text-[#60A5FA] hover:bg-[#18181B]/60 font-medium'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Shield className="w-4 h-4 text-purple-400" />
+                <Shield className="w-4 h-4 text-[#1D4ED8]" />
                 <span>Consola Admin</span>
               </div>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">
-                TI
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#1D4ED8]/15 text-[#60A5FA] font-mono">
+                Admin
               </span>
             </button>
           </div>
         </nav>
       </div>
 
-      {/* Themed Pedagogy Badge */}
-      <div className={`p-3.5 rounded-2xl border text-xs text-slate-300 space-y-2 ${
-        isAvril
-          ? 'bg-amber-950/20 border-amber-500/30'
-          : 'bg-red-950/20 border-red-500/30'
-      }`}>
-        <div className="flex items-center gap-2 font-bold">
-          <div className="w-5 h-5 rounded-md bg-slate-800 p-0.5 border border-slate-700 flex items-center justify-center shrink-0">
-            <SchoolLogo size="xs" className="w-4 h-4 object-contain" />
+      {/* Tarjeta de Pedagogía Institucional */}
+      <div className="p-3.5 rounded-2xl border border-[#27272A] bg-[#18181B] text-xs text-[#D4D4D8] space-y-2 shadow-sm">
+        <div className="flex items-center gap-2 font-semibold">
+          <div className="w-5 h-5 rounded-md bg-[#0A0A0A] p-0.5 border border-[#27272A] flex items-center justify-center shrink-0">
+            <SchoolLogo size="xs" variant="monogram" className="w-3.5 h-3.5 object-contain" />
           </div>
-          <span className={isAvril ? 'text-amber-300' : 'text-red-300'}>
-            {isAvril ? '🐶 Cuentos de Snoopy' : '🍄 Reino Champiñón'}
-          </span>
+          <span className="text-white text-xs font-bold">Wisdom Academy</span>
         </div>
-        <p className="text-[11px] leading-relaxed text-slate-300">
-          {isAvril
-            ? 'Método Montessori y Charlotte Mason guiado por Snoopy y la libreta de evidencias de Avril.'
-            : 'Misiones paso a paso con Cajas [?], Yoshi y monedas de aprendizaje para Gael.'}
+        <p className="text-[11px] leading-relaxed text-[#A1A1AA]">
+          Tutoría socrática inteligente, microcurrículo estructurado y evaluación formativa basada en evidencias.
         </p>
       </div>
     </aside>
   );
 };
+
+export default Sidebar;

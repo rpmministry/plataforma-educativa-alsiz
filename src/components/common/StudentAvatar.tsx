@@ -48,7 +48,6 @@ export const StudentAvatar: React.FC<StudentAvatarProps> = ({
 
   const sources: string[] = [
     ...(custom ? [custom] : []),
-    studentId === 'avril' ? '/Snoopy.png' : studentId === 'karen' ? '/Snoopy.png' : '/mario-3d.png',
     `/students/${studentId}.png`,
     `/students/${studentId === 'avril' ? 'Avril' : studentId === 'karen' ? 'Avril' : 'Gael'}.png`,
     defaultObj?.avatar || unsplashBackup,
@@ -66,17 +65,13 @@ export const StudentAvatar: React.FC<StudentAvatarProps> = ({
     }
   };
 
-  const isAvril = studentId === 'avril' || studentId === 'karen';
-
   const { box, icon, btn } = sizeConfig[size];
 
   const ringClass = isActive
-    ? 'ring-emerald-500/30 group-hover:ring-emerald-400/50'
+    ? 'ring-[#E0A82E]'
     : customRingColor
     ? `${customRingColor} group-hover:${customRingColor.replace(/\/\d+\//, '/50')}`
-    : isAvril
-    ? 'ring-amber-400 group-hover:ring-amber-300'
-    : 'ring-red-500 group-hover:ring-red-400';
+    : 'ring-[#27272A] group-hover:ring-[#52525B]';
 
   return (
     <>
@@ -92,16 +87,13 @@ export const StudentAvatar: React.FC<StudentAvatarProps> = ({
             onError={handleImgError}
             referrerPolicy="no-referrer"
             style={{ objectPosition: studentId === 'avril' ? '50% 10%' : '50% 20%' }}
-            className={`${box} object-cover bg-slate-900 ring-2 ${ringClass} transition-all duration-300 shadow-xl`}
+            className={`${box} object-cover bg-[#18181B] ring-2 ${ringClass} transition-all duration-300 shadow-lg`}
           />
         ) : (
           <div
-            className={`${box} flex flex-col items-center justify-center font-black text-white uppercase bg-gradient-to-br ${
-              isAvril ? 'from-amber-600 via-amber-800 to-slate-900' : 'from-red-600 via-red-800 to-slate-900'
-            } ring-2 ${isAvril ? 'ring-amber-400' : 'ring-red-500'} shadow-xl p-1 text-center`}
+            className={`${box} flex flex-col items-center justify-center font-bold text-white uppercase bg-[#27272A] border border-[#3F3F46] ring-2 ${ringClass} shadow-md p-1 text-center`}
           >
-            <span className="text-sm">{isAvril ? '🐶' : '🍄'}</span>
-            <span className="text-[10px] tracking-tighter">{name ? name.slice(0, 4) : studentId}</span>
+            <span className="text-xs font-semibold tracking-wider text-[#E0A82E]">{name ? name.slice(0, 2).toUpperCase() : studentId.slice(0, 2).toUpperCase()}</span>
           </div>
         )}
 
@@ -114,10 +106,8 @@ export const StudentAvatar: React.FC<StudentAvatarProps> = ({
               setIsModalOpen(true);
             }}
             title={`Cambiar o subir foto real de ${name}`}
-            className={`absolute -bottom-1 -right-1 ${btn} rounded-full ${
-              isAvril ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' : 'bg-red-600 hover:bg-red-500 text-white'
-            } shadow-lg border-2 border-slate-900 transition-all duration-200 z-10 ${
-              isHovered ? 'scale-110 opacity-100' : 'scale-90 opacity-80'
+            className={`absolute -bottom-1 -right-1 ${btn} rounded-full bg-[#E0A82E] hover:bg-[#B77D06] text-[#0A0A0A] shadow-md border-2 border-[#18181B] transition-transform duration-200 z-10 ${
+              isHovered ? 'scale-110 opacity-100' : 'scale-95 opacity-90'
             }`}
           >
             <Camera className={icon} />

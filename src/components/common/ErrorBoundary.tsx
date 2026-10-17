@@ -58,15 +58,15 @@ export class ErrorBoundary extends React.Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-slate-100">
-          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/10">
-              <AlertTriangle className="w-8 h-8" />
+        <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center p-6 text-[#F4F4F5]">
+          <div className="max-w-md w-full bg-[#18181B] border border-[#27272A] rounded-2xl p-8 shadow-2xl text-center space-y-6">
+            <div className="w-14 h-14 rounded-2xl bg-[#E0A82E]/10 border border-[#E0A82E]/30 text-[#E0A82E] flex items-center justify-center mx-auto shadow-lg shadow-[#E0A82E]/10">
+              <AlertTriangle className="w-7 h-7" />
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-white">Plataforma Educativa ALSIZ • Ekballo Church</h2>
-              <p className="text-sm text-slate-400">
+              <h2 className="text-xl font-bold text-white">Wisdom Academy</h2>
+              <p className="text-sm text-[#A1A1AA]">
                 Se detectó una discrepancia temporal al cargar los datos de la plataforma.
               </p>
             </div>
@@ -75,7 +75,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               <button
                 type="button"
                 onClick={this.handleReload}
-                className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25"
+                className="w-full py-3 px-4 rounded-xl bg-[#E0A82E] hover:bg-[#B77D06] text-[#0A0A0A] font-semibold text-sm transition-colors flex items-center justify-center gap-2 shadow-lg"
               >
                 <RefreshCw className="w-4 h-4" />
                 <span>Reanudar Aplicación</span>
@@ -84,7 +84,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               <button
                 type="button"
                 onClick={this.handleReset}
-                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs border border-slate-700 transition-all"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#27272A] hover:bg-[#3F3F46] text-[#E4E4E7] font-medium text-xs border border-[#3F3F46] transition-colors"
               >
                 Restablecer datos locales
               </button>
