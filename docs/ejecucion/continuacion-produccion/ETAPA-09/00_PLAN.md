@@ -124,3 +124,4 @@ Inventario detallado de variables efectivamente leídas por el backend:
   - `05_REVERSA.md`
   - `06_CIERRE.md`
   - `evidencias/` (registros de ejecución de tests y validaciones)
+

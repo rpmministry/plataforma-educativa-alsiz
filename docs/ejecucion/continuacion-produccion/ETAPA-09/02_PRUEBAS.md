@@ -61,3 +61,4 @@ Conforme a las directrices del proyecto, todas las pruebas se catalogan estricta
 - **Pruebas aprobadas:** 22 / 22 (100%).
 - **Pruebas fallidas o dudosas:** 0.
 - **Pruebas no ejecutadas marcadas falsamente como ejecutadas:** 0 (las pruebas de staging y producción están explícitamente delimitadas como guías reproducibles para el administrador humano).
+

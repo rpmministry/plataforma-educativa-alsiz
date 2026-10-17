@@ -43,3 +43,4 @@ En la Etapa 09 se desarrolló la documentación operativa integral y las herrami
 - **Refactorizaciones oportunistas:** 0. Se mantuvo la integridad del código fuente del backend y frontend consolidado en la Etapa 08.
 - **Modificación de archivos `.env` o bases de datos:** 0. No se modificó ningún archivo de entorno local ni se tocaron esquemas de base de datos.
 - **Archivos ignorados en Git:** Se preservaron las reglas en `.gitignore` para `.env`, `.env.local` y `data/*.db`.
+

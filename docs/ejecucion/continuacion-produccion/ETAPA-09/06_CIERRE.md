@@ -69,3 +69,4 @@ Con la finalización de esta etapa, el administrador dispone de todo lo necesari
 2. Generar las claves en los portales oficiales con las restricciones descritas.
 3. Colocarlas en el panel de variables del entorno backend.
 4. Ejecutar localmente o en staging `npx tsx scripts/test-ai-providers-config.ts` y el smoke test a `/api/health`.
+

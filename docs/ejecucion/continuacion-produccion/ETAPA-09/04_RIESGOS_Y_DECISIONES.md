@@ -40,3 +40,4 @@
 | **R3: Cargos desmedidos por uso no autorizado de claves** | **Alta** | Baja | Instrucción de aplicar restricciones de API (`Generative Language API`) en Google Cloud Console y límite diario de 100 req/estudiante en `ProviderManager`. |
 | **R4: Desconexión de clases por agotamiento de cuota diaria en Gemini Free** | **Media** | Media | Documentación de la cascada automática a DeepSeek (`deepseek-chat`) y degradación final transparente a `SIMULATED_LOCAL` sin error 500. |
 | **R5: Violación de privacidad LOPDP en pruebas de correo electrónico** | **Crítica** | Baja | Prohibición estricta de usar direcciones reales de estudiantes para pruebas de envío de PIN o reset; uso exclusivo de cuentas sintéticas de prueba. |
+

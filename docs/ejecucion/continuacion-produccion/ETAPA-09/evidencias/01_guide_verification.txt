@@ -25,3 +25,4 @@
 RESULTADO DE LA AUDITORÍA DE LA GUÍA: ✅ TODOS LOS CRITERIOS APROBADOS
 Criterios cumplidos: 9 / 9
 ----------------------------------------------------------------
+

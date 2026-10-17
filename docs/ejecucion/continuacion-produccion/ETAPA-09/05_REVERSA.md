@@ -51,3 +51,4 @@ git log -1 --oneline
 Tras la reversión, el sistema continúa funcionando exactamente bajo el estado aprobado de la Etapa 08:
 - Backend intacto con orquestación unificada en `ProviderManager`.
 - Ausencia de cambios en esquemas SQLite o endpoints.
+

@@ -44,3 +44,4 @@ Proveedores Registrados:
  - SIMULATED_LOCAL  | Modelo: alsiz-socratic-local-v1  | Estado: AVAILABLE              | Prioridad: 99 | Fallback: SÍ
 
 ✅ AUDITORÍA DE CONFIGURACIÓN COMPLETADA CON ÉXITO (0 SECRETOS EXPUESTOS)
+
