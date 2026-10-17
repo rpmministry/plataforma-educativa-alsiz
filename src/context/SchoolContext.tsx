@@ -33,7 +33,7 @@ import {
 } from '../utils/microcurriculumSchedule';
 import { readCachedGuideContent } from '../services/aiService';
 import type { GuideAiContent } from '../utils/guideGenerator';
-import { authApi, emailApi } from '../services/apiClient';
+import { authApi, adminApi, representativeApi, emailApi, AuthUser } from '../services/apiClient';
 
 /** Contexto único del profesor IA: materia + clase del día + la guía v4 EXACTA (o null si aún no existe). */
 export interface TeacherContextValue {
@@ -45,6 +45,10 @@ export interface TeacherContextValue {
 export type DayOfWeekName = 'Lunes' | 'Martes' | 'Miércoles' | 'Jueves' | 'Viernes';
 
 interface SchoolContextType {
+  currentUser: AuthUser | null;
+  isSessionLoading: boolean;
+  refreshSession: () => Promise<void>;
+  createStudentInDatabase: (payload: any) => Promise<{ success: boolean; data?: any; error?: string; student?: Student }>;
   studentsList: Student[];
   currentStudent: Student;
   currentStudentId: StudentId;
@@ -54,7 +58,7 @@ interface SchoolContextType {
   isAuthenticated: boolean;
   currentRole: UserRole;
   setCurrentRole: (role: UserRole) => void;
-  loginStudent: (identifier: string, passOrPin: string) => Promise<{ success: boolean; student?: Student; error?: string }>;
+  loginStudent: (identifier: string, passOrPin: string) => Promise<{ success: boolean; student?: Student; error?: string; errorCode?: string }>;
   /** Aplica una sesión ya validada (p. ej. Google) de forma síncrona, sin forzar navegación. */
   authenticateStudent: (id: StudentId) => void;
   logoutStudent: () => Promise<void>;
@@ -107,8 +111,8 @@ interface SchoolContextType {
   classesList: DailyClass[];
   customAvatars: Record<StudentId, string>;
   updateStudentAvatar: (studentId: StudentId, avatarUrl: string) => void;
-  changePassword: (studentId: StudentId, currentPass: string, newPass: string) => { success: boolean; error?: string };
-  resetPasswordWithPin: (identifier: string, pin: string, newPass: string) => { success: boolean; error?: string };
+  changePassword: (studentId: StudentId, currentPass: string, newPass: string) => Promise<{ success: boolean; error?: string }>;
+  resetPasswordWithPin: (identifier: string, pin: string, newPass: string) => Promise<{ success: boolean; error?: string }>;
   loginAsTestStudent: (testStudentId: StudentId) => void;
   /** true cuando el perfil activo es un perfil de prueba (Karen o Mauricio). */
   isDemoMode: boolean;
@@ -152,32 +156,50 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return STUDENTS_DATA;
   });
 
-  const [authenticatedStudentId, setAuthenticatedStudentId] = useState<StudentId | null>(() => {
-    try {
-      const saved = localStorage.getItem('wisdom_auth_v2026');
-      if (saved && saved !== 'null' && saved !== '') {
-        const demoStudentIds = ['karen', 'mauricio'];
-        if (!demoStudentIds.includes(saved)) return saved;
-      }
-    } catch { }
-    return null;
-  });
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true);
+  const [authenticatedStudentId, setAuthenticatedStudentId] = useState<StudentId | null>(null);
+  const [currentStudentId, setCurrentStudentId] = useState<StudentId | null>(null);
 
-  const [currentStudentId, setCurrentStudentId] = useState<StudentId | null>(() => {
-    try {
-      const saved = localStorage.getItem('wisdom_current_v2026');
-      if (saved && saved !== 'null' && saved !== '') {
-        const demoStudentIds = ['karen', 'mauricio'];
-        if (!demoStudentIds.includes(saved)) return saved;
-      }
-    } catch { }
-    return null;
-  });
-
-  // Espejo en ref del estado de auth: evita que el guard de navegación (o un setTimeout) use una
-  // closure obsoleta con authenticatedStudentId = null justo después de iniciar sesión.
   const authRef = useRef<StudentId | null>(authenticatedStudentId);
   useEffect(() => { authRef.current = authenticatedStudentId; }, [authenticatedStudentId]);
+
+  const refreshSession = async () => {
+    setIsSessionLoading(true);
+    try {
+      const res = await authApi.getMe();
+      if (res.success && res.data) {
+        const user = res.data;
+        setCurrentUser(user);
+        if (user.role === 'ADMIN') setCurrentRole('admin');
+        else if (user.role === 'TEACHER') setCurrentRole('teacher');
+        else if (user.role === 'REPRESENTATIVE') setCurrentRole('representative');
+        else setCurrentRole('student');
+
+        if (user.studentId || user.studentCode) {
+          const sid = (user.studentId || user.studentCode || '').toLowerCase();
+          authRef.current = sid;
+          setAuthenticatedStudentId(sid);
+          setCurrentStudentId(sid);
+        }
+      } else {
+        setCurrentUser(null);
+        setAuthenticatedStudentId(null);
+        authRef.current = null;
+        safeRemoveItem('wisdom_auth_v2026');
+      }
+    } catch {
+      setCurrentUser(null);
+      setAuthenticatedStudentId(null);
+      authRef.current = null;
+    } finally {
+      setIsSessionLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshSession();
+  }, []);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [targetLoginStudentId, setTargetLoginStudentId] = useState<string | undefined>(undefined);
@@ -378,11 +400,10 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   };
 
-  const loginStudent = async (identifier: string, passOrPin: string): Promise<{ success: boolean; student?: Student; error?: string }> => {
+  const loginStudent = async (identifier: string, passOrPin: string): Promise<{ success: boolean; student?: Student; error?: string; errorCode?: string }> => {
     const cleanId = identifier.trim();
     const cleanSecret = passOrPin.trim();
 
-    // 1. Intento de inicio de sesión real en el servidor (/api/v1/auth)
     try {
       let apiRes;
       if (/^\d{4,6}$/.test(cleanSecret)) {
@@ -394,11 +415,29 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       if (apiRes.success && apiRes.data?.user) {
         const sUser = apiRes.data.user;
-        const found = studentsList.find((s) =>
+        setCurrentUser(sUser);
+
+        let found = studentsList.find((s) =>
           s.id.toLowerCase() === sUser.studentId?.toLowerCase() ||
           s.email?.toLowerCase() === sUser.email?.toLowerCase() ||
           s.id.toLowerCase() === sUser.username?.toLowerCase()
-        ) || studentsList.find(s => !s.isDemo) || studentsList[0];
+        );
+
+        if (!found) {
+          const profile = createNewStudentProfile({
+            name: `${sUser.firstName} ${sUser.lastName}`.trim(),
+            email: sUser.email,
+            pinCode: '',
+            age: 12,
+            grade: 'Estudiante ALSIZ',
+            avatar: sUser.avatarUrl || '/avatars/student_avatar_01.png',
+          });
+          found = {
+            ...profile.student,
+            id: (sUser.studentId || sUser.username || `stu-${Date.now()}`).toLowerCase(),
+          };
+          setStudentsList((prev) => [found!, ...prev]);
+        }
 
         commitAuthenticatedSession(found.id);
         if (sUser.role === 'ADMIN') setCurrentRole('admin');
@@ -411,54 +450,38 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
         return { success: true, student: found };
       }
-    } catch (err) {
-      console.warn('[SchoolContext] Conexión API v1 no disponible, utilizando fallback seguro local:', err);
-    }
 
-    // 2. Fallback local / demo / entorno sin conexión
-    const cleanIdLower = cleanId.toLowerCase();
-    const cleanSecretLower = cleanSecret.toLowerCase();
-    const found = studentsList.find(
-      (s) =>
-        s.email?.toLowerCase() === cleanIdLower ||
-        s.pinCode?.toLowerCase() === cleanIdLower ||
-        s.id.toLowerCase() === cleanIdLower ||
-        s.name?.toLowerCase() === cleanIdLower
-    );
-    if (!found) return { success: false, error: 'Estudiante no encontrado.' };
-
-    if (
-      found.password?.toLowerCase() === cleanSecretLower ||
-      found.pinCode?.toLowerCase() === cleanSecretLower ||
-      cleanIdLower === found.pinCode?.toLowerCase() ||
-      cleanIdLower === found.id.toLowerCase()
-    ) {
-      commitAuthenticatedSession(found.id);
-      if (found.email && found.pinCode) {
-        emailApi.sendPin(found.email, found.pinCode, found.name).catch(() => {});
-      }
-      return { success: true, student: found };
+      // NO fallback silencioso a memoria: se reporta el error exacto del servidor
+      const errCode = apiRes?.error?.code || 'AUTH_FAILURE';
+      const errMsg = apiRes?.error?.message || 'Credenciales incorrectas. Revisa tu correo y contraseña.';
+      return { success: false, error: errMsg, errorCode: errCode };
+    } catch {
+      return {
+        success: false,
+        error: 'No se pudo comunicar con el servidor institucional. Comprueba tu conexión a Internet.',
+        errorCode: 'NETWORK_ERROR',
+      };
     }
-    return { success: false, error: 'Credenciales incorrectas. Revisa tu correo y contraseña.' };
   };
 
-  const changePassword = (studentId: string, currentPass: string, newPass: string) => {
-    const student = studentsList.find((s) => s.id === studentId);
-    if (!student) return { success: false, error: 'Estudiante no encontrado.' };
-    if (!((student.password?.toLowerCase() === currentPass.toLowerCase()) || (student.pinCode?.toLowerCase() === currentPass.toLowerCase()))) return { success: false, error: 'Contraseña actual incorrecta.' };
-    if (newPass.trim().length < 4) return { success: false, error: 'Debe tener al menos 4 caracteres.' };
-    setStudentsList((prev) => prev.map((s) => (s.id === studentId ? { ...s, password: newPass.trim() } : s)));
-    return { success: true };
+  const changePassword = async (studentId: string, currentPass: string, newPass: string) => {
+    try {
+      const res = await authApi.changePassword(currentPass, newPass);
+      if (res.success) return { success: true };
+      return { success: false, error: res.error?.message || 'Error al actualizar contraseña.' };
+    } catch {
+      return { success: false, error: 'Error de comunicación con el servidor.' };
+    }
   };
 
-  const resetPasswordWithPin = (identifier: string, pin: string, newPass: string) => {
-    const cleanId = identifier.trim().toLowerCase();
-    const student = studentsList.find((s) => s.email?.toLowerCase() === cleanId || s.id.toLowerCase() === cleanId);
-    if (!student) return { success: false, error: 'No encontrado.' };
-    if (student.pinCode?.toLowerCase() !== pin.trim().toLowerCase()) return { success: false, error: 'PIN incorrecto.' };
-    if (newPass.trim().length < 4) return { success: false, error: 'Debe tener al menos 4 caracteres.' };
-    setStudentsList((prev) => prev.map((s) => (s.id === student.id ? { ...s, password: newPass.trim() } : s)));
-    return { success: true };
+  const resetPasswordWithPin = async (identifier: string, pin: string, newPass: string) => {
+    try {
+      const res = await authApi.changePin(pin, newPass);
+      if (res.success) return { success: true };
+      return { success: false, error: res.error?.message || 'Error al actualizar PIN.' };
+    } catch {
+      return { success: false, error: 'Error de comunicación con el servidor.' };
+    }
   };
 
   const logoutStudent = async () => {
@@ -466,6 +489,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       await authApi.logout();
     } catch { /* no-op */ }
     authRef.current = null;
+    setCurrentUser(null);
     setAuthenticatedStudentId(null);
     setCurrentStudentId(null);
     setCurrentRole('student');
@@ -477,11 +501,70 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const loginAsTestStudent = (testStudentId: StudentId) => {
     const demoStudent = studentsList.find((s) => s.id === testStudentId && s.isDemo);
     if (!demoStudent) return;
-    // Bypass de autenticación tradicional: el Modo Demo entra directo con estado global.
+    // Modo Demo exclusivo de evaluación en memoria
     setCurrentRole('student');
     commitAuthenticatedSession(testStudentId, true);
     setIsDemoLockOpen(false);
     setSelectedDayOfWeek('Lunes');
+  };
+
+  const createStudentInDatabase = async (payload: {
+    firstName: string;
+    lastName: string;
+    birthDate: string;
+    programId: string;
+    levelId: string;
+    representativeId?: string;
+    relationshipType?: 'FATHER' | 'MOTHER' | 'LEGAL_GUARDIAN';
+    initialPin?: string;
+    initialPassword?: string;
+    consentVerified?: boolean;
+  }) => {
+    let res;
+    if (currentRole === 'representative' || currentUser?.role === 'REPRESENTATIVE') {
+      res = await representativeApi.registerStudent({
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        birthDate: payload.birthDate,
+        programId: payload.programId,
+        levelId: payload.levelId,
+        relationshipType: payload.relationshipType,
+        initialPin: payload.initialPin,
+        initialPassword: payload.initialPassword,
+      });
+    } else {
+      res = await adminApi.createStudent({
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        birthDate: payload.birthDate,
+        programId: payload.programId,
+        levelId: payload.levelId,
+        representativeId: payload.representativeId || 'rep-01',
+        relationshipType: payload.relationshipType,
+        initialPin: payload.initialPin,
+        initialPassword: payload.initialPassword,
+        consentVerified: payload.consentVerified ?? true,
+      });
+    }
+
+    if (res.success && res.data) {
+      const s = res.data.student;
+      const profile = createNewStudentProfile({
+        name: `${s.firstName} ${s.lastName}`.trim(),
+        email: s.email,
+        pinCode: res.data.temporaryCredentials.initialPin || '',
+        age: 12,
+        grade: s.levelName || 'Estudiante ALSIZ',
+        avatar: '/avatars/student_avatar_01.png',
+      });
+      const newStudent: Student = {
+        ...profile.student,
+        id: s.id,
+      };
+      setStudentsList((prev) => [newStudent, ...prev]);
+      return { success: true, data: res.data, student: newStudent };
+    }
+    return { success: false, error: res.error?.message || 'Error al crear estudiante en la base de datos' };
   };
 
   const registerNewStudent = (input: NewStudentInput) => {
@@ -508,6 +591,10 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // Ruta de Representante / Padres de Familia
     if (tab === 'parent') {
+      if (currentUser?.role !== 'REPRESENTATIVE' && currentUser?.role !== 'ADMIN') {
+        openAuthModal();
+        return;
+      }
       setCurrentRole('representative');
       setActiveTab((prevTab) => {
         if (prevTab !== tab && prevTab !== 'home') setNavigationHistory((prev) => [...prev, prevTab]);
@@ -518,6 +605,10 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // Ruta de Shell Administrativo
     if (tab === 'admin') {
+      if (currentUser?.role !== 'ADMIN' && currentUser?.role !== 'ACADEMIC_COORDINATOR') {
+        openAuthModal();
+        return;
+      }
       setCurrentRole('admin');
       setActiveTab((prevTab) => {
         if (prevTab !== tab && prevTab !== 'home') setNavigationHistory((prev) => [...prev, prevTab]);
@@ -526,8 +617,9 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
-    // Rutas de Estudiante: validamos sesión de estudiante
-    if (!authRef.current) {
+    // Rutas de Estudiante: validamos sesión de estudiante activa o demo
+    const isDemo = authenticatedStudentId && studentsList.some((s) => s.id === authenticatedStudentId && s.isDemo);
+    if (!currentUser && !isDemo) {
       openAuthModal(authRef.current || currentStudentId || undefined);
       return;
     }
@@ -649,6 +741,10 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   return (
     <SchoolContext.Provider 
       value={{ 
+        currentUser,
+        isSessionLoading,
+        refreshSession,
+        createStudentInDatabase,
         studentsList, 
         currentStudent, 
         // FIX 2: Si por alguna razón está vacío (null), asume al primer estudiante. ¡A TypeScript le encanta esto!
@@ -656,7 +752,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setCurrentStudentId: (id: StudentId) => setCurrentStudentId(id), 
         authenticatedStudentId, 
         setAuthenticatedStudentId, 
-        isAuthenticated: !!authenticatedStudentId, 
+        isAuthenticated: Boolean(currentUser || (authenticatedStudentId && studentsList.find(s => s.id === authenticatedStudentId)?.isDemo)), 
         currentRole,
         setCurrentRole,
         loginStudent, 

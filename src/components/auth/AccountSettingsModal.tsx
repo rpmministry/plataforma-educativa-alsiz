@@ -18,7 +18,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
@@ -33,7 +33,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
       return;
     }
 
-    const result = changePassword(currentStudent.id, currentPass, newPass);
+    const result = await changePassword(currentStudent.id, currentPass, newPass);
     
     if (result.success) {
       setSuccessMsg('Tu contraseña ha sido actualizada exitosamente.');

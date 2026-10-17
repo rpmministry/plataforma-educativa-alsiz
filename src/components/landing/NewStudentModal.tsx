@@ -29,7 +29,9 @@ export const NewStudentModal: React.FC<NewStudentModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { registerNewStudent, setActiveTab } = useSchool();
+  const { createStudentInDatabase, currentUser, openAuthModal, setActiveTab } = useSchool();
+
+  const isAuthorizedCreator = currentUser?.role === 'ADMIN' || currentUser?.role === 'REPRESENTATIVE';
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [studentName, setStudentName] = useState('');
@@ -42,6 +44,8 @@ export const NewStudentModal: React.FC<NewStudentModalProps> = ({
   const [createdSuccess, setCreatedSuccess] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{ email: string; pinCode: string; password?: string } | null>(null);
   const [copiedPin, setCopiedPin] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -62,23 +66,44 @@ export const NewStudentModal: React.FC<NewStudentModalProps> = ({
     }
   };
 
-  const handleCreateStudent = (e: React.FormEvent) => {
+  const handleCreateStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentName.trim()) return;
 
-    const result = registerNewStudent({
-      name: studentName,
-      age: studentAge,
-      grade: getGradeTitle(gradeLevel),
-      gradeLong: `${getGradeTitle(gradeLevel)} (Año Lectivo 2026-2027)`,
-      methodology: pedagogy,
-      email: customEmail.trim() || undefined,
-      pinCode: customPin.trim() || undefined,
-      password: customPass.trim() || undefined,
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    const parts = studentName.trim().split(/\s+/);
+    const firstName = parts[0] || 'Estudiante';
+    const lastName = parts.slice(1).join(' ') || 'ALSIZ';
+
+    const progId = gradeLevel === 'inicial' ? 'prog-inicial' : (gradeLevel === 'bachillerato' ? 'prog-bgu' : 'prog-egb');
+    const lvlId = gradeLevel === 'inicial' ? 'lvl-inicial-2' : (gradeLevel === 'elemental' ? 'lvl-egb-04' : (gradeLevel === 'media' ? 'lvl-egb-06' : (gradeLevel === 'superior' ? 'lvl-egb-08' : 'lvl-bgu-01')));
+
+    const res = await createStudentInDatabase({
+      firstName,
+      lastName,
+      programId: progId,
+      levelId: lvlId,
+      representativeId: currentUser?.role === 'REPRESENTATIVE' ? (currentUser.representativeId || currentUser.id) : undefined,
+      relationshipType: 'FATHER',
+      initialPin: customPin.trim() || undefined,
+      initialPassword: customPass.trim() || undefined,
+      consentVerified: true,
     });
 
-    setCreatedCredentials(result.credentials);
-    setCreatedSuccess(true);
+    setIsSubmitting(false);
+
+    if (res.success && res.data) {
+      setCreatedCredentials({
+        email: res.data.student.email,
+        pinCode: res.data.temporaryCredentials.initialPin,
+        password: res.data.temporaryCredentials.initialPassword,
+      });
+      setCreatedSuccess(true);
+    } else {
+      setSubmitError(res.error || 'Error al registrar el estudiante en la base de datos.');
+    }
   };
 
   const handleCopyPin = () => {
@@ -119,8 +144,41 @@ export const NewStudentModal: React.FC<NewStudentModalProps> = ({
 
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto overscroll-contain space-y-6 flex-1 text-slate-100">
-          {!createdSuccess ? (
+          {!isAuthorizedCreator ? (
+            <div className="text-center py-6 space-y-6 animate-fade-in">
+              <div className="w-16 h-16 rounded-3xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center mx-auto shadow-lg">
+                <ShieldCheck className="w-9 h-9" />
+              </div>
+              <div className="space-y-2 max-w-md mx-auto">
+                <h3 className="text-xl font-bold text-white">Registro Institucional Administrado</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Conforme a la Ley Orgánica de Protección de Datos Personales (LOPDP), la inscripción y creación de cuentas estudiantiles en la base de datos es gestionada exclusivamente por Representantes Legales autenticados o por la Administración Académica.
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-400 max-w-md mx-auto text-left space-y-2">
+                <p>• <strong>Representantes y Docentes:</strong> Inicie sesión con sus credenciales institucionales para matricular a un menor.</p>
+                <p>• <strong>Nuevas Familias:</strong> Comuníquese con la secretaría para la validación del consentimiento y apertura de expediente.</p>
+              </div>
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    openAuthModal();
+                  }}
+                  className="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-xl transition-all"
+                >
+                  Iniciar Sesión como Representante / Admin
+                </button>
+              </div>
+            </div>
+          ) : !createdSuccess ? (
             <form onSubmit={handleCreateStudent} className="space-y-6">
+              {submitError && (
+                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                  <span>{submitError}</span>
+                </div>
+              )}
               
               {/* Stepper indicators */}
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -396,10 +454,11 @@ export const NewStudentModal: React.FC<NewStudentModalProps> = ({
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm transition-all shadow-lg shadow-indigo-900/40 flex items-center gap-2"
+                      disabled={isSubmitting}
+                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-bold text-sm transition-all shadow-lg shadow-indigo-900/40 flex items-center gap-2"
                     >
                       <UserPlus className="w-4 h-4" />
-                      <span>Completar Inscripción & Generar Espacio</span>
+                      <span>{isSubmitting ? 'Guardando en Base de Datos...' : 'Completar Inscripción & Generar Espacio'}</span>
                     </button>
                   </div>
                 </div>

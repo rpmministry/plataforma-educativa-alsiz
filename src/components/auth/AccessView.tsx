@@ -21,7 +21,8 @@ import {
 export const AccessView: React.FC = () => {
   const {
     studentsList,
-    authenticateStudent,
+    currentUser,
+    isAuthenticated,
     loginAsTestStudent,
     setActiveTab,
     setCurrentRole,
@@ -34,9 +35,14 @@ export const AccessView: React.FC = () => {
   const demoStudents = studentsList.filter((s) => s.isDemo);
 
   const handleStudentSelect = (studentId: string) => {
-    authenticateStudent(studentId);
-    setCurrentRole('student');
-    setActiveTab('space');
+    // Si ya existe sesión activa válida para este estudiante, navegar a su espacio
+    if (isAuthenticated && (currentUser?.studentId === studentId || currentUser?.id === studentId)) {
+      setCurrentRole('student');
+      setActiveTab('space');
+    } else {
+      // De lo contrario, exigir autenticación con credenciales o PIN
+      openAuthModal(studentId);
+    }
   };
 
   const handleDemoSelect = (demoId: string) => {
@@ -46,25 +52,30 @@ export const AccessView: React.FC = () => {
   };
 
   const handleRepresentativeAccess = () => {
-    // Para representantes en desarrollo, activamos la sesión con el primer estudiante titular
-    if (mainStudents.length > 0) {
-      authenticateStudent(mainStudents[0].id);
+    if (isAuthenticated && currentUser?.role === 'REPRESENTATIVE') {
+      setCurrentRole('representative');
+      setActiveTab('parent');
+    } else {
+      openAuthModal();
     }
-    setCurrentRole('representative');
-    setActiveTab('parent');
   };
 
   const handleTeacherAccess = () => {
-    if (mainStudents.length > 0) {
-      authenticateStudent(mainStudents[0].id);
+    if (isAuthenticated && (currentUser?.role === 'TEACHER' || currentUser?.role === 'ADMIN')) {
+      setCurrentRole('teacher');
+      setActiveTab('classes');
+    } else {
+      openAuthModal();
     }
-    setCurrentRole('teacher');
-    setActiveTab('classes');
   };
 
   const handleAdminAccess = () => {
-    setCurrentRole('admin');
-    setActiveTab('admin');
+    if (isAuthenticated && currentUser?.role === 'ADMIN') {
+      setCurrentRole('admin');
+      setActiveTab('admin');
+    } else {
+      openAuthModal();
+    }
   };
 
   return (

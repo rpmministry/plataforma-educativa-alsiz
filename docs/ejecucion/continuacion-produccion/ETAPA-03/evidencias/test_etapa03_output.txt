@@ -1,0 +1,41 @@
+﻿
+> react-example@0.0.0 test:etapa03
+> tsx scripts/test-etapa-03.ts
+
+Γùç injected env (4) from .env // tip: Γîÿ override existing { override: true }
+Γùç injected env (11) from .env.local // tip: Γùê encrypted .env [www.dotenvx.com]
+================================================================
+  SUITE DE PRUEBAS DE INTEGRACI├ôN ΓÇö ETAPA 03
+  Autenticaci├│n, Sesiones Seguras y Creaci├│n en Base de Datos
+  Plataforma Educativa ALSIZ ΓÇö Ekballo Church
+================================================================
+
+[E3-TEST-01] Γ£à PAS├ô: Autoridad de backend: /api/v1/auth/me rechaza acceso sin sesi├│n v├ílida (401)
+             Γä╣∩╕Å  Status: 401, ErrorCode: UNAUTHORIZED
+[E3-TEST-02] Γ£à PAS├ô: Autenticaci├│n de Administrador con cookie segura HttpOnly y verificaci├│n en /me
+             Γä╣∩╕Å  Usuario: admin_alsiz, Rol: ADMIN, HttpOnly: true
+[E3-TEST-03] Γ£à PAS├ô: Autenticaci├│n de estudiante mediante c├│digo y PIN institucional en /login-pin
+             Γä╣∩╕Å  Estudiante: Mateo Santos (Sint├⌐tico 8vo), StudentId: stu-01
+[E3-TEST-04] Γ£à PAS├ô: Aislamiento Estudiantil Anti-IDOR: rechazo estricto (403) a expedientes de terceros
+             Γä╣∩╕Å  Propio: 200, Cruzado: 403 (FORBIDDEN_STUDENT_ACCESS)
+[E3-TEST-05] Γ£à PAS├ô: Aislamiento Familiar Anti-BOLA: representante solo accede a sus menores vinculados (403)
+             Γä╣∩╕Å  Menor propio: 200, Menor ajeno: 403 (FORBIDDEN_STUDENT_ACCESS)
+[E3-TEST-06] Γ£à PAS├ô: Creaci├│n at├│mica de cuenta de estudiante en base de datos con hash scrypt y matr├¡culas
+             Γä╣∩╕Å  StudentId: 369ef73f-a742-41dc-bf35-ce71fea96054, Asignaturas matriculadas: 2, PIN hasheado: true
+[E3-TEST-07] Γ£à PAS├ô: Sesi├│n autoritativa persistente tras recarga simulada sin tokens en localStorage
+             Γä╣∩╕Å  Recarga verificada en servidor. User ID: 383378a9-6577-4d39-81ce-e09949654499, Rol: STUDENT
+[E3-TEST-08] Γ£à PAS├ô: Suspensi├│n administrativa con revocaci├│n instant├ínea de sesiones y bloqueo de acceso
+             Γä╣∩╕Å  Estado suspensi├│n: SUSPENDED, Acceso revocado: 401, Re-login bloqueado: 403
+[E3-TEST-09] Γ£à PAS├ô: Restablecimiento seguro de credenciales con scrypt, reactivaci├│n y cierre de sesi├│n (logout)
+             Γä╣∩╕Å  Reset: 200, Nuevo Login: 200, Logout: 200, Cookie limpiada: true
+[E3-TEST-10] Γ£à PAS├ô: Auditor├¡a inmutable institucional completa con sanitizaci├│n estricta de secretos
+             Γä╣∩╕Å  Eventos registrados: 530, Secretos en texto plano filtrados: NINGUNO (SEGURO)
+
+================================================================
+  RESUMEN DE PRUEBAS ΓÇö ETAPA 03
+================================================================
+Total Pruebas:    10
+Exitosas:         10
+Fallidas:         0
+
+≡ƒÄë ├ëXITO: Las 10 pruebas de la Etapa 03 pasaron satisfactoriamente.

@@ -7,6 +7,7 @@ import { NewStudentModal } from './NewStudentModal';
 import { AccessRestrictedModal } from '../auth/AccessRestrictedModal';
 import { CurriculumLevelsSection } from './CurriculumLevelsSection';
 import { AITeacherTryoutWidget } from './AITeacherTryoutWidget';
+import { authApi } from '../../services/apiClient';
 import {
   Sparkles,
   Bot,
@@ -39,6 +40,7 @@ export const LandingView: React.FC = () => {
     authenticatedStudentId,
     isAuthenticated,
     authenticateStudent,
+    refreshSession,
     openAuthModal,
     setActiveTab,
     loginAsTestStudent,
@@ -56,44 +58,26 @@ export const LandingView: React.FC = () => {
   const [googleReady, setGoogleReady] = useState(false);
 
   const handleGoogleResponse = async (response: any) => {
-    const idToken = response.credential;
+    const idToken = response?.credential;
     if (!idToken) {
       console.error('No se recibió token de Google');
       return;
     }
 
     try {
-      const googleRes = await fetch(
-        `https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${idToken}`
-      );
-
-      if (!googleRes.ok) {
-        console.error('Error verificando el token de Google');
+      const res = await authApi.googleLogin(idToken);
+      if (res.success && res.data?.user) {
+        await refreshSession();
         return;
       }
 
-      const googleData = await googleRes.json();
-      const email = googleData.email?.toLowerCase();
-
-      if (!email) {
-        console.error('No se pudo obtener el correo de Google');
-        return;
-      }
-
-      // Lista blanca: solo alumnos inscritos (los perfiles demo entran por su propia vía, sin Google).
-      const found = studentsList.find((s) => !s.isDemo && s.email?.toLowerCase() === email);
-
-      if (!found) {
-        // Auth Guard: se detiene el acceso y se muestra la cápsula de información en vez de un error.
-        console.warn(`[AuthGuard] Cuenta de Google no registrada en Wisdom School: ${email}`);
+      if (res.error?.code === 'USER_NOT_FOUND' || res.error?.code === 'UNAUTHORIZED' || res.error?.code === 'AUTH_UNAUTHORIZED') {
+        console.warn(`[AuthGuard] Cuenta no inscrita en la base de datos institucional`);
         try { window.google?.accounts?.id?.disableAutoSelect?.(); } catch { /* no-op */ }
-        setRestrictedEmail(email);
-        return;
+        setRestrictedEmail(res.error?.details?.email || 'cuenta no inscrita');
       }
-
-      authenticateStudent(found.id);
     } catch (e) {
-      console.error('Error en Google Sign-In:', e);
+      console.error('Error al verificar Google Sign-In con servidor:', e);
     }
   };
 
@@ -209,8 +193,8 @@ export const LandingView: React.FC = () => {
       <div className="space-y-3 w-full pt-4 border-t border-amber-500/20">
         <div ref={googleButtonRef} className="w-full" id="landing-google-signin-button" />
         {!googleReady && (
-          <p className="text-center text-xs text-slate-500">
-            Configura <code className="text-amber-400">VITE_GOOGLE_CLIENT_ID</code> en <code className="text-amber-400">.env</code> para activar el ingreso con Google
+          <p className="text-center text-xs text-slate-400">
+            Ingreso con Google sujeto a validación institucional en servidor. Usa tus credenciales o PIN.
           </p>
         )}
         <button

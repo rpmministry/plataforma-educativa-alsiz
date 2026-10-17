@@ -10,6 +10,8 @@ import { z } from 'zod';
 import { getDatabaseAdapter } from '../db/dal';
 import { AuthenticatedRequest, requireAuth, requireRole } from '../middleware/authMiddleware';
 import { recordAuditEvent } from '../middleware/auditMiddleware';
+import { hashPassword, hashPin, generateUuid } from '../auth/crypto';
+import { invalidateAllUserSessions } from '../auth/sessionService';
 import { PilotConfigService } from '../pilot/pilotConfigService';
 import { PilotSessionService } from '../pilot/pilotSessionService';
 import { ProviderManager } from '../agents/providers/providerManager';
@@ -274,8 +276,12 @@ adminRouter.patch(
 
 const statusUpdateSchema = z.object({
   status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']),
-  justification: z.string().min(5, 'Se requiere justificación del cambio de estado.'),
-});
+  justification: z.string().optional(),
+  reason: z.string().optional(),
+}).transform((data) => ({
+  status: data.status,
+  justification: data.justification || data.reason || 'Actualización administrativa de estado.',
+}));
 
 /**
  * PATCH /api/v1/admin/users/:userId/status
@@ -300,9 +306,14 @@ adminRouter.patch(
       const previousStatus = user.status;
       await db.execute("UPDATE users SET status = ?, updated_at = datetime('now') WHERE id = ?", [newStatus, userId]);
 
+      // Si la cuenta es suspendida o desactivada, revocar de inmediato todas las sesiones activas en la BD
+      if (newStatus === 'SUSPENDED' || newStatus === 'INACTIVE') {
+        await invalidateAllUserSessions(userId);
+      }
+
       recordAuditEvent({
         userId: req.user?.userId,
-        eventType: 'USER_STATUS_CHANGED',
+        eventType: newStatus === 'SUSPENDED' ? 'USER_SUSPENDED' : 'USER_STATUS_CHANGED',
         resourceType: 'users',
         resourceId: userId,
         ip: req.ip,
@@ -312,7 +323,7 @@ adminRouter.patch(
 
       res.json({
         success: true,
-        data: { userId, previousStatus, newStatus },
+        data: { userId, previousStatus, newStatus, user: { id: userId, username: user.username, status: newStatus } },
         message: `Estado del usuario @${user.username} actualizado a ${newStatus}.`,
         timestamp: new Date().toISOString(),
       });
@@ -321,6 +332,312 @@ adminRouter.patch(
     }
   }
 );
+
+/**
+ * Esquema de creación formal de cuentas de estudiantes en base de datos
+ */
+const createStudentSchema = z.object({
+  firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres.'),
+  lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres.'),
+  username: z.string().min(3).optional(),
+  email: z.string().email().optional(),
+  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha de nacimiento YYYY-MM-DD requerido.'),
+  programId: z.string().min(1, 'Programa educativo requerido.'),
+  levelId: z.string().min(1, 'Nivel o grado requerido.'),
+  representativeId: z.string().min(1, 'ID de representante legal requerido.'),
+  relationshipType: z.enum(['FATHER', 'MOTHER', 'LEGAL_GUARDIAN']).default('LEGAL_GUARDIAN'),
+  isPrimaryContact: z.boolean().default(true),
+  initialPin: z.string().regex(/^\d{4,6}$/, 'El PIN debe componerse de 4 a 6 dígitos numéricos.').optional(),
+  initialPassword: z.string().min(6, 'La contraseña inicial debe tener al menos 6 caracteres.').optional(),
+  consentVerified: z.boolean().default(false),
+});
+
+/**
+ * POST /api/v1/admin/students
+ * Creación segura de cuenta de estudiante administrada por Coordinación / Dirección
+ * Escribe atómicamente en users, students, student_representatives y matrículas
+ */
+adminRouter.post(
+  '/students',
+  requireAuth,
+  requireRole('ADMIN', 'ACADEMIC_COORDINATOR'),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const data = createStudentSchema.parse(req.body);
+      const db = getDatabaseAdapter();
+
+      // 1. Verificar representante legal y consentimiento LOPDP
+      const representative = await db.queryOne<{ id: string; user_id: string; consent_lopdp_signed_at: string | null }>(
+        'SELECT id, user_id, consent_lopdp_signed_at FROM representatives WHERE id = ?',
+        [data.representativeId]
+      );
+      if (!representative) {
+        res.status(404).json({
+          success: false,
+          error: { code: 'REPRESENTATIVE_NOT_FOUND', message: 'El representante legal especificado no existe.' },
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      if (!representative.consent_lopdp_signed_at && !data.consentVerified) {
+        res.status(400).json({
+          success: false,
+          error: {
+            code: 'REPRESENTATIVE_CONSENT_REQUIRED',
+            message: 'El representante legal debe haber firmado el consentimiento informado LOPDP (o debe confirmarse consentVerified por la administración).',
+          },
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      // 2. Verificar Programa y Nivel
+      const program = await db.queryOne<{ id: string; name: string }>(
+        'SELECT id, name FROM programs WHERE id = ? OR code = ?',
+        [data.programId, data.programId]
+      );
+      if (!program) {
+        res.status(404).json({
+          success: false,
+          error: { code: 'PROGRAM_NOT_FOUND', message: 'El programa educativo especificado no existe.' },
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      const level = await db.queryOne<{ id: string; name: string }>(
+        'SELECT id, name FROM levels WHERE (id = ? OR code = ?) AND program_id = ?',
+        [data.levelId, data.levelId, program.id]
+      ) || await db.queryOne<{ id: string; name: string }>(
+        'SELECT id, name FROM levels WHERE id = ? OR code = ?',
+        [data.levelId, data.levelId]
+      );
+
+      if (!level) {
+        res.status(404).json({
+          success: false,
+          error: { code: 'LEVEL_NOT_FOUND', message: 'El nivel/grado académico especificado no existe.' },
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      // 3. Generar identificadores y credenciales iniciales seguras
+      const pin = data.initialPin || Math.floor(1000 + Math.random() * 9000).toString();
+      const rawPassword = data.initialPassword || `Alsiz${Math.floor(100000 + Math.random() * 900000)}!`;
+      const cleanFirst = data.firstName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const cleanLast = data.lastName.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const randomSuffix = Math.floor(10 + Math.random() * 89);
+      const username = data.username?.trim().toLowerCase() || `${cleanFirst}.${cleanLast}${randomSuffix}`;
+      const email = data.email?.trim().toLowerCase() || `${username}@alsiz.local`;
+      const studentCode = `STU-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+
+      // Comprobar colisión de usuario/email
+      const existingUser = await db.queryOne<{ id: string }>(
+        'SELECT id FROM users WHERE LOWER(username) = ? OR LOWER(email) = ?',
+        [username, email]
+      );
+      if (existingUser) {
+        res.status(409).json({
+          success: false,
+          error: { code: 'USER_ALREADY_EXISTS', message: 'El nombre de usuario o correo ya se encuentra registrado.' },
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      const passwordHash = hashPassword(rawPassword);
+      const pinHash = hashPin(pin);
+      const newUserId = generateUuid();
+      const newStudentId = generateUuid();
+      const enrollmentId = generateUuid();
+
+      // 4. Escritura en base de datos
+      await db.execute(`
+        INSERT INTO users (id, email, username, password_hash, role, status, first_name, last_name, avatar_asset_key)
+        VALUES (?, ?, ?, ?, 'STUDENT', 'ACTIVE', ?, ?, ?)
+      `, [newUserId, email, username, passwordHash, data.firstName.trim(), data.lastName.trim(), 'student_avatar_01']);
+
+      await db.execute(`
+        INSERT INTO students (id, user_id, pin_code_hash, student_code, birth_date)
+        VALUES (?, ?, ?, ?, ?)
+      `, [newStudentId, newUserId, pinHash, studentCode, data.birthDate]);
+
+      await db.execute(`
+        INSERT INTO student_representatives (student_id, representative_id, relationship_type, is_primary_contact)
+        VALUES (?, ?, ?, ?)
+      `, [newStudentId, representative.id, data.relationshipType, data.isPrimaryContact ? 1 : 0]);
+
+      await db.execute(`
+        INSERT INTO student_program_enrollments (id, student_id, program_id, level_id, school_year, status)
+        VALUES (?, ?, ?, ?, '2026-2027', 'ACTIVE')
+      `, [enrollmentId, newStudentId, program.id, level.id]);
+
+      // Matricular automáticamente las asignaturas del nivel
+      const subjects = await db.query<{ id: string }>(
+        'SELECT id FROM subjects WHERE level_id = ? AND program_id = ?',
+        [level.id, program.id]
+      );
+      for (const sub of subjects) {
+        await db.execute(`
+          INSERT OR IGNORE INTO student_subject_enrollments (id, student_id, subject_id, program_enrollment_id, status)
+          VALUES (?, ?, ?, ?, 'ACTIVE')
+        `, [generateUuid(), newStudentId, sub.id, enrollmentId]);
+      }
+
+      // 5. Auditoría de creación (¡SIN registrar contraseña ni PIN en logs!)
+      recordAuditEvent({
+        userId: req.user?.userId,
+        eventType: 'STUDENT_ACCOUNT_CREATED',
+        resourceType: 'students',
+        resourceId: newStudentId,
+        ip: req.ip,
+        userAgent: req.get('user-agent'),
+        details: {
+          studentId: newStudentId,
+          studentCode,
+          username,
+          email,
+          programId: program.id,
+          levelId: level.id,
+          representativeId: representative.id,
+          relationshipType: data.relationshipType,
+          subjectsEnrolledCount: subjects.length,
+          consentVerified: Boolean(representative.consent_lopdp_signed_at || data.consentVerified),
+        },
+      });
+
+      res.status(201).json({
+        success: true,
+        data: {
+          student: {
+            id: newStudentId,
+            userId: newUserId,
+            studentCode,
+            firstName: data.firstName.trim(),
+            lastName: data.lastName.trim(),
+            username,
+            email,
+            birthDate: data.birthDate,
+            programName: program.name,
+            levelName: level.name,
+          },
+          temporaryCredentials: {
+            username,
+            email,
+            studentCode,
+            initialPin: pin,
+            initialPassword: rawPassword,
+          },
+        },
+        message: 'Cuenta de estudiante y matrícula creadas exitosamente en la base de datos.',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * Esquema de restablecimiento administrativo de credenciales
+ */
+const resetCredentialsSchema = z.object({
+  resetType: z.enum(['PASSWORD', 'PIN', 'BOTH']).optional(),
+  newPassword: z.string().min(6).optional(),
+  newPin: z.string().regex(/^\d{4,6}$/).optional(),
+}).transform((data) => {
+  let type = data.resetType;
+  if (!type) {
+    if (data.newPin && data.newPassword) type = 'BOTH';
+    else if (data.newPin) type = 'PIN';
+    else type = 'PASSWORD';
+  }
+  return { ...data, resetType: type };
+});
+
+/**
+ * POST /api/v1/admin/users/:userId/reset-credentials
+ * Restablece contraseña y/o PIN con hash y registro de auditoría seguro (sin exponer secretos en logs)
+ */
+adminRouter.post(
+  '/users/:userId/reset-credentials',
+  requireAuth,
+  requireRole('ADMIN', 'ACADEMIC_COORDINATOR'),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const { userId } = req.params;
+      const { resetType, newPassword, newPin } = resetCredentialsSchema.parse(req.body);
+      const db = getDatabaseAdapter();
+
+      const user = await db.queryOne<{ id: string; username: string; email: string; role: string }>(
+        'SELECT id, username, email, role FROM users WHERE id = ?',
+        [userId]
+      );
+      if (!user) {
+        res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Usuario no encontrado.' } });
+        return;
+      }
+
+      const generatedCredentials: Record<string, string> = {};
+
+      if (resetType === 'PASSWORD' || resetType === 'BOTH') {
+        const pass = newPassword || `Alsiz${Math.floor(100000 + Math.random() * 900000)}!`;
+        const passHash = hashPassword(pass);
+        await db.execute("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?", [passHash, userId]);
+        generatedCredentials.newPassword = pass;
+      }
+
+      if (resetType === 'PIN' || resetType === 'BOTH') {
+        const student = await db.queryOne<{ id: string }>(
+          'SELECT id FROM students WHERE user_id = ?',
+          [userId]
+        );
+        if (!student) {
+          res.status(400).json({
+            success: false,
+            error: { code: 'NOT_A_STUDENT', message: 'El usuario no posee un perfil de estudiante para restablecer PIN.' },
+          });
+          return;
+        }
+
+        const pin = newPin || Math.floor(1000 + Math.random() * 9000).toString();
+        const pinHash = hashPin(pin);
+        await db.execute('UPDATE students SET pin_code_hash = ? WHERE id = ?', [pinHash, student.id]);
+        generatedCredentials.newPin = pin;
+      }
+
+      // Revocar sesiones previas para forzar nuevo inicio
+      await invalidateAllUserSessions(userId);
+
+      // Auditoría sin registrar claves en claro
+      recordAuditEvent({
+        userId: req.user?.userId,
+        eventType: 'USER_CREDENTIALS_RESET',
+        resourceType: 'users',
+        resourceId: userId,
+        ip: req.ip,
+        userAgent: req.get('user-agent'),
+        details: { targetUserId: userId, username: user.username, resetType },
+      });
+
+      res.json({
+        success: true,
+        data: {
+          userId,
+          username: user.username,
+          temporaryCredentials: generatedCredentials,
+        },
+        message: 'Credenciales restablecidas correctamente. Se ha cerrado cualquier sesión previa.',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 
 /**
  * GET /api/v1/admin/representatives

@@ -1,0 +1,49 @@
+﻿
+> react-example@0.0.0 test:security-p0
+> tsx scripts/test-security-p0.ts
+
+Γùç injected env (4) from .env // tip: Γùê secrets for agents [www.dotenvx.com]
+Γùç injected env (11) from .env.local // tip: Γîÿ enable debugging { debug: true }
+================================================================
+  SUITE DE PRUEBAS DE SEGURIDAD P0 ΓÇö PLATAFORMA EDUCATIVA ALSIZ
+  Ekballo Church ΓÇö Etapa 01: Seguridad y Claves de Cliente
+================================================================
+
+[P0-TEST-01] Γ£à PAS├ô: Sanitizaci├│n de c├│digo fuente frontend (src/ sin claves VITE ni URLs de proveedores externos)
+             Γä╣∩╕Å  src/ completamente limpio de claves y peticiones directas
+[P0-TEST-02] Γ£à PAS├ô: Unificaci├│n de capa de proveedores del servidor (ProviderManager con fallback socr├ítico)
+             Γä╣∩╕Å  Proveedores activos: SIMULATED_LOCAL, GOOGLE_GEMINI, DEEPSEEK_API, OPENROUTER_API
+[P0-TEST-03] Γ£à PAS├ô: Cat├ílogo honesto de proveedores (OpenCode rechazado, proveedores implementados soportados)
+             Γä╣∩╕Å  isProviderAvailable('OPENCODE'): false (Esperado: false), SIMULATED_LOCAL: true
+[P0-TEST-04] Γ£à PAS├ô: Degradaci├│n elegante a Simulador Local Socr├ítico en contingencia (cero 500)
+             Γä╣∩╕Å  Proveedor: SIMULATED_LOCAL, Longitud respuesta: 176 chars, Fallback: false
+[P0-TEST-05] Γ£à PAS├ô: Validaci├│n estricta de SESSION_SECRET en producci├│n (rechazo de claves cortas, vac├¡as y default)
+             Γä╣∩╕Å  Rechazo nula: true, Rechazo corta: true, Rechazo default: true, Acepta 32+ robusta: true
+[Migrator] Migraci├│n 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator] Migraci├│n 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator] Omitiendo migraci├│n de datos semilla (003_seed_dev_data.sql) por pol├¡tica de seguridad de producci├│n.
+[Migrator] Migraci├│n 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator] Omitiendo migraci├│n de datos semilla (005_lms_seed_data.sql) por pol├¡tica de seguridad de producci├│n.
+[Migrator] Migraci├│n 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator] Omitiendo migraci├│n de datos semilla (007_knowledge_seed_data.sql) por pol├¡tica de seguridad de producci├│n.
+[Migrator] Migraci├│n 008_ai_agents_orchestration.sql (v008) aplicada exitosamente.
+[Migrator] Omitiendo migraci├│n de datos semilla (009_ai_agents_seed.sql) por pol├¡tica de seguridad de producci├│n.
+[Migrator] Migraci├│n 010_interactive_pilot.sql (v010) aplicada exitosamente.
+[Migrator] Migraci├│n 011_unified_admin.sql (v011) aplicada exitosamente.
+[Migrator] Migraci├│n 012_continuing_education_courses.sql (v012) aplicada exitosamente.
+[P0-TEST-06] Γ£à PAS├ô: Aislamiento de migraciones en producci├│n (003_seed_dev_data.sql omitido, cero cuentas demo)
+             Γä╣∩╕Å  Migraci├│n 003 status: SKIPPED, Usuarios en BD limpia: 0
+[P0-TEST-07] Γ£à PAS├ô: Herramienta de bootstrap para inicializaci├│n del primer administrador
+             Γä╣∩╕Å  ├ëxito: true, Mensaje: Administrador inicial creado exitosamente con identificador usr-admin-861d790a.
+[P0-TEST-08] Γ£à PAS├ô: Cumplimiento de pol├¡tica de contrase├▒as robustas y hashing scrypt en bootstrap
+             Γä╣∩╕Å  Rechaz├│ d├⌐bil: true, Scrypt verificado: true, Rechaza err├│nea: true
+[P0-TEST-09] Γ£à PAS├ô: Sanitizaci├│n de telemetr├¡a y auditor├¡a (redacci├│n de secretos y HMAC-SHA256 en IPs)
+             Γä╣∩╕Å  Redacci├│n secretos: OK, Propiedades seguras preservadas: OK, IP Hasheada: 7baca74d2e51...
+[P0-TEST-10] Γ£à PAS├ô: Contrato de salud /api/health seguro (s├│lo booleanos de disponibilidad y cero claves expuestas)
+             Γä╣∩╕Å  Estado: ok, Cero claves en serializaci├│n JSON: true
+
+================================================================
+  RESULTADO: 10 / 10 PRUEBAS PASADAS
+  ESTADO: Γ£à SUITE DE SEGURIDAD P0 APROBADA EXITOSAMENTE
+================================================================
+

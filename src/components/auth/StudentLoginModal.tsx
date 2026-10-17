@@ -4,6 +4,7 @@ import { Student } from '../../types';
 import { SchoolLogo } from '../common/SchoolLogo';
 import { StudentAvatar } from '../common/StudentAvatar';
 import { AccessRestrictedModal } from './AccessRestrictedModal';
+import { authApi } from '../../services/apiClient';
 import {
   Lock,
   KeyRound,
@@ -33,6 +34,7 @@ const {
   loginStudent,
   currentStudentId,
   authenticateStudent,
+  refreshSession,
 } = useSchool();
 
   const initialTarget = targetStudentId || currentStudentId || 'avril';
@@ -55,52 +57,36 @@ const {
     }
   }, [isOpen]);
 
-  // Google Sign-In handling
+  // Google Sign-In handling - Validación autoritativa en servidor backend
   const handleGoogleResponse = async (response: any) => {
-    const idToken = response.credential;
+    const idToken = response?.credential;
     if (!idToken) {
-      setErrorMsg('Error: No se recibió token de Google.');
+      setErrorMsg('Error: No se recibió token de verificación de Google.');
       return;
     }
 
     try {
-      const googleRes = await fetch(
-        `https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${idToken}`
-      );
-
-      if (!googleRes.ok) {
-        setErrorMsg('Error verificando el token de Google.');
+      setIsSubmitting(true);
+      setErrorMsg(null);
+      const res = await authApi.googleLogin(idToken);
+      if (res.success && res.data?.user) {
+        await refreshSession();
+        onClose();
         return;
       }
 
-      const googleData = await googleRes.json();
-      const email = googleData.email?.toLowerCase();
-
-      if (!email) {
-        setErrorMsg('No se pudo obtener el correo de Google.');
-        return;
-      }
-
-      // Lista blanca: solo alumnos inscritos (los perfiles demo acceden por otra vía, sin Google).
-      const found = studentsList.find((s) => !s.isDemo && s.email?.toLowerCase() === email);
-
-      if (!found) {
-        // Auth Guard: interceptor de cuentas no inscritas.
-        // Se detiene la autenticación, se limpia el token temporal y se muestra la cápsula de contacto.
-        setErrorMsg(null);
-        setIdentifier('');
-        setPassword('');
+      if (res.error?.code === 'AUTH_ACCOUNT_INACTIVE' || res.error?.code === 'ACCOUNT_SUSPENDED') {
+        setErrorMsg('Tu cuenta institucional se encuentra inactiva o suspendida. Contacta a secretaría.');
+      } else if (res.error?.code === 'USER_NOT_FOUND' || res.error?.code === 'UNAUTHORIZED' || res.error?.code === 'AUTH_UNAUTHORIZED') {
         try { window.google?.accounts?.id?.disableAutoSelect?.(); } catch { /* no-op */ }
-        setRestrictedEmail(email);
-        return;
+        setRestrictedEmail(res.error?.details?.email || 'cuenta no registrada');
+      } else {
+        setErrorMsg(res.error?.message || 'Error al validar credencial de Google con el servidor.');
       }
-
-      // Sesión aplicada de forma síncrona; se cierra el modal y el landing muestra el banner verde.
-      authenticateStudent(found.id);
-      onClose();
-    } catch (e) {
-      console.error('Error en Google Sign-In:', e);
-      setErrorMsg('Falló la comunicación con el servidor de Google.');
+    } catch {
+      setErrorMsg('No se pudo establecer comunicación con el servidor institucional.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -178,7 +164,15 @@ try {
         setPassword('');
         onClose();
       } else {
-        setErrorMsg(result.error || 'Credenciales incorrectas. Revisa tu correo y contraseña.');
+        if (result.errorCode === 'ACCOUNT_SUSPENDED' || result.errorCode === 'AUTH_ACCOUNT_INACTIVE') {
+          setErrorMsg('Tu cuenta institucional está inactiva o suspendida. Contacta a secretaría.');
+        } else if (result.errorCode === 'NETWORK_OFFLINE') {
+          setErrorMsg('Sin conexión a Internet. Verifica tu conectividad e intenta nuevamente.');
+        } else if (result.errorCode === 'SERVICE_UNAVAILABLE' || result.errorCode === 'SERVER_UNREACHABLE') {
+          setErrorMsg('El servidor institucional no está disponible en este momento. Inténtalo más tarde.');
+        } else {
+          setErrorMsg(result.error || 'Credenciales incorrectas. Revisa tu correo, usuario o PIN.');
+        }
       }
     } catch {
       setErrorMsg('Error de comunicación con el servidor al iniciar sesión.');
@@ -262,9 +256,9 @@ try {
                 <div className="relative w-full">
                   <div ref={googleButtonRef} id="google-signin-button" className="w-full"></div>
                   {!googleReady && (
-                    <p className="text-center text-xs text-slate-500 mt-2">
-                      Configura <code>VITE_GOOGLE_CLIENT_ID</code> en <code>.env</code> para ver el botón de Google
-                    </p>
+                    <div className="p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/60 text-center text-xs text-slate-400">
+                      <span>Inicio con Google institucional requiere servidor configurado. Accede con credenciales o PIN institucional.</span>
+                    </div>
                   )}
                 </div>
               </div>

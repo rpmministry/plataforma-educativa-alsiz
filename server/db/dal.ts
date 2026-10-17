@@ -141,17 +141,20 @@ export class SqliteLocalAdapter implements IDatabaseAdapter {
   }
 
   public async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-    return (this.getActiveDb().prepare(sql).all(...params) as unknown) as T[];
+    const safeParams = params.map((p) => (p === undefined ? null : p));
+    return (this.getActiveDb().prepare(sql).all(...safeParams) as unknown) as T[];
   }
 
   public async queryOne<T = any>(sql: string, params: any[] = []): Promise<T | null> {
-    const row = this.getActiveDb().prepare(sql).get(...params);
+    const safeParams = params.map((p) => (p === undefined ? null : p));
+    const row = this.getActiveDb().prepare(sql).get(...safeParams);
     return row ? ((row as unknown) as T) : null;
   }
 
   public async execute(sql: string, params: any[] = []): Promise<ExecuteResult> {
+    const safeParams = params.map((p) => (p === undefined ? null : p));
     const stmt = this.getActiveDb().prepare(sql);
-    const info = stmt.run(...params) as any;
+    const info = stmt.run(...safeParams) as any;
     return {
       rowsAffected: info.changes ?? 0,
       lastInsertRowid: info.lastInsertRowid,

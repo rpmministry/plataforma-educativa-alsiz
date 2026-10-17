@@ -26,7 +26,8 @@
     "db:bootstrap-admin": "tsx scripts/bootstrap-admin.ts",
     "test:security-scan": "tsx scripts/test-scan-dist-secrets.ts",
     "test:security-p0": "tsx scripts/test-security-p0.ts",
-    "test:etapa02": "tsx scripts/test-etapa-02.ts"
+    "test:etapa02": "tsx scripts/test-etapa-02.ts",
+    "test:etapa03": "tsx scripts/test-etapa-03.ts"
   },
   "engines": {
     "node": ">=22.12.0",

@@ -100,7 +100,7 @@ const INSECURE_DEFAULT_SECRETS = new Set([
  */
 export function validateProductionSessionSecret(secret?: string, isProd?: boolean): void {
   const isProduction = isProd !== undefined ? isProd : (process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL));
-  const currentSecret = secret !== undefined ? secret : process.env.SESSION_SECRET;
+  const currentSecret = arguments.length >= 1 ? secret : process.env.SESSION_SECRET;
 
   if (isProduction) {
     if (!currentSecret || typeof currentSecret !== 'string') {
