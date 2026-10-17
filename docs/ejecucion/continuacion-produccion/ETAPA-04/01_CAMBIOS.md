@@ -15,8 +15,15 @@ Se abordaron las omisiones críticas detectadas en el ensayo histórico:
 1. **Inclusión del Representante Legal y Vínculos Familiares**: Se incorporó a Mauricio Andrade Luna (`CONTACT_INFO`), creando su usuario institucional, su perfil en `representatives` y los vínculos de corresponsabilidad en `student_representatives` para Gael y Avril.
 2. **Seguridad Criptográfica Estricta de Credenciales**: Se eliminó la importación insegura de contraseñas planas de mockData (`avril`, `gael`, etc.). Todas las credenciales iniciales se derivan con `scryptSync` y sal criptográfica aleatoria de 16 bytes, manteniendo los registros seguros y listos para actualización en primer acceso.
 3. **Bloqueo de Producción de Cuatro Factores**: Se blindó la bandera `--production` en `scripts/migrate-students.ts` exigiendo: token de aprobación humana, respaldo validado con hash SHA-256, confirmación exacta de ruta de BD y commit de Git HEAD.
-4. **Herramientas de Progreso LocalStorage**: Al ser el progreso del navegador imposible de reconstruir únicamente desde Git, se implementó el exportador para navegador `src/utils/localStorageMigrationExporter.ts`, el importador con esquema Zod `server/migration/localProgressImporter.ts` y la CLI `scripts/import-local-progress.ts`.
-5. **Transparencia en Campos No Provistos**: Cero invención de notas, fechas falsas ni documentos. Los campos ausentes en los datos estáticos fueron marcados formalmente como `PENDIENTE_VERIFICACION`.
+4. **Ejecución Productiva Controlada (Autorizada Expresamente)**:
+   - Respaldo previo generado: `backups/alsiz_backup_2026-10-17T15-04-10-913Z.db`
+   - Tamaño del respaldo: 1,200,128 bytes (1172.00 KB)
+   - Checksum SHA-256 del respaldo: `863e266d7e879852a4e6eb395f0829d66780602596d97be9b5e568ebf30279bb`
+   - Base de datos destino: `C:\Users\Alsiz\Documents\plataforma educativa ALSIZ\data\alsiz.db`
+   - Commit de código utilizado: `f7bb28f8f81306a7f8da59bd4f6c118b2a8a777d`
+   - Evento de auditoría LOPDP registrado: `aud-real-3581c9c10724`
+5. **Herramientas de Progreso LocalStorage**: Al ser el progreso del navegador imposible de reconstruir únicamente desde Git, se implementó el exportador para navegador `src/utils/localStorageMigrationExporter.ts`, el importador con esquema Zod `server/migration/localProgressImporter.ts` y la CLI `scripts/import-local-progress.ts`.
+6. **Transparencia en Campos No Provistos**: Cero invención de notas, fechas falsas ni documentos. Los campos ausentes en los datos estáticos fueron marcados formalmente como `PENDIENTE_VERIFICACION`.
 
 ---
 
@@ -104,3 +111,4 @@ Se abordaron las omisiones críticas detectadas en el ensayo histórico:
 - Agregados los scripts:
   - `"test:etapa04": "tsx scripts/test-etapa-04.ts"`
   - `"migrate:students": "tsx scripts/migrate-students.ts"`
+

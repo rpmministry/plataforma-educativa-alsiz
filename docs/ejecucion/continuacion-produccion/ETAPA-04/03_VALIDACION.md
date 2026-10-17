@@ -18,7 +18,7 @@
 | **5. Cero invención de datos no originales** | Cédula y dirección del representante marcadas como `PENDIENTE_VERIFICACION`. Fechas de nacimiento con año deducido (2014 y 2018) y día/mes fijados en 01-01 con verificación pendiente. Cero notas ficticias. | ✅ CONFORME |
 | **6. Seguridad criptográfica de credenciales** | Hashes `scrypt` generados con sal aleatoria (formato `scrypt$`). Contraseñas planas de mockData (`avril`, `gael`) completamente rechazadas. | ✅ CONFORME |
 | **7. Idempotencia y Reversibilidad** | 2 ejecuciones consecutivas producen exactamente 0 duplicados. Rollback quirúrgico comprobado con eliminación de 399 registros migrados y 0 impacto en usuarios sintéticos. | ✅ CONFORME |
-| **8. Salvaguarda Absoluta de Producción** | La base de datos `data/alsiz.db` permanece con 0 registros migrados. Bloqueo de 4 factores activo para impedir ejecuciones productivas sin autorización expresa. | ✅ CONFORME |
+| **8. Ejecución Productiva Autorizada** | Migración productiva ejecutada con 4 factores validados: Respaldo `alsiz_backup_2026-10-17T15-04-10-913Z.db` (SHA-256: `863e266d...`), target `data/alsiz.db`, commit `f7bb28f` y token de aprobación. Verificación de 3 cuentas reales con 0 errores foráneos. | ✅ CONFORME |
 
 ---
 
@@ -93,3 +93,4 @@ Para salvaguardar el principio de honestidad y exactitud de datos de la LOPDP, n
 4. **Fecha Exacta de Nacimiento (Día y Mes) de los Estudiantes**:
    - *Valor en Base de Datos*: `2014-01-01` (Avril) y `2018-01-01` (Gael).
    - *Acción Administrativa Requerida*: Registrar el día y mes exactos una vez cotejados con la partida de nacimiento o cédula de cada menor.
+

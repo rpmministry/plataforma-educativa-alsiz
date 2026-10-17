@@ -62,12 +62,15 @@ DELETE FROM users WHERE id LIKE 'usr-real-%';
 
 Si fuese necesario restaurar la base de datos completa a su estado previo a la migración:
 
-### 3.1 Localizar el Archivo de Respaldo Validado
-Los respaldos se almacenan en el directorio `backups/` con el patrón `alsiz_backup_<timestamp>.db`.
+### 3.1 Archivo de Respaldo Pre-Migración de Producción
+Se generó el respaldo validado en caliente inmediatamente antes de la ejecución productiva:
+- **Ruta del Respaldo:** `backups/alsiz_backup_2026-10-17T15-04-10-913Z.db`
+- **Tamaño:** `1,200,128 bytes` (`1172.00 KB`)
+- **Checksum SHA-256:** `863e266d7e879852a4e6eb395f0829d66780602596d97be9b5e568ebf30279bb`
 
 ### 3.2 Verificar el Checksum SHA-256
 ```powershell
-Get-FileHash -Path "backups\alsiz_backup_<timestamp>.db" -Algorithm SHA256
+Get-FileHash -Path "backups\alsiz_backup_2026-10-17T15-04-10-913Z.db" -Algorithm SHA256
 ```
 
 ### 3.3 Restaurar mediante el Servicio de Base de Datos
@@ -86,3 +89,4 @@ PRAGMA integrity_check;
 PRAGMA foreign_key_check;
 ```
 Resultado esperado: `ok` y cero filas con errores.
+

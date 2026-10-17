@@ -4,3 +4,4 @@ Archivo verificado: data/alsiz.db
 Estado: INTACTO Y LIBRE DE MIGRACIÓN SIN APROBACIÓN
 Usuarios reales o migrados en data/alsiz.db: 0
 Cumplimiento de la regla de oro: NINGUNA MIGRACIÓN PRODUCTIVA SE HA EJECUTADO SIN AUTORIZACIÓN EXPRESA.
+

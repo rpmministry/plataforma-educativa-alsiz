@@ -1,0 +1,11 @@
+================================================================
+  TEST DE RUTAS Y SESIONES SOBRE CUENTAS REALES DE PRODUCCIÓN
+================================================================
+
+✅ Sesión creada para Avril (STUDENT) en sessions
+✅ Sesión creada para Mauricio (REPRESENTATIVE) en sessions
+✅ Sesiones de prueba limpiadas.
+
+================================================================
+  TEST DE SESIONES DE PRODUCCIÓN EXITOSO
+================================================================

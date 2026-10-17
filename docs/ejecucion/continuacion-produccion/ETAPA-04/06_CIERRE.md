@@ -45,8 +45,16 @@ La **Etapa 04: Preparar y Ejecutar la Migración Controlada de Gael y Avril** ha
    - Reversión quirúrgica probada: 399 registros eliminados limpiamente; usuarios sintéticos de desarrollo intactos.
 7. **Control de Bloqueo de Producción de Cuatro Factores**:
    - Implementado en `scripts/migrate-students.ts --production`, exigiendo token de aprobación humana, respaldo validado con hash SHA-256, confirmación exacta de ruta de BD y commit de Git.
-8. **Salvaguarda Absoluta de Producción**:
-   - La base de datos de producción `data/alsiz.db` permanece con **0 registros migrados**, intacta y sin modificaciones.
+8. **Ejecución Productiva Controlada (Autorizada Expresamente)**:
+   - Tras recibir aprobación humana formal del usuario ("procede estas autorizado"):
+   - Se generó el respaldo: `backups/alsiz_backup_2026-10-17T15-04-10-913Z.db` (SHA-256: `863e266d7e879852a4e6eb395f0829d66780602596d97be9b5e568ebf30279bb`).
+   - Se ejecutó la migración productiva en `data/alsiz.db` con commit `f7bb28f8f81306a7f8da59bd4f6c118b2a8a777d`.
+   - Se crearon exitosamente 3 usuarios reales (`usr-real-avril`, `usr-real-gael`, `usr-real-rep-mauricio`).
+   - Se vincularon 2 relaciones paterno-filiales en `student_representatives` con custodia primaria.
+   - Se preservaron 20 asignaturas, 42 unidades, 43 clases socráticas, 86 recursos didácticos y 129 actividades formativas.
+   - Se verificaron 0 violaciones de clave foránea (`PRAGMA foreign_key_check = 0`) y 0 huérfanos.
+   - Se registró el evento inmutable de auditoría LOPDP con ID `aud-real-3581c9c10724`.
+   - Se probaron sesiones y permisos en base de datos real con éxito rotundo.
 
 ---
 
@@ -58,29 +66,31 @@ La **Etapa 04: Preparar y Ejecutar la Migración Controlada de Gael y Avril** ha
 | **Suite Seguridad P0 (10/10)** | [`evidencias/test_security_p0_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/test_security_p0_output.txt) | ✅ 10/10 PASÓ |
 | **Suite Autenticación E03 (10/10)** | [`evidencias/test_etapa03_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/test_etapa03_output.txt) | ✅ 10/10 PASÓ |
 | **Suite Persistencia E02 (10/10)** | [`evidencias/test_etapa02_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/test_etapa02_output.txt) | ✅ 10/10 PASÓ |
-| **Aislamiento Base Producción** | [`evidencias/production_db_isolation.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/production_db_isolation.txt) | ✅ 0 MIGRACIONES (INTACTO) |
+| **Aislamiento Pre-Migración** | [`evidencias/production_db_isolation.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/production_db_isolation.txt) | ✅ 0 MIGRACIONES PREVIAS |
+| **Ejecución en Producción** | [`evidencias/production_migration_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/production_migration_output.txt) | ✅ 100% EXITOSA (4 FACTORES) |
+| **Verificación Cuentas Producción** | [`evidencias/production_verification_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/production_verification_output.txt) | ✅ 100% CONFORME (FK=0) |
+| **Verificación Sesiones Producción** | [`evidencias/production_sessions_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/production_sessions_output.txt) | ✅ SESIONES VERIFICADAS |
 | **Línea Base de Git** | [`evidencias/00_git_baseline.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/00_git_baseline.txt) | ✅ VERIFICADO |
 | **Análisis de Tipos (Lint)** | [`evidencias/lint_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/lint_output.txt) | ✅ 0 ERRORES |
 | **Empaquetado Build** | [`evidencias/build_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/build_output.txt) | ✅ EXIT CODE 0 |
 
 ---
 
-## 3. Estado de Git y Próximos Pasos
+## 3. Estado de Git y Dictamen Final
 
-En estricto apego a las directivas del proyecto:
+En estricto apego a las 10 directivas del proyecto:
 - **No se ha realizado `git push`** al repositorio remoto (`origin`).
-- **No se han fusionado ramas**.
-- **No se ha desplegado a producción**.
-- **No se ha ejecutado ninguna migración productiva**.
+- **No se han fusionado ramas** (se permanece en la rama de trabajo `continuacion-produccion-etapa-04`).
+- **No se ha desplegado a servicios externos** (sin despliegues a Vercel/Cloud).
+- **La migración productiva en `data/alsiz.db` fue completada** exclusivamente tras recibir la autorización expresa del usuario ("procede estas autorizado"), cumpliendo los 4 factores de salvaguarda, verificando integridad referencial (0 FK errors), idempotencia y validación de sesiones reales.
 
-La etapa se declara en estado:
-**`APROBADA PARA REVISIÓN HUMANA`**
+La etapa se concluye formalmente con el dictamen:
 
-### Protocolo para la Ejecución Productiva (Una vez aprobada por el responsable humano):
-1. Confirmar la generación del respaldo en caliente:
-   `npx tsx -e "import { createHotBackup } from './server/backup/backupService'; console.log(createHotBackup());"`
-2. Establecer la variable de entorno segura con el token de aprobación humana generado:
-   `$env:PRODUCTION_MIGRATION_APPROVAL_TOKEN="<TOKEN_GENERADO>"`
-3. Ejecutar la migración con los 4 factores requeridos:
-   `npx tsx scripts/migrate-students.ts --production --approval-token "<TOKEN_GENERADO>" --backup-path "backups/<RESPALDO>.db" --confirm-target-db "C:\Users\Alsiz\Documents\plataforma educativa ALSIZ\data\alsiz.db" --commit-hash "<COMMIT_HASH>"`
-4. Probar el inicio de sesión y permisos desde la interfaz real para las cuentas aprovisionadas.
+# **`APROBADA PARA REVISIÓN HUMANA`**
+
+### Próximos Pasos (Sujetos a Instrucción del Administrador):
+1. El usuario/administrador humano puede auditar el reporte de cierre y las evidencias registradas en `docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/`.
+2. Opcionalmente, importar el progreso histórico de navegador (`localStorage`) si se cuenta con el archivo generado por el estudiante mediante `src/utils/localStorageMigrationExporter.ts` ejecutando `npx tsx scripts/import-local-progress.ts --file <ruta.json>`.
+3. Autorizar el avance a la siguiente etapa (Etapa 05) cuando considere oportuno.
+
+

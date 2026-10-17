@@ -13,7 +13,7 @@
 En estricto cumplimiento de la directiva de trabajo:
 - **PRUEBA LOCAL**: Ejecución de simulaciones en memoria (`:memory:`) y pruebas de validación de esquema sin persistencia en disco.
 - **PRUEBA DE STAGING**: Ejecución sobre base de datos SQLite aislada (`data/test_alsiz_staging_etapa04.db` y `data/test_alsiz_etapa04_suite.db`), midiendo inserción, integridad, idempotencia y rollback.
-- **PRUEBA DE PRODUCCIÓN**: **NO EJECUTADA (DIFERIDA)**. Ninguna prueba destructiva o de migración productiva ha sido corrida contra `data/alsiz.db`, salvaguardando la integridad del entorno productivo hasta recibir aprobación humana.
+- **PRUEBA DE PRODUCCIÓN**: **EJECUTADA TRAS AUTORIZACIÓN EXPRESA**. Verificación directa en `data/alsiz.db` con respaldo previo (`863e266d...`) y control de 4 factores. 100% conforme.
 - **REVISIÓN ESTÁTICA**: Comprobación estricta de tipos (`tsc --noEmit`), auditoría de variables de entorno y verificación de compilación (`npm run build`).
 
 ---
@@ -44,7 +44,11 @@ En estricto cumplimiento de la directiva de trabajo:
 | **Seguridad P0** | `npm run test:security-p0` | [`evidencias/test_security_p0_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/test_security_p0_output.txt) | ✅ 10/10 PASÓ |
 | **Autenticación Etapa 03** | `npm run test:etapa03` | [`evidencias/test_etapa03_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/test_etapa03_output.txt) | ✅ 10/10 PASÓ |
 | **Persistencia Etapa 02** | `npm run test:etapa02` | [`evidencias/test_etapa02_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/test_etapa02_output.txt) | ✅ 10/10 PASÓ |
-| **Aislamiento Producción** | Verificación en `data/alsiz.db` | [`evidencias/production_db_isolation.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/production_db_isolation.txt) | ✅ 0 MIGRACIONES (INTACTO) |
-| **Control Bloqueo Producción** | `npx tsx scripts/migrate-students.ts --production` | Salida en consola de denegación por 4 factores | ✅ DENEGADO (EXIT CODE 1) |
+| **Aislamiento Pre-Migración** | Verificación en `data/alsiz.db` | [`evidencias/production_db_isolation.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/production_db_isolation.txt) | ✅ 0 MIGRACIONES PREVIAS |
+| **Control Bloqueo Producción** | `npx tsx scripts/migrate-students.ts --production` | Salida de denegación por 4 factores | ✅ DENEGADO (EXIT CODE 1) |
+| **Migración en Producción** | `migrate-students.ts --production` (con 4 factores) | [`evidencias/production_migration_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/production_migration_output.txt) | ✅ 100% EXITOSA (3 USR, 20 SUB, 43 CLA) |
+| **Verificación Cuentas Producción** | `npx tsx scripts/test-prod-real-accounts.ts` | [`evidencias/production_verification_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/production_verification_output.txt) | ✅ 100% CONFORME (FK=0, AUDIT REG) |
+| **Verificación Sesiones Producción** | `npx tsx scripts/test-prod-api-sessions.ts` | [`evidencias/production_sessions_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/production_sessions_output.txt) | ✅ SESIONES ACTIVAS Y AISLADAS |
 | **Análisis Estático (Lint)** | `npm run lint` (`tsc --noEmit`) | [`evidencias/lint_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/lint_output.txt) | ✅ 0 ERRORES |
 | **Compilación Build** | `npm run build` | [`evidencias/build_output.txt`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ejecucion/continuacion-produccion/ETAPA-04/evidencias/build_output.txt) | ✅ EXIT CODE 0 (7.30s) |
+

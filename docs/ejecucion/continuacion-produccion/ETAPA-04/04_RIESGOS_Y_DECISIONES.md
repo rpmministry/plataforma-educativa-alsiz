@@ -50,3 +50,4 @@
 | **R-04** | Generación de registros huérfanos en cascadas relacionales. | Alto | Muy Baja | `PRAGMA foreign_keys = ON;`, `PRAGMA foreign_key_check` sin errores, y aserciones explícitas de 0 huérfanos en pruebas automatizadas. |
 | **R-05** | Pérdida de progreso previo guardado en el navegador del estudiante. | Medio | Media | Implementación del exportador/importador `alsiz_device_progress_export.json` con protocolo asistido para el administrador. |
 | **R-06** | Fallo de idempotencia al re-ejecutar migraciones en producción. | Medio | Muy Baja | Cláusulas `ON CONFLICT` en todas las sentencias de inserción relacional. Idempotencia certificada en staging (0 duplicados). |
+
