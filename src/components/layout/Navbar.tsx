@@ -44,15 +44,15 @@ export const Navbar: React.FC = () => {
       <div className="max-w-[100vw] px-3 sm:px-6 lg:px-8 mx-auto min-h-14 sm:min-h-16 flex items-center justify-between gap-2">
 
         
-        {/* Paso 2: la marca de Ekballo Church y ALSIZ */}
+        {/* Marca oficial: Wisdom Academy */}
         <div className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0" onClick={() => setActiveTab('home')}>
-          <div className="w-10 h-10 shrink-0 rounded-xl bg-[#121820] border border-amber-500/40 p-1.5 shadow-md shadow-black/40 flex items-center justify-center group-hover:scale-105 transition-all duration-300">
+          <div className="w-10 h-10 shrink-0 rounded-xl bg-[#18181B] border border-[#27272A] p-1.5 shadow-md shadow-black/40 flex items-center justify-center group-hover:scale-105 transition-all duration-300">
             <SchoolLogo size="sm" variant="monogram" className="w-full h-full object-contain" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 min-w-0">
               <span className="hidden min-[400px]:inline font-extrabold text-base sm:text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-amber-200 truncate">
-                ALSIZ • EKBALLO
+                Wisdom Academy
               </span>
               <span className={`text-[10px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full border shadow-sm flex items-center gap-1 ${
                 isAvril
@@ -66,7 +66,7 @@ export const Navbar: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-400 hidden sm:block">
-              Plataforma Educativa • Ekballo Church
+              Aprender con profundidad · Avanzar con propósito
             </p>
           </div>
         </div>

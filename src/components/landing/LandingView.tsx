@@ -215,13 +215,13 @@ export const LandingView: React.FC = () => {
 
         <div className="relative z-10 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-[#121820] border border-amber-500/40 shadow-lg shadow-black/40 flex items-center justify-center">
+            <div className="p-3 rounded-2xl bg-[#18181B] border border-[#27272A] shadow-lg shadow-black/40 flex items-center justify-center">
               <SchoolLogo size="md" variant="monogram" className="w-10 h-10 object-contain" />
             </div>
             <div>
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
                 <Globe className="w-3.5 h-3.5 text-amber-400" />
-                <span>Plataforma Educativa ALSIZ • Ekballo Church</span>
+                <span>Wisdom Academy • Entorno Educativo Digital</span>
               </div>
               <h2 className="text-xs text-slate-400 font-mono mt-0.5">Año Lectivo 2026 - 2027</h2>
             </div>
@@ -230,20 +230,27 @@ export const LandingView: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div className="max-w-5xl space-y-4 lg:max-w-2xl">
               <div className="inline-flex items-center gap-3 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-2 shadow-[0_0_25px_rgba(229,144,0,0.12)] backdrop-blur-sm">
-                <SchoolLogo size="sm" variant="monogram" className="w-6 h-6 object-contain" />
-                <span className="text-sm sm:text-base font-black uppercase tracking-[0.28em] text-amber-200">ALSIZ • EKBALLO</span>
+                <SchoolLogo size="sm" variant="monogram" className="w-5 h-5 object-contain" />
+                <span className="text-xs sm:text-sm font-bold tracking-wider text-amber-200">
+                  Aprender con profundidad · Avanzar con propósito
+                </span>
               </div>
 
               <div className="space-y-2">
-                <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.32em] text-amber-300/80">Homeschooling K-12 • Formación Cristiana & Discipulado</p>
-                <h1 className="max-w-4xl text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-0.06em] text-white leading-[0.9]">
-                  Educación personalizada, <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500">rigor pedagógico y fe</span>
+                <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.24em] text-amber-300/80">Educación integral • Innovación pedagógica</p>
+                <h1 className="max-w-4xl text-3xl sm:text-4xl lg:text-5xl font-black tracking-[-0.04em] text-white leading-[1.05]">
+                  Una educación rigurosa, <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500">con tecnología al servicio del aprendizaje</span>
                 </h1>
               </div>
 
-              <p className="max-w-3xl text-base sm:text-xl text-slate-300 leading-relaxed font-normal">
-                Diseñada para la formación integral de los estudiantes de Ekballo Church y familias en homeschooling. Acompaña desde la educación elemental hasta el bachillerato con microcurrículo estructurado día a día, profesores virtuales socráticos, devocionales diarios y evaluación formativa por evidencias sin exámenes memorísticos.
-              </p>
+              <div className="space-y-3">
+                <p className="max-w-3xl text-base sm:text-lg text-slate-200 leading-relaxed font-normal">
+                  Wisdom Academy es un entorno educativo digital diseñado para organizar experiencias académicas, acompañar el proceso de aprendizaje y facilitar el desarrollo del pensamiento crítico, la autonomía y el dominio progresivo de los conocimientos.
+                </p>
+                <p className="max-w-3xl text-xs sm:text-sm text-slate-400 leading-relaxed">
+                  Un espacio para aprender, practicar y avanzar con claridad, mediante herramientas educativas que conectan los contenidos, las actividades y el progreso académico.
+                </p>
+              </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
                 <button
@@ -252,7 +259,7 @@ export const LandingView: React.FC = () => {
                   className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 px-6 py-3.5 text-sm font-extrabold text-slate-950 shadow-xl shadow-amber-950/50 transition-all hover:scale-[1.02]"
                 >
                   <ShieldCheck className="w-4.5 h-4.5" />
-                  <span>Ingresar a la Plataforma (Portal Roles)</span>
+                  <span>Explorar mis cursos / Acceso</span>
                 </button>
 
                 <button
@@ -396,7 +403,7 @@ export const LandingView: React.FC = () => {
             Interacción Socrática en Tiempo Real
           </h2>
           <p className="text-sm text-slate-300">
-            Los profesores virtuales de la Plataforma Educativa ALSIZ utilizan el Método Socrático para formular preguntas guiadas y pistas progresivas en lugar de regalar respuestas mecánicas.
+            Los profesores virtuales de Wisdom Academy utilizan el Método Socrático para formular preguntas guiadas y pistas progresivas en lugar de regalar respuestas mecánicas.
           </p>
         </div>
 
@@ -405,9 +412,9 @@ export const LandingView: React.FC = () => {
 
       <section className="space-y-6">
         <div className="text-center max-w-2xl mx-auto space-y-2">
-          <h2 className="text-2xl font-extrabold text-white tracking-tight">Pilares de la Plataforma Educativa ALSIZ • Ekballo Church</h2>
+          <h2 className="text-2xl font-extrabold text-white tracking-tight">Pilares de Wisdom Academy</h2>
           <p className="text-sm text-slate-400">
-            Un ecosistema integral diseñado para cultivar el pensamiento autónomo, la cosmovisión bíblica, la disciplina de estudio y el amor por el aprendizaje.
+            Un ecosistema integral diseñado para cultivar el pensamiento autónomo, el rigor conceptual, la disciplina de estudio y el amor por el aprendizaje.
           </p>
         </div>
 

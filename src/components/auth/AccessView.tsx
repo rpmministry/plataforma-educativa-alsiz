@@ -97,12 +97,12 @@ export const AccessView: React.FC = () => {
       {/* Tarjeta Central de Identidad Institucional */}
       <div className="text-center space-y-3">
         <div className="flex justify-center">
-          <div className="p-3 rounded-2xl bg-[#121820] border border-[#283545] shadow-xl">
+          <div className="p-3 rounded-2xl bg-[#18181B] border border-[#27272A] shadow-xl">
             <SchoolLogo size="lg" variant="monogram" />
           </div>
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-          Ingreso a la Plataforma ALSIZ
+          Ingreso a Wisdom Academy
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto">
           Selecciona tu perfil educativo para ingresar a tu espacio adaptativo de estudio, supervisión o gestión.

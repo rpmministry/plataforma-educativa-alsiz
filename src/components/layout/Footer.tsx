@@ -14,12 +14,12 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           {/* Marca */}
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-slate-900/90 border border-amber-500/40 p-1.5 flex items-center justify-center shadow-lg shadow-black/30">
-              <SchoolLogo size="sm" className="w-full h-full object-contain" />
+            <div className="w-11 h-11 rounded-2xl bg-[#18181B] border border-[#27272A] p-1.5 flex items-center justify-center shadow-lg shadow-black/30">
+              <SchoolLogo size="sm" variant="monogram" className="w-full h-full object-contain" />
             </div>
             <div>
-              <span className="block font-extrabold text-base tracking-tight text-white">ALSIZ • EKBALLO CHURCH</span>
-              <span className="block text-xs text-amber-300/80">Plataforma de Apoyo Pedagógico &amp; Tutoría Socrática</span>
+              <span className="block font-extrabold text-base tracking-tight text-white">WISDOM ACADEMY</span>
+              <span className="block text-xs text-amber-300/80">Entorno Digital de Aprendizaje &amp; Tutoría Socrática</span>
             </div>
           </div>
 
@@ -57,12 +57,12 @@ export const Footer: React.FC = () => {
             <span>Naturaleza y Alcance del Servicio Educativo</span>
           </div>
           <p className="leading-relaxed">
-            La <strong>Plataforma Educativa ALSIZ</strong> es un entorno digital de apoyo pedagógico, tutoría socrática inteligente y discipulado cristiano para familias en educación en casa (Homeschooling). Este servicio complementario no constituye por sí mismo un establecimiento educativo escolarizado presencial con código AMIE ni emite títulos oficiales de bachiller de forma directa. La convalidación y registro de estudios ante el Ministerio de Educación de Ecuador corresponde a los representantes legales conforme a la normativa vigente de educación en casa.
+            <strong>Wisdom Academy</strong> es un entorno digital de apoyo pedagógico, tutoría socrática inteligente y formación académica para familias en educación en casa (Homeschooling). Este servicio complementario no constituye por sí mismo un establecimiento educativo escolarizado presencial con código AMIE ni emite títulos oficiales de bachiller de forma directa. La convalidación y registro de estudios ante el Ministerio de Educación de Ecuador corresponde a los representantes legales conforme a la normativa vigente de educación en casa.
           </p>
         </div>
 
         <div className="pt-4 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500">
-          <span>Copyright © 2026 Plataforma Educativa ALSIZ • Ekballo Church / RPM Ministry</span>
+          <span>Copyright © 2026 Wisdom Academy</span>
           <span className="font-mono">Año Lectivo 2026 - 2027</span>
         </div>
       </div>
