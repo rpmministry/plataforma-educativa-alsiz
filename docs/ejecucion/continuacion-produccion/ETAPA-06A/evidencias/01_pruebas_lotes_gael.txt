@@ -1,0 +1,52 @@
+Fecha y hora de validación: 2026-10-17T15:43:11.584Z
+Total de lotes a validar: 9
+Total de clases consolidables: 25
+
+--- VALIDANDO LOTE-GAEL-01-LEN (Lengua y Literatura - LEN-401) ---
+Sesiones declaradas: 5 | Clases en array: 5
+✅ Lote LOTE-GAEL-01-LEN: APROBADO (0 errores en sus 5 clases).
+
+--- VALIDANDO LOTE-GAEL-02-MAT (Matemáticas - MAT-401) ---
+Sesiones declaradas: 5 | Clases en array: 5
+✅ Lote LOTE-GAEL-02-MAT: APROBADO (0 errores en sus 5 clases).
+
+--- VALIDANDO LOTE-GAEL-03-CNI (Ciencias Naturales - CNI-401) ---
+Sesiones declaradas: 4 | Clases en array: 4
+✅ Lote LOTE-GAEL-03-CNI: APROBADO (0 errores en sus 4 clases).
+
+--- VALIDANDO LOTE-GAEL-04-SOC (Estudios Sociales - SOC-401) ---
+Sesiones declaradas: 3 | Clases en array: 3
+✅ Lote LOTE-GAEL-04-SOC: APROBADO (0 errores en sus 3 clases).
+
+--- VALIDANDO LOTE-GAEL-05-ING (Inglés (EFL) - ING-401) ---
+Sesiones declaradas: 3 | Clases en array: 3
+✅ Lote LOTE-GAEL-05-ING: APROBADO (0 errores en sus 3 clases).
+
+--- VALIDANDO LOTE-GAEL-06-SOFT (Software y Programación - SOFT-401) ---
+Sesiones declaradas: 2 | Clases en array: 2
+✅ Lote LOTE-GAEL-06-SOFT: APROBADO (0 errores en sus 2 clases).
+
+--- VALIDANDO LOTE-GAEL-07-REL (Relación con Dios - REL-401) ---
+Sesiones declaradas: 1 | Clases en array: 1
+✅ Lote LOTE-GAEL-07-REL: APROBADO (0 errores en sus 1 clases).
+
+--- VALIDANDO LOTE-GAEL-08-ART (Educación Cultural y Artística (ECA) - ART-401) ---
+Sesiones declaradas: 1 | Clases en array: 1
+✅ Lote LOTE-GAEL-08-ART: APROBADO (0 errores en sus 1 clases).
+
+--- VALIDANDO LOTE-GAEL-09-EFI (Educación Física - EFI-401) ---
+Sesiones declaradas: 1 | Clases en array: 1
+✅ Lote LOTE-GAEL-09-EFI: APROBADO (0 errores en sus 1 clases).
+
+==============================================================================
+RESUMEN GLOBAL DE LA VALIDACIÓN:
+- Lotes analizados: 9 / 9
+- Lotes aprobados: 9 / 9
+- Total clases consolidadas: 25 / 25
+- Total IDs de clases únicos: 25 / 25
+- Total recursos seguros únicos: 50 / 50
+- Total errores detectados: 0
+==============================================================================
+
+Exportando 25 clases consolidadas a: C:\Users\Alsiz\Documents\plataforma educativa ALSIZ\src\data\dailyClassesGael.ts
+✅ Archivo src/data/dailyClassesGael.ts actualizado con éxito (219124 bytes).

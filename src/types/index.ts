@@ -105,7 +105,7 @@ export interface ClassResource {
   order: number;
 }
 
-export type ClassActivityType = 'reflection' | 'practice' | 'quiz' | 'project' | 'experiment' | 'observation' | 'research' | 'writing' | 'analysis' | 'speaking' | 'debugging';
+export type ClassActivityType = 'reflection' | 'practice' | 'quiz' | 'project' | 'experiment' | 'observation' | 'research' | 'writing' | 'analysis' | 'speaking' | 'listening' | 'debugging';
 
 export interface ClassActivity {
   id: string;
@@ -147,6 +147,22 @@ export interface DailyClass {
   socraticPauses?: SocraticPause[];
   /** Evidence criteria aligned with each learning-path stage */
   evidenceCriteria?: EvidenceCriterion[];
+  /** Enriched pedagogical and official curriculum fields (Etapa 06A) */
+  gradeLevel?: string;
+  competencyDcd?: string;
+  officialSource?: string;
+  learningPurpose?: string;
+  pedagogicalExplanation?: string;
+  vocabulary?: { term: string; definition: string; childFriendlyExample: string }[];
+  contextualizedExample?: string;
+  practicalActivity?: { title: string; instructions: string[]; materials: string[] };
+  applicationActivity?: { title: string; task: string; deliverable: string };
+  formativeEvaluation?: { description: string; expectedEvidence: string };
+  evaluationRubric?: { criterion: string; indicators: { level: string; descriptor: string }[] };
+  expectedFeedback?: string;
+  difficultyAdaptation?: string;
+  advancedExtension?: string;
+  batchInfo?: { batchId: string; subjectCode: string; unitNumber: number; sessionNumber: number };
 }
 
 /** Progressive path stage: concept → deepen → apply → create */

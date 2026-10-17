@@ -15,5 +15,5 @@ api-server.js.map
 *.db-journal
 *.db-wal
 *.db-shm
-data/
+/data/
 backups/
