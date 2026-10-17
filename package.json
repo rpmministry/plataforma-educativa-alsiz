@@ -18,6 +18,7 @@
     "test:etapa08": "tsx scripts/test-etapa-08.ts",
     "test:etapa09": "tsx scripts/test-etapa-09.ts",
     "test:etapa10": "tsx scripts/test-etapa-10.ts",
+    "test:etapa10-acceptance": "tsx scripts/test-etapa-10-acceptance.ts",
     "test:etapa11": "tsx scripts/test-etapa-11.ts",
     "test:etapa12": "tsx scripts/test-etapa-12.ts",
     "test:etapa13": "tsx scripts/test-etapa-13.ts",
