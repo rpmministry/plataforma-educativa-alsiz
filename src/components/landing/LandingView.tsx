@@ -317,7 +317,7 @@ export const LandingView: React.FC = () => {
               Explora el Modo Demo
             </h2>
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              Prueba la experiencia interactiva de Wisdom School con dos perfiles de muestra. Interactúa con el
+              Prueba la experiencia interactiva de Wisdom Academy con dos perfiles de muestra. Interactúa con el
               profesor IA, escucha la voz guía y recorre una clase completa antes de registrarte.
             </p>
           </div>
@@ -326,19 +326,19 @@ export const LandingView: React.FC = () => {
             {([
               {
                 id: 'karen' as const,
-                world: '🐶 Mundo Snoopy',
-                blurb: 'Álgebra, literatura y pensamiento crítico de 8.º EGB.',
-                cardClass: 'from-amber-950/50 via-slate-900 to-amber-900/20 border-amber-500/40 hover:border-amber-400/70',
-                badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-                buttonClass: 'bg-amber-500 hover:bg-amber-400 text-slate-950',
+                world: 'Básica Superior • 8.º EGB',
+                blurb: 'Álgebra, literatura viva y pensamiento socrático riguroso.',
+                cardClass: 'from-[#18181B] via-[#121215] to-[#0D0D10] border-[#27272A] hover:border-amber-500/50',
+                badgeClass: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
+                buttonClass: 'bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold',
               },
               {
                 id: 'mauricio' as const,
-                world: '🍄 Mundo Mario',
-                blurb: 'Cuentos, matemáticas lúdicas y ciencia para 4.º EGB.',
-                cardClass: 'from-red-950/50 via-slate-900 to-red-900/20 border-red-500/40 hover:border-red-400/70',
-                badgeClass: 'bg-red-500/20 text-red-300 border-red-500/40',
-                buttonClass: 'bg-red-600 hover:bg-red-500 text-white',
+                world: 'Básica Media • 4.º EGB',
+                blurb: 'Fundamentos de aritmética, ciencias vivas y narración estructurada.',
+                cardClass: 'from-[#18181B] via-[#121215] to-[#0D0D10] border-[#27272A] hover:border-indigo-500/50',
+                badgeClass: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30',
+                buttonClass: 'bg-indigo-600 hover:bg-indigo-500 text-white font-bold',
               },
             ]).map((profile) => {
               const student = studentsList.find((s) => s.id === profile.id);

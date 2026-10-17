@@ -24,19 +24,7 @@ interface ClassTeacherChatProps {
 
 const getStudentTheme = (student: any) => {
   const base = student?.colorTheme || { accent: '#6366f1', primary: 'indigo', secondary: 'violet', gradient: 'from-indigo-600 via-violet-600 to-purple-600' };
-  if (student?.id === 'avril' || student?.id === 'karen') return { ...base, accent: '#7c9cff', chip: '#fff8d6', textStrong: '#1f2937', label: 'Peanuts' };
-  if (student?.id === 'gael' || student?.id === 'mauricio') return { ...base, accent: '#e11d48', chip: '#fef3c7', textStrong: '#111827', label: 'Super Mario Bros' };
-  return { ...base, chip: '#1f2937', textStrong: '#f8fafc', label: 'Original' };
-};
-
-const getWorldDecoration = (themeLabel: string) => {
-  if (themeLabel === 'Peanuts') {
-    return { badge: '🐶 Sala Snoopy & Peanuts', img: '/Snoopy.png', imgAlt: 'Snoopy', quote: '“Education is a wonderful thing… especially with Woodstock around.”' };
-  }
-  if (themeLabel === 'Super Mario Bros') {
-    return { badge: '🍄 Sala Super Mario', img: '/mario-3d.png', imgAlt: 'Mario', quote: '“¡Let\'s-a go! Hoy a cargar el poder del aprendizaje.”' };
-  }
-  return null;
+  return { ...base, chip: '#1f2937', textStrong: '#f8fafc', label: 'Wisdom Academy' };
 };
 
 export const ClassTeacherChat: React.FC<ClassTeacherChatProps> = ({ className = '', compact = false, nextStep }) => {
@@ -56,7 +44,6 @@ export const ClassTeacherChat: React.FC<ClassTeacherChatProps> = ({ className = 
   const dailyClass = activeClass || todayClasses[0];
   const teacher = subject?.teacher;
   const studentTheme = getStudentTheme(currentStudent);
-  const world = getWorldDecoration(studentTheme.label);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -181,9 +168,9 @@ export const ClassTeacherChat: React.FC<ClassTeacherChatProps> = ({ className = 
             <GraduationCap className="w-4 h-4" style={{ color: studentTheme.accent }} />
             <h1 className="text-sm sm:text-base font-black uppercase tracking-widest text-white">Clase Interactiva</h1>
           </div>
-          {world && (
-            <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-950/70 border border-slate-700 text-slate-200 shrink-0">{world.badge}</span>
-          )}
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide bg-slate-950/70 border border-slate-700 text-slate-300 shrink-0">
+            Tutoría Académica Socrática
+          </span>
         </div>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-center gap-3.5">
@@ -201,9 +188,6 @@ export const ClassTeacherChat: React.FC<ClassTeacherChatProps> = ({ className = 
               </p>
             </div>
           </div>
-          {world && (
-            <img src={world.img} alt={world.imgAlt} className="w-11 h-11 sm:w-14 sm:h-14 object-contain drop-shadow-lg shrink-0" title={world.badge} />
-          )}
         </div>
 
         {/* CONTEXTO DE LA SESIÓN: MATERIA / UNIDAD / TEMA / OBJETIVO */}
@@ -396,7 +380,7 @@ export const ClassTeacherChat: React.FC<ClassTeacherChatProps> = ({ className = 
           <input id={`input-teacher-chat-${compact ? 'compact' : 'full'}`} type="text" enterKeyHint="send" autoCapitalize="sentences" autoComplete="off" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={`Escribe tu respuesta para ${teacher?.name}...`} className="flex-1 min-w-0 rounded-xl px-4 py-3.5 text-base bg-slate-800 text-white focus:outline-none border-2 border-slate-700 transition-all font-medium shadow-inner" style={{ caretColor: studentTheme.accent }} />
           <button type="submit" disabled={!inputValue.trim() || isLoading} aria-label="Enviar mensaje" className="p-3.5 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl text-white hover:brightness-110 disabled:opacity-50 transition-all shadow-lg active:scale-95 shrink-0" style={{ background: studentTheme.accent, boxShadow: `0 6px 20px ${studentTheme.accent}55` }}><Send className="w-5 h-5" /></button>
         </form>
-        {world && <p className="text-[9px] text-slate-600 italic mt-2 text-center">{world.quote}</p>}
+        <p className="text-[10px] text-slate-500 italic mt-2 text-center">Tutoría interactiva socrática de Wisdom Academy</p>
       </div>
     </div>
   );

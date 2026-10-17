@@ -147,7 +147,7 @@ export const AccessView: React.FC = () => {
                 <span>Acceso de Estudiantes Titulares</span>
               </h2>
               <p className="text-xs text-slate-400">
-                Selecciona tu perfil de estudio para entrar directamente con tu tema asignado (Snoopy / Mario).
+                Selecciona tu perfil de estudio para ingresar a tus cursos, horario y clases interactivas.
               </p>
             </div>
 
