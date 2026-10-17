@@ -71,3 +71,4 @@ pie title Resultado de las Verificaciones Automatizadas (12 Reglas)
   Process exited with code 1.
   ```
 - **Conclusión de la Prueba**: El validador cumple de forma reproducible con la exigencia de bloquear cualquier pipeline CI/CD o proceso de generación masiva mientras existan vacíos de planificación o recursos no verificados.
+

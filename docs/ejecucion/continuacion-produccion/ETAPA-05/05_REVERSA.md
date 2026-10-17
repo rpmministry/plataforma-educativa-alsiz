@@ -88,3 +88,4 @@ Dado que durante toda la Etapa 05 rigió la prohibición de ejecutar migraciones
 - La base de datos SQLite / Turso permanece en su estado exacto de la Etapa 04.
 - Las cuentas de los estudiantes, representantes legales y credenciales no sufrieron ninguna mutación.
 - Los respaldos generados en la Etapa 04 (`backups/`) permanecen intactos y validados con sus respectivos checksums SHA-256.
+

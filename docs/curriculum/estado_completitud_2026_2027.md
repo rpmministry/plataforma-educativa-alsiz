@@ -208,3 +208,4 @@ Para garantizar que esta matriz sea un mecanismo de control vivo y reproducible,
 - **Script**: `scripts/test-curriculum-completeness.ts`
 - **Comando de Ejecución**: `npx tsx scripts/test-curriculum-completeness.ts`
 - **Condición de Salida**: La prueba verifica las 5 dimensiones clave (cobertura, unicidad, fechas, recursos y competencias) y **falla de manera estricta** mientras existan sesiones incompletas o recursos no validados, protegiendo al sistema de despliegues prematuros.
+

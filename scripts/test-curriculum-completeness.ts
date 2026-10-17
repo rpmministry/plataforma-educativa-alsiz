@@ -366,3 +366,4 @@ runValidator().then(({ failedChecks }) => {
     process.exit(0);
   }
 });
+

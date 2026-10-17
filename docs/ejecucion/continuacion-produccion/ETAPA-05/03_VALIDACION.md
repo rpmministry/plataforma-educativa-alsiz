@@ -58,3 +58,4 @@ graph TD
 
 4. **Estado de Aceptación**:
    La etapa cumple cabalmente con su objetivo de auditoría y delimitación. Se declara **APROBADA PARA REVISIÓN HUMANA**.
+

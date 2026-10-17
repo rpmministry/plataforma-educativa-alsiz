@@ -100,3 +100,4 @@ classDiagram
   - `evidencias/01_auditoria_completa_output.txt`
   - `evidencias/02_validador_curriculo_output.txt`
   - `evidencias/03_recursos_clasificacion_audit.txt`
+

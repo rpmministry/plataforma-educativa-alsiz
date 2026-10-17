@@ -43,3 +43,4 @@ console.log('Total micro resources:', totalMicroResources);
 console.log('Platforms:', platforms);
 console.log('Top Domains:', domains);
 console.log(`YouTube: ${youtubeCount}, PhET: ${phetCount}, GeoGebra: ${geogebraCount}, Scratch: ${scratchCount}, Other: ${otherCount}`);
+

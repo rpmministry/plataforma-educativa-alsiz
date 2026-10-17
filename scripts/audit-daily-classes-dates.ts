@@ -10,3 +10,4 @@ console.log('\n=== GAEL DAILY CLASSES DATES & SUBJECTS ===');
 GAEL_DAILY_CLASSES.forEach((c, idx) => {
   console.log(`${idx + 1}. [${c.id}] Date: ${c.date}, Day: ${c.dayOfWeek}, Subject: ${c.subjectId}, Unit: ${c.unit}, Theme: ${c.theme}`);
 });
+

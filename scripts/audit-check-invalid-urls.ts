@@ -15,3 +15,4 @@ const check = (student: string, subjects: any[]) => {
 
 check('avril', AVRIL_SUBJECTS);
 check('gael', GAEL_SUBJECTS);
+

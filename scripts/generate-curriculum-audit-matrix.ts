@@ -287,3 +287,4 @@ const csvContent = [csvHeader, ...csvRows].join('\n');
 const csvPath = path.resolve(process.cwd(), 'docs', 'curriculum', 'matriz_seguimiento_curriculo_2026_2027.csv');
 fs.writeFileSync(csvPath, csvContent, 'utf-8');
 console.log(`Saved CSV to: ${csvPath}`);
+

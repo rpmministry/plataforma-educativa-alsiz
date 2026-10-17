@@ -57,3 +57,4 @@ flowchart TD
 
 ### Tarea 6: Validador Automatizado de Brechas
 - Desarrollar `scripts/test-curriculum-completeness.ts` para verificar cobertura, unicidad, fechas, recursos y competencias, asegurando que la prueba falle de forma estricta ante inconsistencias no resueltas.
+

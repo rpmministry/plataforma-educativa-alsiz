@@ -73,3 +73,4 @@ quadrantChart
 | **R-04** | **Vacío Curricular en 4.° EGB**: Gael carece de unidades para Trimestres 2 y 3 en la mayoría de sus materias. | **CRÍTICO** | Mapeo detallado de las 18 unidades faltantes en el CSV y priorización en el Lote 2 de producción macrocurricular. | **EN CURSO** |
 | **R-05** | **Ambigüedad Normativa**: Confusión entre modelo homeschool y plantel educativo formal. | **ALTO** | Informe jurídico y recomendaciones explícitas de calendario registradas en `estado_completitud_2026_2027.md` para el asesor legal. | **MITIGADO** |
 | **R-06** | **Colisión de Claves Primarias**: 3 pares de clases con ID idéntico (`class-mat-avril-02`, etc.). | **ALTO** | Detección automatizada en suite de pruebas; diseño de mapeo de desambiguación (`-dup2` $\to$ claves únicas) en el Lote 1. | **IDENTIFICADO** |
+

@@ -51,3 +51,4 @@ const countSlots = (slots: any[]) => {
 
 console.log('Avril weekly slot counts:', countSlots(AVRIL_SCHEDULE_SLOTS));
 console.log('Gael weekly slot counts:', countSlots(GAEL_SCHEDULE_SLOTS));
+

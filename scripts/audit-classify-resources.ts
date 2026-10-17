@@ -42,3 +42,4 @@ allClasses.forEach(c => {
     console.log(`"${c.id}","${c._student}","${r.id}","${r.title.replace(/"/g, '""')}","${r.type}","${r.url}","${decision}","${reason.replace(/"/g, '""')}"`);
   });
 });
+
