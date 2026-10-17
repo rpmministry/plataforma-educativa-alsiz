@@ -1,0 +1,30 @@
+# Matriz de Validación y Criterios de Aceptación — Etapa 07: Catálogo Completo de Profesores IA por Asignatura y Nivel
+
+**Fecha de Evaluación:** 17 de octubre de 2026  
+**Veredicto de Cumplimiento:** 100% CUMPLIDO (9/9 Requisitos Satisfechos con Evidencia Reproducible)
+
+---
+
+## 1. Tabla de Validación Frente a Requisitos del Prompt
+
+| # | Requisito Formal del Prompt | Implementación Realizada | Estado | Evidencia / Ubicación |
+| :-: | :--- | :--- | :---: | :--- |
+| **1** | Matriz `docs/ai-agents/matriz_cobertura_agentes.md` con materias activas de Gael y Avril, nivel, código, profesor asignado, versión de matriz, fuentes aprobadas y estado de pruebas. | Construida matriz integral cubriendo las 9 materias de Gael (4.º EGB) y 11 de Avril (8.º EGB), detallando códigos, estrategias didácticas y estado certificado. | **CUMPLIDO** | [`docs/ai-agents/matriz_cobertura_agentes.md`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ai-agents/matriz_cobertura_agentes.md) |
+| **2** | Agentes especializados por asignatura y nivel; reutilizar motor común pero no un prompt genérico indistinto. | Creados 20 agentes especializados con prompts adaptados a la edad y naturaleza disciplinar: CPA en matemáticas de 4.º, álgebra en 8.º, fonética TPR en inglés básico, debate CLIL en avanzado, etc. | **CUMPLIDO** | [`server/db/migrations/013_ai_agents_complete_catalog.sql`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/server/db/migrations/013_ai_agents_complete_catalog.sql) |
+| **3** | Roles transversales: coordinador académico, tutor socrático, evaluador por rúbricas, curador de conocimiento y supervisor de seguridad. Permisos, entradas, salidas y límites; sin permisos de modificar notas oficiales. | Definidos los 5 roles transversales institucionales. Verificada la prohibición de mutabilidad en `student_subject_enrollments` e historial de notas. | **CUMPLIDO** | [`docs/ai-agents/matriz_cobertura_agentes.md#3-roles-transversales-y-gobernanza-institucional`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ai-agents/matriz_cobertura_agentes.md) |
+| **4** | Generar una matriz temática por profesor con competencias, secuencia, prerrequisitos, vocabulario, errores frecuentes, explicaciones graduadas, actividades, respuestas de referencia, rúbricas, fuentes y límites de seguridad. | Redactadas y versionadas 20 matrices temáticas (`MT-LEN-401.md` a `MT-EFI-801.md`), cada una con las 11 secciones pedagógicas obligatorias. | **CUMPLIDO** | [`docs/ai-agents/matrices-tematicas/`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ai-agents/matrices-tematicas/) |
+| **5** | Vincular cada agente a fuentes de la materia y nivel correctos mediante el Centro de Conocimiento. Por defecto solo usa fuentes aprobadas para su ámbito. | Creadas 20 fuentes canónicas en `knowledge_sources` (`status = 'APROBADO'`) con 20 `knowledge_chunks` referenciados por códigos JSON en `ai_agents.allowed_source_codes_json`. | **CUMPLIDO** | [`server/db/migrations/013_ai_agents_complete_catalog.sql`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/server/db/migrations/013_ai_agents_complete_catalog.sql) |
+| **6** | Ajustar tabla SQL y migraciones de forma compatible e idempotente. Si `role_type` no contempla un tipo requerido, crear migración nueva; no editar migración ya aplicada. | Migraciones 001 a 012 preservadas intactas. Creada nueva migración `013_ai_agents_complete_catalog.sql` que actualiza la restricción `CHECK` mediante recreación de tabla idempotente. | **CUMPLIDO** | [`server/db/migrations/013_ai_agents_complete_catalog.sql`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/server/db/migrations/013_ai_agents_complete_catalog.sql) |
+| **7** | Crear un validador que compare catálogo curricular, matrícula, agentes activos y fuentes: la prueba falla si una materia de un estudiante no tiene agente especializado o fuentes mínimas. | Implementado script validador estricto `validate-ai-catalog.ts` que audita asignaturas, agentes, matrices en disco y fragmentos RAG, arrojando 100% de cobertura. | **CUMPLIDO** | [`scripts/validate-ai-catalog.ts`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/scripts/validate-ai-catalog.ts) |
+| **8** | Probar por cada agente: explicación por grado, respuesta bilingüe, pregunta socrática, ejercicio nuevo, citas RAG, abstención honesta, resistencia a prompt injection, privacidad LOPDP y derivación responsable. | Suite automatizada `test-ai-agents-catalog.ts` evalúa exhaustivamente las 9 dimensiones sobre los 25 agentes (20 especializados + 5 transversales), aprobando todas las aserciones. | **CUMPLIDO** | [`scripts/test-ai-agents-catalog.ts`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/scripts/test-ai-agents-catalog.ts) |
+| **9** | No declarar agentes activos hasta probar cada asignación de la matriz. Los no probados deben indicar `PENDIENTE`, no `ACTIVO`. | Los agentes permanecieron en `PENDIENTE` hasta la ejecución exitosa de la batería completa de 19 pruebas (100% aprobadas). Se actualizó a `ACTIVO (Certificado en 9 Dimensiones)` únicamente con base en evidencia reproducible. | **CUMPLIDO** | [`docs/ai-agents/matriz_cobertura_agentes.md`](file:///c:/Users/Alsiz/Documents/plataforma%20educativa%20ALSIZ/docs/ai-agents/matriz_cobertura_agentes.md) |
+
+---
+
+## 2. Dictamen del Criterio de Aceptación Global
+
+> **Criterio de Aceptación:** "Todas las materias asignadas a los dos estudiantes cuentan con profesor IA apropiado, matrices versionadas, fuentes aprobadas, permisos mínimos y pruebas identificables."
+
+**Dictamen Técnico:** **APROBADO SATISFACTORIAMENTE**.  
+Existe trazabilidad completa entre las 20 asignaturas reales de Gael y Avril, sus 20 profesores especializados, 20 matrices temáticas versionadas en Markdown, 20 fuentes canónicas autorizadas en base de datos, 20 fragmentos de citación formal, 5 agentes transversales con gobernanza restringida y una suite de 19 pruebas locales y estáticas ejecutadas y superadas al 100%.
+

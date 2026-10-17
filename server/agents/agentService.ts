@@ -39,6 +39,35 @@ export class AgentService {
   }
 
   /**
+   * Obtiene el agente asignado a una asignatura por ID de asignatura, o por código de asignatura y nivel
+   */
+  public static getAgentForSubject(subjectIdOrCode: string, levelId?: string): AIAgent | null {
+    const db = getDb();
+    // 1. Búsqueda directa por subject_id en ai_agents
+    let row = db.prepare('SELECT * FROM ai_agents WHERE subject_id = ? AND is_active = 1').get(subjectIdOrCode) as unknown as AIAgent | undefined;
+    if (row) return row;
+
+    // 2. Buscar por coincidencia con la tabla subjects
+    const subj = db.prepare('SELECT id, code, level_id FROM subjects WHERE id = ? OR code = ?').get(subjectIdOrCode, subjectIdOrCode) as any;
+    if (subj) {
+      row = db.prepare('SELECT * FROM ai_agents WHERE subject_id = ? AND is_active = 1').get(subj.id) as unknown as AIAgent | undefined;
+      if (row) return row;
+
+      const targetLevel = levelId || subj.level_id;
+      if (targetLevel) {
+        row = db.prepare(`
+          SELECT a.* FROM ai_agents a
+          JOIN subjects s ON a.subject_id = s.id
+          WHERE s.code = ? AND a.level_id = ? AND a.is_active = 1
+        `).get(subj.code, targetLevel) as unknown as AIAgent | undefined;
+        if (row) return row;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Actualiza la configuración de un agente (Admin / Coordinador)
    */
   public static updateAgent(

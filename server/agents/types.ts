@@ -10,7 +10,10 @@ export type AgentRoleType =
   | 'DOCTRINAL_MENTOR'
   | 'ESSAY_EVALUATOR'
   | 'LESSON_PLANNER'
-  | 'COORDINATOR';
+  | 'COORDINATOR'
+  | 'KNOWLEDGE_CURATOR'
+  | 'SAFETY_SUPERVISOR'
+  | 'SUBJECT_SPECIALIST';
 
 export interface AIAgent {
   id: string;

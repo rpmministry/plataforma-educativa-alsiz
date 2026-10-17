@@ -31,7 +31,10 @@ async function runControlledGeminiTest() {
       contents: syntheticPrompt,
       config: {
         temperature: 0.2,
-        maxOutputTokens: 150,
+        maxOutputTokens: 600,
+        thinkingConfig: {
+          thinkingBudget: 0,
+        },
       },
     });
     const latencyMs = Date.now() - start;
