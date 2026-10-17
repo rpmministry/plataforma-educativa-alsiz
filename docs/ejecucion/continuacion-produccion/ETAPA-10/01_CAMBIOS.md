@@ -63,3 +63,4 @@ En la Etapa 10 se diseñó y ejecutó el marco técnico y la suite determinista 
 - **Modificación de archivos `.env` o credenciales:** 0. No se modificaron ni expusieron variables de entorno locales ni secretas.
 - **Acceso a cuentas reales:** 0. Las cuentas reales de Gael y Avril se mantuvieron estrictamente fuera de las pruebas de staging.
 - **Exposición de secretos en Git:** 0. Todos los artefactos de salida en `dist/` y los logs de evidencia fueron escaneados y sanitizados.
+

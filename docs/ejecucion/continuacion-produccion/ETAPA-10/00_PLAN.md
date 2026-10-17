@@ -87,3 +87,4 @@ El objetivo central de la Etapa 10 es preparar y verificar el despliegue del pil
 10. **Matriz de Cierre y Dictamen de Bloqueo Controlado:**
     - Generar suite automatizada reproducible: `scripts/test-etapa-10-acceptance.ts`.
     - Documentar el checklist exacto para el operador humano.
+

@@ -40,3 +40,4 @@
 | **R3: Interrupción de clases por agotamiento de cuota en Google AI Studio (Free Tier)** | **Media** | Alta | La cascada automática (`GEMINI -> DEEPSEEK -> OPENROUTER -> SIMULATED_LOCAL`) demostró funcionar con éxito en la prueba real de la Etapa 10, conmutando a DeepSeek de forma transparente. |
 | **R4: Exposición de `SESSION_SECRET` o claves API en Git** | **Crítica** | Muy Baja | Se ejecutó `npm run test:security-scan` y `npm run test:security-p0`. Se auditaron 44 archivos en `dist/` certificando cero claves expuestas. |
 | **R5: Acceso prematuro de menores de edad antes de la homologación técnica** | **Crítica** | Baja | La etapa finaliza en estado de bloqueo controlado. Se mantiene la prohibición estricta de invitar o enrolar las cuentas reales de Gael y Avril hasta superar todas las fases de auditoría. |
+

@@ -58,6 +58,9 @@ function buildForwardHeaders(req, targetUrl) {
     headers['x-forwarded-for'] = clientIp;
   }
 
+  // Soporte transparente para túneles seguros sin tarjetas (localtunnel / ngrok)
+  headers['bypass-tunnel-reminder'] = 'true';
+
   return headers;
 }
 

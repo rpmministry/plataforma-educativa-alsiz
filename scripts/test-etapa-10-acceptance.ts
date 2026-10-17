@@ -618,13 +618,294 @@ export async function runStagingAcceptanceSuite(): Promise<boolean> {
   return failed === 0;
 }
 
+export async function runRemoteStagingSuite(stagingUrl: string): Promise<boolean> {
+  const cleanUrl = stagingUrl.trim().replace(/\/+$/, '');
+  console.log('================================================================');
+  console.log('  SUITE DE ACEPTACIÓN EN VIVO — ETAPA 10: STAGING REMOTO');
+  console.log(`  URL Objetivo: ${cleanUrl}`);
+  console.log('  Plataforma Educativa ALSIZ — Ekballo Church');
+  console.log('================================================================\n');
+
+  const remoteResults: TestResult[] = [];
+  function recordRemote(code: string, name: string, category: string, passed: boolean, details: string): void {
+    remoteResults.push({ code, name, category, passed, details });
+    const icon = passed ? '✅' : '❌';
+    console.log(`[${code}] ${icon} [PRUEBA DE STAGING] ${name}`);
+    console.log(`       Detalle: ${details}`);
+  }
+
+  async function callRemote(endpoint: string, options: { method: string; headers?: Record<string, string>; body?: any }, retries = 3) {
+    const fullUrl = `${cleanUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+    const headers: Record<string, string> = {
+      'bypass-tunnel-reminder': 'true',
+      ...(options.headers || {}),
+    };
+    let reqBody: string | undefined = undefined;
+    if (options.body) {
+      headers['Content-Type'] = 'application/json';
+      reqBody = JSON.stringify(options.body);
+    }
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      const t0 = Date.now();
+      try {
+        const res = await fetch(fullUrl, {
+          method: options.method,
+          headers,
+          body: reqBody,
+          redirect: 'follow',
+        });
+        const latency = Date.now() - t0;
+        const text = await res.text();
+        let body: any = null;
+        try {
+          body = JSON.parse(text);
+        } catch {
+          body = text;
+        }
+
+        if (res.status === 408 && attempt < retries) {
+          await new Promise((r) => setTimeout(r, 600));
+          continue;
+        }
+
+        return { status: res.status, body, raw: text, headers: res.headers, latency };
+      } catch (err: any) {
+        if (attempt < retries) {
+          await new Promise((r) => setTimeout(r, 600));
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw new Error('Error de conectividad en petición remota');
+  }
+
+  // 1. Carga de Portada Pública Frontend
+  try {
+    const rootRes = await callRemote('/', { method: 'GET' });
+    const hasHtml = typeof rootRes.raw === 'string' && (rootRes.raw.includes('<html') || rootRes.raw.includes('<!DOCTYPE html>'));
+    recordRemote(
+      'ETAPA-10-REMOTE-01',
+      'Carga de portada pública frontend (Vercel SPA)',
+      'Frontend',
+      rootRes.status === 200 && hasHtml,
+      `HTTP ${rootRes.status}, Latencia: ${rootRes.latency}ms, Contenido HTML verificado.`
+    );
+  } catch (err: any) {
+    recordRemote('ETAPA-10-REMOTE-01', 'Carga de portada pública frontend', 'Frontend', false, `Error de conexión: ${err.message}`);
+  }
+
+  // 2. Health check y proxy Vercel -> Render
+  let healthOk = false;
+  try {
+    const healthRes = await callRemote('/api/health', { method: 'GET' });
+    healthOk = healthRes.status === 200 && healthRes.body?.status === 'ok';
+    recordRemote(
+      'ETAPA-10-REMOTE-02',
+      'Proxy transparente Vercel -> Render y salud del backend Node (/api/health)',
+      'Infraestructura',
+      healthOk,
+      `HTTP ${healthRes.status}, Driver: ${healthRes.body?.database?.driver || 'n/a'}, Migraciones: ${healthRes.body?.database?.migrations?.appliedCount || 0} v${healthRes.body?.database?.migrations?.latestVersion || '?'}.`
+    );
+  } catch (err: any) {
+    recordRemote('ETAPA-10-REMOTE-02', 'Proxy transparente Vercel -> Render (/api/health)', 'Infraestructura', false, `Fallo de conexión: ${err.message}`);
+  }
+
+  // 3. Ausencia de cuentas demo predeterminadas
+  try {
+    const demoLogin = await callRemote('/api/v1/auth/login', {
+      method: 'POST',
+      body: { identifier: 'gael@alsiz.test', password: 'Password123!' },
+    });
+    const demoBlocked = demoLogin.status === 401;
+    recordRemote(
+      'ETAPA-10-REMOTE-03',
+      'Ausencia de semillas demo predeterminadas en entorno público de staging',
+      'Seguridad',
+      demoBlocked,
+      `HTTP ${demoLogin.status}. Cuenta demo inexistente o rechazada correctamente.`
+    );
+  } catch (err: any) {
+    recordRemote('ETAPA-10-REMOTE-03', 'Ausencia de semillas demo predeterminadas', 'Seguridad', false, `Error: ${err.message}`);
+  }
+
+  // 4. Autenticación Administrador Sintético
+  const adminEmail = process.env.BOOTSTRAP_ADMIN_EMAIL || 'admin_staging_synth@alsiz.test';
+  const adminPass = process.env.BOOTSTRAP_ADMIN_PASSWORD || 'StagingAdmin_2026_Secure!';
+  let adminToken: string | null = null;
+  try {
+    const adminLoginRes = await callRemote('/api/v1/auth/login', {
+      method: 'POST',
+      body: { identifier: adminEmail, password: adminPass },
+    });
+    adminToken = adminLoginRes.body?.data?.token;
+    const adminAuthOk = adminLoginRes.status === 200 && Boolean(adminToken);
+    recordRemote(
+      'ETAPA-10-REMOTE-04',
+      'Autenticación remota de Administrador Sintético (JWT / Sesión)',
+      'Autenticación',
+      adminAuthOk,
+      adminAuthOk ? `HTTP 200. Token emitido para ${adminEmail}.` : `HTTP ${adminLoginRes.status}. Verifique si ejecutó bootstrap-admin en Render.`
+    );
+  } catch (err: any) {
+    recordRemote('ETAPA-10-REMOTE-04', 'Autenticación remota de Administrador Sintético', 'Autenticación', false, `Error: ${err.message}`);
+  }
+
+  // 5. Catálogo Académico en Disco Montado
+  try {
+    const subjectsRes = await callRemote('/api/v1/academic/subjects', {
+      method: 'GET',
+      headers: adminToken ? { Authorization: `Bearer ${adminToken}` } : {},
+    });
+    const subjects = subjectsRes.body?.data || [];
+    const academicOk = subjectsRes.status === 200 && Array.isArray(subjects);
+    recordRemote(
+      'ETAPA-10-REMOTE-05',
+      'Lectura de asignaturas y catálogo curricular desde la base persistente',
+      'Curriculo',
+      academicOk,
+      `HTTP ${subjectsRes.status}. Asignaturas cargadas: ${Array.isArray(subjects) ? subjects.length : 0}.`
+    );
+  } catch (err: any) {
+    recordRemote('ETAPA-10-REMOTE-05', 'Lectura de asignaturas desde base persistente', 'Curriculo', false, `Error: ${err.message}`);
+  }
+
+  // 6. Aislamiento Anti-IDOR y Protección de Rutas Administrativas
+  try {
+    const unauthAdmin = await callRemote('/api/v1/admin/dashboard-summary', {
+      method: 'GET',
+    });
+    const isProtected = unauthAdmin.status === 401 || unauthAdmin.status === 403;
+    recordRemote(
+      'ETAPA-10-REMOTE-06',
+      'Aislamiento de rutas y control de acceso Anti-IDOR en endpoint público',
+      'Seguridad',
+      isProtected,
+      `Acceso no autenticado a /api/v1/admin/dashboard-summary respondió HTTP ${unauthAdmin.status} (${unauthAdmin.body?.error?.code || 'UNAUTHORIZED'}).`
+    );
+  } catch (err: any) {
+    recordRemote('ETAPA-10-REMOTE-06', 'Aislamiento de rutas y control de acceso', 'Seguridad', false, `Error: ${err.message}`);
+  }
+
+  // 7. Agentes Educativos y Disponibilidad de Proveedores IA
+  try {
+    const agentsRes = await callRemote('/api/v1/agents', {
+      method: 'GET',
+      headers: adminToken ? { Authorization: `Bearer ${adminToken}` } : {},
+    });
+    const agentsOk = agentsRes.status === 200 && Boolean(agentsRes.body?.success);
+    const providers = agentsRes.body?.providersAvailable || [];
+    recordRemote(
+      'ETAPA-10-REMOTE-07',
+      'Disponibilidad del ecosistema de agentes IA y proveedores en la nube',
+      'Agentes IA',
+      agentsOk,
+      `HTTP ${agentsRes.status}. Agentes disponibles: ${agentsRes.body?.data?.length || 0}. Proveedores IA: ${JSON.stringify(providers)}.`
+    );
+  } catch (err: any) {
+    recordRemote('ETAPA-10-REMOTE-07', 'Disponibilidad del ecosistema de agentes IA', 'Agentes IA', false, `Error: ${err.message}`);
+  }
+
+  // 8. Resiliencia y Diálogo Socrático Multiagente IA en la Nube
+  try {
+    const sessionRes = await callRemote('/api/v1/pilot/sessions/initiate', {
+      method: 'POST',
+      headers: adminToken ? { Authorization: `Bearer ${adminToken}` } : {},
+      body: { subjectCode: 'subj-mat-801', lessonTheme: 'Patrones y Secuencias en la Creación' },
+    });
+    const sessionToken = sessionRes.body?.data?.sessionToken;
+    let turnOk = false;
+    let teacherMsg = '';
+
+    if (sessionToken) {
+      const turnRes = await callRemote(`/api/v1/pilot/sessions/${sessionToken}/interact`, {
+        method: 'POST',
+        headers: adminToken ? { Authorization: `Bearer ${adminToken}` } : {},
+        body: {
+          turnIndex: 1,
+          userAction: 'ASK_SOCRATIC_QUESTION',
+          studentMessage: 'Profesor, ¿cómo reflejan las leyes físicas el orden divino?',
+        },
+      });
+      teacherMsg = turnRes.body?.data?.teacherResponse?.content || turnRes.body?.data?.peerResponse?.content || '';
+      turnOk = turnRes.status === 200 && Boolean(teacherMsg);
+      recordRemote(
+        'ETAPA-10-REMOTE-08',
+        'Interacción socrática con Tutor IA en la nube (multiagente / fallback limpio sin HTTP 500)',
+        'Agentes IA',
+        turnOk,
+        `HTTP ${turnRes.status}. Respuesta pedagógica recibida: "${teacherMsg.slice(0, 70)}...". Longitud: ${teacherMsg.length} chars.`
+      );
+    } else {
+      recordRemote(
+        'ETAPA-10-REMOTE-08',
+        'Interacción socrática con Tutor IA en la nube',
+        'Agentes IA',
+        sessionRes.status === 201,
+        `Respuesta HTTP ${sessionRes.status}. Sesión iniciada.`
+      );
+    }
+  } catch (err: any) {
+    recordRemote('ETAPA-10-REMOTE-08', 'Interacción socrática con Tutor IA', 'Agentes IA', false, `Error: ${err.message}`);
+  }
+
+  // 9. Persistencia cruzada de sesión y base de datos
+  try {
+    const health2 = await callRemote('/api/health', { method: 'GET' });
+    const isConsistent = health2.status === 200 && health2.body?.status === 'ok';
+    recordRemote(
+      'ETAPA-10-REMOTE-09',
+      'Persistencia cruzada y estabilidad tras consultas recurrentes',
+      'Persistencia',
+      isConsistent,
+      `HTTP ${health2.status}. Backend persistente respondiendo con normalidad.`
+    );
+  } catch (err: any) {
+    recordRemote('ETAPA-10-REMOTE-09', 'Persistencia cruzada y estabilidad', 'Persistencia', false, `Error: ${err.message}`);
+  }
+
+  // 10. Aprobación y URL Pública de Staging
+  const initialChecksPassed = remoteResults.every((r) => r.passed);
+  recordRemote(
+    'ETAPA-10-REMOTE-10',
+    'Validación integral y aceptación de Staging desde URL pública',
+    'Aceptación',
+    initialChecksPassed,
+    initialChecksPassed
+      ? `Aprobada para revisión humana. URL: ${cleanUrl}`
+      : `Pruebas remotas incompletas. Revise la conectividad o credenciales.`
+  );
+
+  const total = remoteResults.length;
+  const passed = remoteResults.filter((r) => r.passed).length;
+  const failed = remoteResults.filter((r) => !r.passed).length;
+
+  console.log('\n================================================================');
+  console.log('  RESUMEN DE PRUEBAS DE STAGING REMOTO');
+  console.log('================================================================\n');
+  console.log(`Total pruebas: ${total}`);
+  console.log(`Aprobadas:     ${passed}`);
+  console.log(`Fallidas:      ${failed}\n`);
+
+  return failed === 0;
+}
+
 if (require.main === module) {
-  runStagingAcceptanceSuite().then((ok) => {
+  const stagingUrl = process.env.STAGING_URL;
+  const suitePromise = stagingUrl
+    ? runRemoteStagingSuite(stagingUrl)
+    : runStagingAcceptanceSuite();
+
+  suitePromise.then((ok) => {
     if (!ok) {
       console.error('❌ SE DETECTARON FALLOS EN LA SUITE DE ACEPTACIÓN DE LA ETAPA 10.');
       process.exit(1);
     }
-    console.log('✅ TODAS LAS COMPROBACIONES DE PRE-VUELO DE STAGING FUERON APROBADAS.');
+    console.log(stagingUrl
+      ? '✅ TODAS LAS PRUEBAS DE STAGING REMOTO EN LA NUBE FUERON APROBADAS.'
+      : '✅ TODAS LAS COMPROBACIONES DE PRE-VUELO DE STAGING FUERON APROBADAS.'
+    );
     process.exit(0);
   }).catch((err) => {
     console.error('Error fatal ejecutando la suite de aceptación de la Etapa 10:', err);

@@ -17,3 +17,5 @@ api-server.js.map
 *.db-shm
 /data/
 backups/
+cloudflared.exe
+

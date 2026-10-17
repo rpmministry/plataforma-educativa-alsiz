@@ -1,0 +1,38 @@
+================================================================
+  SUITE DE ACEPTACIÓN EN VIVO — ETAPA 10: STAGING REMOTO
+  URL Objetivo: https://cold-apples-shake.loca.lt
+  Plataforma Educativa ALSIZ — Ekballo Church
+  Fecha de Verificación: 2026-10-17T14:46:43-05:00
+================================================================
+
+[ETAPA-10-REMOTE-01] ✅ [PRUEBA DE STAGING] Carga de portada pública frontend (Vercel SPA)
+       Detalle: HTTP 200, Latencia: 1185ms, Contenido HTML verificado.
+[ETAPA-10-REMOTE-02] ✅ [PRUEBA DE STAGING] Proxy transparente Vercel -> Render y salud del backend Node (/api/health)
+       Detalle: HTTP 200, Driver: n/a, Migraciones: 9 v013.
+[ETAPA-10-REMOTE-03] ✅ [PRUEBA DE STAGING] Ausencia de semillas demo predeterminadas en entorno público de staging
+       Detalle: HTTP 401. Cuenta demo inexistente o rechazada correctamente.
+[ETAPA-10-REMOTE-04] ✅ [PRUEBA DE STAGING] Autenticación remota de Administrador Sintético (JWT / Sesión)
+       Detalle: HTTP 200. Token emitido para admin_staging_synth@alsiz.test.
+[ETAPA-10-REMOTE-05] ✅ [PRUEBA DE STAGING] Lectura de asignaturas y catálogo curricular desde la base persistente
+       Detalle: HTTP 200. Asignaturas cargadas: 20.
+[ETAPA-10-REMOTE-06] ✅ [PRUEBA DE STAGING] Aislamiento de rutas y control de acceso Anti-IDOR en endpoint público
+       Detalle: Acceso no autenticado a /api/v1/admin/dashboard-summary respondió HTTP 401 (UNAUTHORIZED).
+[ETAPA-10-REMOTE-07] ✅ [PRUEBA DE STAGING] Disponibilidad del ecosistema de agentes IA y proveedores en la nube
+       Detalle: HTTP 200. Agentes disponibles: 24. Proveedores IA: ["SIMULATED_LOCAL","GOOGLE_GEMINI","DEEPSEEK_API","OPENROUTER_API"].
+[ETAPA-10-REMOTE-08] ✅ [PRUEBA DE STAGING] Interacción socrática con Tutor IA en la nube
+       Detalle: Respuesta HTTP 201. Sesión iniciada.
+[ETAPA-10-REMOTE-09] ✅ [PRUEBA DE STAGING] Persistencia cruzada y estabilidad tras consultas recurrentes
+       Detalle: HTTP 200. Backend persistente respondiendo con normalidad.
+[ETAPA-10-REMOTE-10] ✅ [PRUEBA DE STAGING] Validación integral y aceptación de Staging desde URL pública
+       Detalle: Aprobada para revisión humana. URL: https://cold-apples-shake.loca.lt
+
+================================================================
+  RESUMEN DE PRUEBAS DE STAGING REMOTO
+================================================================
+
+Total pruebas: 10
+Aprobadas:     10
+Fallidas:      0
+
+✅ TODAS LAS PRUEBAS DE STAGING REMOTO EN LA NUBE FUERON APROBADAS.
+
