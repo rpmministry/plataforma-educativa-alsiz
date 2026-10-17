@@ -1,0 +1,29 @@
+services:
+  alsiz-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alsiz-backend-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Volumen persistente para la base de datos SQLite WAL
+      - alsiz_data:/data
+      - ./logs:/app/logs
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_PATH=/data/alsiz.db
+      - RUN_MIGRATIONS_ON_STARTUP=false
+      - TRUST_PROXY=1
+      # Variables sensibles a definir en un archivo .env del host (NUNCA en git):
+      # - SESSION_SECRET=${SESSION_SECRET}
+      # - GEMINI_API_KEY=${GEMINI_API_KEY}
+      # - RESEND_API_KEY=${RESEND_API_KEY}
+      # - EMAIL_FROM=${EMAIL_FROM}
+
+volumes:
+  alsiz_data:
+    name: alsiz_persistent_data
+

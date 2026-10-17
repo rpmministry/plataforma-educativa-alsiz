@@ -1,6 +1,6 @@
 import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { getDb } from '../db/database';
+import { getDatabaseAdapter } from '../db/dal';
 import { AuthenticatedRequest, requireAuth, requireRole } from '../middleware/authMiddleware';
 import { recordAuditEvent } from '../middleware/auditMiddleware';
 import crypto from 'node:crypto';
@@ -34,7 +34,7 @@ representativeRouter.get(
         return;
       }
 
-      const db = getDb();
+      const db = getDatabaseAdapter();
       const query = `
         SELECT 
           s.id,
@@ -52,32 +52,35 @@ representativeRouter.get(
         WHERE sr.representative_id = ?
       `;
 
-      const familyMembers = db.prepare(query).all(repId) as any[];
+      const familyMembers = await db.query(query, [repId]);
 
       // Complementar cada hijo con sus matrículas activas
-      const enrichedStudents = familyMembers.map((student) => {
-        const enrollments = db
-          .prepare(`
-            SELECT p.name as program_name, l.name as level_name, e.school_year
-            FROM student_program_enrollments e
-            JOIN programs p ON p.id = e.program_id
-            JOIN levels l ON l.id = e.level_id
-            WHERE e.student_id = ? AND e.status = 'ACTIVE'
-          `)
-          .all(student.id);
+      const enrichedStudents = await Promise.all(
+        familyMembers.map(async (student: any) => {
+          const enrollments = await db.query(
+            `
+              SELECT p.name as program_name, l.name as level_name, e.school_year
+              FROM student_program_enrollments e
+              JOIN programs p ON p.id = e.program_id
+              JOIN levels l ON l.id = e.level_id
+              WHERE e.student_id = ? AND e.status = 'ACTIVE'
+            `,
+            [student.id]
+          );
 
-        return {
-          id: student.id,
-          studentCode: student.student_code,
-          firstName: student.first_name,
-          lastName: student.last_name,
-          birthDate: student.birth_date,
-          relationship: student.relationship_type,
-          isPrimaryContact: Boolean(student.is_primary_contact),
-          avatarUrl: student.avatar_asset_key ? `/avatars/${student.avatar_asset_key}.png` : undefined,
-          enrollments,
-        };
-      });
+          return {
+            id: student.id,
+            studentCode: student.student_code,
+            firstName: student.first_name,
+            lastName: student.last_name,
+            birthDate: student.birth_date,
+            relationship: student.relationship_type,
+            isPrimaryContact: Boolean(student.is_primary_contact),
+            avatarUrl: student.avatar_asset_key ? `/avatars/${student.avatar_asset_key}.png` : undefined,
+            enrollments,
+          };
+        })
+      );
 
       res.json({
         success: true,
@@ -107,18 +110,21 @@ representativeRouter.post(
       const repId = req.user?.representativeId;
       const { documentVersion } = consentSchema.parse(req.body);
 
-      const db = getDb();
+      const db = getDatabaseAdapter();
       const signedAt = new Date().toISOString();
       const docHash = crypto
         .createHash('sha256')
         .update(`${repId}:${documentVersion}:${signedAt}`)
         .digest('hex');
 
-      db.prepare(`
+      await db.execute(
+        `
         UPDATE representatives
         SET consent_lopdp_signed_at = ?, consent_document_hash = ?
         WHERE id = ?;
-      `).run(signedAt, docHash, repId);
+      `,
+        [signedAt, docHash, repId]
+      );
 
       recordAuditEvent({
         userId: req.user?.userId,

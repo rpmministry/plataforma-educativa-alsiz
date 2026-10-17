@@ -1,0 +1,34 @@
+===========================================================
+  ALSIZ — Compilación y Verificación Estática (Lint & Build)
+  Fecha: 2026-10-16 / Rama: continuacion-produccion-etapa-01
+===========================================================
+
+1. npm run lint (tsc --noEmit):
+> react-example@0.0.0 lint
+> tsc --noEmit
+Exit code: 0 (Cero errores de tipado TypeScript)
+
+2. npm run build:
+> react-example@0.0.0 build
+> vite build && esbuild dev-server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --outfile=api-server.js
+
+vite v6.4.3 building for production...
+transforming...
+✓ 1751 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     2.25 kB │ gzip:   0.90 kB
+dist/assets/index-AnXbc3hU.css    154.39 kB │ gzip:  19.44 kB
+dist/assets/index-DbzLdjuS.js   1,390.10 kB │ gzip: 303.18 kB
+✓ built in 14.04s
+
+  dist\server.cjs      314.2kb
+  dist\server.cjs.map  593.2kb
+
+Done in 192ms
+
+  api-server.js  313.1kb
+
+Done in 92ms
+Exit code: 0
+

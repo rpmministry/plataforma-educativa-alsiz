@@ -21,10 +21,20 @@
     "test:etapa11": "tsx scripts/test-etapa-11.ts",
     "test:etapa12": "tsx scripts/test-etapa-12.ts",
     "test:etapa13": "tsx scripts/test-etapa-13.ts",
-    "test:etapa14": "tsx scripts/test-etapa-14.ts"
+    "test:etapa14": "tsx scripts/test-etapa-14.ts",
+    "test:turso": "tsx scripts/test-turso-auth-flow.ts",
+    "db:bootstrap-admin": "tsx scripts/bootstrap-admin.ts",
+    "test:security-scan": "tsx scripts/test-scan-dist-secrets.ts",
+    "test:security-p0": "tsx scripts/test-security-p0.ts",
+    "test:etapa02": "tsx scripts/test-etapa-02.ts"
+  },
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10.0.0"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
+    "@libsql/client": "^0.18.0",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "dotenv": "^17.2.3",
@@ -34,6 +44,7 @@
     "nodemailer": "^9.1.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
+    "resend": "^6.34.1",
     "vite": "^6.2.3",
     "zod": "^4.6.7"
   },

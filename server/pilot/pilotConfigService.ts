@@ -5,16 +5,16 @@
  * ==============================================================================
  */
 
-import { getDb } from '../db/database';
+import { getDatabaseAdapter } from '../db/dal';
 import { InteractivePilotConfig } from './types';
 
 export class PilotConfigService {
   /**
    * Obtiene la configuración completa del piloto
    */
-  public static getConfig(): InteractivePilotConfig {
-    const db = getDb();
-    const rows = db.prepare('SELECT key, value FROM interactive_pilot_config').all() as Array<{ key: string; value: string }>;
+  public static async getConfig(): Promise<InteractivePilotConfig> {
+    const db = getDatabaseAdapter();
+    const rows = await db.query<any>('SELECT key, value FROM interactive_pilot_config');
     
     const configMap = new Map<string, string>();
     for (const r of rows) {
@@ -43,13 +43,13 @@ export class PilotConfigService {
   /**
    * Alterna o establece el estado del interruptor general (Kill-Switch)
    */
-  public static setPilotEnabled(enabled: boolean): boolean {
-    const db = getDb();
-    db.prepare(`
+  public static async setPilotEnabled(enabled: boolean): Promise<boolean> {
+    const db = getDatabaseAdapter();
+    await db.execute(`
       INSERT INTO interactive_pilot_config (key, value, updated_at)
       VALUES ('pilot_enabled', ?, datetime('now'))
       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
-    `).run(enabled ? 'true' : 'false');
+    `, [enabled ? 'true' : 'false']);
 
     return enabled;
   }
@@ -57,31 +57,30 @@ export class PilotConfigService {
   /**
    * Actualiza parámetros operativos del piloto
    */
-  public static updateConfig(params: Partial<{ maxTurns: number; ttlMinutes: number; allowedSubjects: string[] }>): InteractivePilotConfig {
-    const db = getDb();
+  public static async updateConfig(params: Partial<{ maxTurns: number; ttlMinutes: number; allowedSubjects: string[] }>): Promise<InteractivePilotConfig> {
+    const db = getDatabaseAdapter();
     if (params.maxTurns !== undefined) {
-      db.prepare(`
+      await db.execute(`
         INSERT INTO interactive_pilot_config (key, value, updated_at)
         VALUES ('max_turns_per_session', ?, datetime('now'))
         ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
-      `).run(params.maxTurns.toString());
+      `, [params.maxTurns.toString()]);
     }
     if (params.ttlMinutes !== undefined) {
-      db.prepare(`
+      await db.execute(`
         INSERT INTO interactive_pilot_config (key, value, updated_at)
         VALUES ('session_ttl_minutes', ?, datetime('now'))
         ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
-      `).run(params.ttlMinutes.toString());
+      `, [params.ttlMinutes.toString()]);
     }
     if (params.allowedSubjects !== undefined) {
-      db.prepare(`
+      await db.execute(`
         INSERT INTO interactive_pilot_config (key, value, updated_at)
         VALUES ('allowed_subject_codes', ?, datetime('now'))
         ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
-      `).run(JSON.stringify(params.allowedSubjects));
+      `, [JSON.stringify(params.allowedSubjects)]);
     }
 
-    return this.getConfig();
+    return await this.getConfig();
   }
 }
-

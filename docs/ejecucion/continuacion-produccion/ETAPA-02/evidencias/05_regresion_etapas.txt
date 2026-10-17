@@ -1,0 +1,475 @@
+﻿===================================================
+EJECUTANDO: test:etapa05
+===================================================
+
+> react-example@0.0.0 test:etapa05
+> tsx scripts/test-etapa-05.ts
+
+Γùç injected env (4) from .env // tip: Γîÿ multiple files { path: ['.env.local', '.env'] }
+Γùç injected env (10) from .env.local // tip: Γùê secrets for agents [www.dotenvx.com]
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS ΓÇö ETAPA 05 (ALSIZ / EKBALLO)
+================================================================
+
+Γ£à [Migraciones] Migraciones de esquema e ├¡ndices desde cero: Se aplicaron 12 migraciones correctamente (001_initial_schema.sql, 002_security_indexes.sql, 003_seed_dev_data.sql, 004_lms_academic_core.sql, 005_lms_seed_data.sql, 006_knowledge_base_core.sql, 007_knowledge_seed_data.sql, 008_ai_agents_orchestration.sql, 009_ai_agents_seed.sql, 010_interactive_pilot.sql, 011_unified_admin.sql, 012_continuing_education_courses.sql).
+Γ£à [Autenticaci├│n] Login exitoso con usuario y contrase├▒a (ADMIN): Status HTTP 200. Token emitido y rol ADMIN verificado.
+Γ£à [Autenticaci├│n] Login t├íctil de estudiante por PIN (4 d├¡gitos): Status HTTP 200. Alumno STU-SYNTH-01 autenticado por PIN.
+Γ£à [Autenticaci├│n] Login exitoso de Representante Legal: Status HTTP 200. Representante rep-01 autenticado.
+Γ£à [Autenticaci├│n] Rechazo de credenciales incorrectas: Status HTTP 401. C├│digo de error: AUTH_INVALID_CREDENTIALS.
+Γ£à [Autenticaci├│n] Rechazo de PIN t├íctil incorrecto: Status HTTP 401. C├│digo de error: AUTH_INVALID_PIN.
+Γ£à [Seguridad & RBAC] Rechazo de solicitud no autenticada a expediente de menor: Status HTTP 401. Respuesta 401 con c├│digo UNAUTHORIZED.
+Γ£à [Aislamiento IDOR] Estudiante consulta leg├¡timamente su propio expediente: Status HTTP 200. Acceso permitido a su propio registro.
+Γ£à [Aislamiento IDOR] CR├ìTICO: Estudiante no puede acceder al expediente de otro alumno (Anti-IDOR): Status HTTP 403. Rechazo 403 con c├│digo FORBIDDEN_STUDENT_ACCESS.
+Γ£à [Aislamiento Familiar] Representante accede a los datos de su hijo autorizado: Status HTTP 200. Acceso autorizado por v├¡nculo familiar verificado.
+Γ£à [Aislamiento Familiar] CR├ìTICO: Representante no puede acceder a menores de otra familia (Anti-IDOR Familiar): Status HTTP 403. Rechazo 403 con c├│digo FORBIDDEN_FAMILY_ACCESS.
+Γ£à [Seguridad & RBAC] Estudiante bloqueado de consultar rutas administrativas (RBAC): Status HTTP 403. Rechazo 403 por falta de rol administrativo.
+Γ£à [Privacidad & LOPDP] N├│mina administrativa de usuarios sin exposici├│n de hashes de contrase├▒as: Status HTTP 200. 7 usuarios obtenidos. Cero hashes filtrados.
+Γ£à [Auditor├¡a LOPDP] Libro mayor de auditor├¡a registra rechazos IDOR y anonimiza IPs (SHA-256): Auditor├¡a contiene evento STUDENT_DATA_ACCESS_DENIED. Todas las IPs hasheadas.
+Γ£à [Respaldo & Recuperaci├│n] Generaci├│n de Hot Backup transaccional (VACUUM INTO): Respaldo creado en alsiz_backup_2026-10-17T11-44-05-930Z.db (1110016 bytes). Checksum: 1d841ff918e9...
+Γ£à [Respaldo & Recuperaci├│n] Restauraci├│n de respaldo y verificaci├│n de integridad (PRAGMA integrity_check): Restauraci├│n verificada con ├⌐xito. PRAGMA integrity_check = "ok".
+
+================================================================
+  RESUMEN FINAL DE LA SUITE DE PRUEBAS DE LA ETAPA 05
+================================================================
+
+Total de pruebas ejecutadas: 16
+Pruebas aprobadas (PAS├ô):   16
+Pruebas fallidas  (FALL├ô):  0
+
+Todas las pruebas cr├¡ticas de la ETAPA 05 fueron APROBADAS con ├⌐xito.
+===================================================
+EJECUTANDO: test:etapa06
+===================================================
+
+> react-example@0.0.0 test:etapa06
+> tsx scripts/test-etapa-06.ts
+
+Γùç injected env (4) from .env // tip: Γîÿ multiple files { path: ['.env.local', '.env'] }
+Γùç injected env (10) from .env.local // tip: Γùê encrypted .env [www.dotenvx.com]
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS ΓÇö ETAPA 06 (ALSIZ / EKBALLO)
+  N├ÜCLEO ACAD├ëMICO LMS, CURR├ìCULO, EVALUACIONES Y COMPETENCIAS
+================================================================
+
+Γ£à [Migraciones] Migraciones de esquema completas (v001 a v005): Se verificaron 12 migraciones aplicadas correctamente.
+Γ£à [Autenticaci├│n] Autenticaci├│n inicial de los 4 roles de prueba: Tokens emitidos para ADMIN, TEACHER, STUDENT y REPRESENTATIVE.
+Γ£à [Gesti├│n Curricular] Criterio 1A: Administrador crea programa formativo: Status HTTP 201. Programa ID: prog-31f498fddfb0.
+Γ£à [Gesti├│n Curricular] Criterio 1B: Administrador crea nivel / grado: Status HTTP 201. Nivel ID: lvl-0d0740f09f16.
+Γ£à [Gesti├│n Curricular] Criterio 1C: Administrador crea asignatura de la malla: Status HTTP 201. Asignatura ID: subj-b759df2d3bb3.
+Γ£à [Matriculaci├│n] Criterio 2A: Matr├¡cula de estudiante en programa y nivel: Status HTTP 201. Matr├¡cula ID: enr-cec92108a11f.
+Γ£à [Matriculaci├│n] Criterio 2B: Asignaci├│n normalizada de estudiante a la asignatura: Status HTTP 201. Estudiante vinculado a materia subj-b759df2d3bb3.
+Γ£à [Estructura Pedag├│gica] Criterio 3A: Docente crea competencia curricular: Status HTTP 201. Competencia C├│digo: CN.F.448236.
+Γ£à [Estructura Pedag├│gica] Criterio 3B: Docente crea unidad curricular trimestral: Status HTTP 201. Unidad ID: unit-abe1db37509a.
+Γ£à [Estructura Pedag├│gica] Criterio 3C: Docente crea lecci├│n diaria socr├ítica: Status HTTP 201. Lecci├│n ID: class-5d3444605cae.
+Γ£à [Evaluaci├│n Formativa] Criterio 3D: Docente crea actividad evaluativa con r├║brica: Status HTTP 201. Evaluaci├│n ID: eval-d83fab960404.
+Γ£à [Experiencia del Estudiante] Criterio 4A: Estudiante accede al contenido y lecci├│n socr├ítica: Status HTTP 200. T├¡tulo: "Clase 1: Primera Ley de Newton y Movimiento Rectil├¡neo".
+Γ£à [Biling├╝ismo & Recursos] Criterio 4B: Selecci├│n de idioma en recursos con fallback transparente: Status HTTP 200. Idioma EN detectado correctamente.
+Γ£à [Entregas y Tareas] Criterio 4C: Estudiante entrega la actividad formativa: Status HTTP 201. Entrega ID: sub-7a80a3d7269e. Estado: SUBMITTED.
+Γ£à [Calificaciones & R├║bricas] Criterio 5A: Docente eval├║a con r├║brica cuantitativa y retroalimentaci├│n: Status HTTP 200. Nota asignada: 5.50 / 10.00.
+Γ£à [Seguimiento Competencial] Criterio 6A: CR├ìTICO: Panel distingue actividad completada de dominio demostrado (Sin dominio si nota < 7.00): Estado competencial: "COMPLETED_NO_MASTERY". Actividades completadas: 1. Dominio no concedido.
+Γ£à [Calificaciones & R├║bricas] Criterio 5B: Docente re-eval├║a y actualiza calificaci├│n con justificaci├│n: Status HTTP 200. Nueva nota: 8.50 / 10.00.
+Γ£à [Auditor├¡a de Calificaciones] Criterio 5C: Historial inmutable de calificaciones registra cambios y autor├¡as: Se registraron 2 cambios con trazabilidad de motivo ("Re-evaluaci├│n formativa tras entrega de correcciones socr├íticas").
+Γ£à [Seguimiento Competencial] Criterio 6B: Panel refleja DOMINIO DEMOSTRADO cuando se superan los criterios (ΓëÑ 7.00): Estado competencial: "DEMONSTRATED_MASTERY". Nota promedio: 8.5.
+Γ£à [Seguridad & RBAC] Criterio 7A: Rechazo de solicitud no autenticada a la API acad├⌐mica (401): Status HTTP 401. C├│digo de error: UNAUTHORIZED.
+Γ£à [Seguridad & RBAC] Criterio 7B: Estudiante bloqueado de calificar o modificar notas (403): Status HTTP 403. Rechazado por pol├¡tica de rol.
+Γ£à [Aislamiento IDOR] Criterio 7C: Estudiante no puede consultar progreso competencial de otro menor (Anti-IDOR): Status HTTP 403. C├│digo: FORBIDDEN_STUDENT_ACCESS.
+Γ£à [Aislamiento IDOR Familiar] Criterio 7D: Representante bloqueado de consultar boletines de familias ajenas (Anti-IDOR Familiar): Status HTTP 403. C├│digo: FORBIDDEN_FAMILY_ACCESS.
+Γ£à [Acceso Familiar Leg├¡timo] Criterio 7E: Representante accede leg├¡timamente al Bolet├¡n Oficial de su hijo vinculado: Status HTTP 200. Estudiante: "Mateo Santos (Sint├⌐tico 8vo)". Marco: MINEDUC Art. 32.
+Γ£à [Calendario LMS] Calendario Acad├⌐mico: Creaci├│n y consulta de hitos y fechas de entrega: Status HTTP 201. Evento registrado en calendario oficial.
+
+================================================================
+  RESUMEN FINAL DE LA SUITE DE PRUEBAS DE LA ETAPA 06
+================================================================
+
+Total de pruebas ejecutadas: 25
+Pruebas aprobadas (PAS├ô):   25
+Pruebas fallidas  (FALL├ô):  0
+
+Todas las pruebas cr├¡ticas de la ETAPA 06 fueron APROBADAS con ├⌐xito.
+
+===================================================
+EJECUTANDO: test:etapa07
+===================================================
+
+> react-example@0.0.0 test:etapa07
+> tsx scripts/test-etapa-07.ts
+
+Γùç injected env (4) from .env // tip: Γîü auth for agents [www.vestauth.com]
+Γùç injected env (10) from .env.local // tip: Γîÿ multiple files { path: ['.env.local', '.env'] }
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS ΓÇö ETAPA 07 (ALSIZ / EKBALLO)
+  CENTRO DE CONOCIMIENTO, FRAGMENTACI├ôN, FTS5 Y RETIRADA RAG
+================================================================
+
+[Migrator] Migraci├│n 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator] Migraci├│n 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator] Migraci├│n 003_seed_dev_data.sql (v003) aplicada exitosamente.
+[Migrator] Migraci├│n 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator] Migraci├│n 005_lms_seed_data.sql (v005) aplicada exitosamente.
+[Migrator] Migraci├│n 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator] Migraci├│n 007_knowledge_seed_data.sql (v007) aplicada exitosamente.
+[Migrator] Migraci├│n 008_ai_agents_orchestration.sql (v008) aplicada exitosamente.
+[Migrator] Migraci├│n 009_ai_agents_seed.sql (v009) aplicada exitosamente.
+[Migrator] Migraci├│n 010_interactive_pilot.sql (v010) aplicada exitosamente.
+[Migrator] Migraci├│n 011_unified_admin.sql (v011) aplicada exitosamente.
+[Migrator] Migraci├│n 012_continuing_education_courses.sql (v012) aplicada exitosamente.
+Γ£à [Migraciones] Migraciones de esquema completas (v001 a v007): Se verificaron 12 migraciones aplicadas correctamente.
+Γ£à [Autenticaci├│n] Autenticaci├│n inicial de los 4 roles de prueba: Tokens emitidos para ADMIN, TEACHER, STUDENT y REPRESENTATIVE.
+Γ£à [Gesti├│n de Fuentes] Criterio 1: Carga de documento de prueba autorizado en estado PENDIENTE: Status HTTP 201. ID: src-4ba3745e-9b8. Estado inicial: PENDIENTE (no auto-aprobado).
+Γ£à [Seguridad & Deduplicaci├│n] Criterio 2: Detecci├│n y rechazo de contenido duplicado (SHA-256 Checksum): Status HTTP 409. C├│digo de rechazo: CONFLICT.
+Γ£à [Extracci├│n & Chunking] Criterio 3: Extracci├│n y segmentaci├│n en fragmentos con etiquetas de citaci├│n: Status HTTP 200. Fragmentos generados: 3. Etiquetas: [TEST-OPTICA-450550#C1], [TEST-OPTICA-450550#C2].
+Γ£à [Seguridad & RBAC] Criterio 4A: Docente bloqueado de auto-aprobar fuentes (RBAC 403): Status HTTP 403. Solo ADMIN y ACADEMIC_COORDINATOR pueden aprobar.
+Γ£à [Seguridad & RBAC] Criterio 4B: Estudiante bloqueado de administraci├│n del centro de conocimiento (RBAC 403): Status HTTP 403. Acceso restringido por rol.
+Γ£à [Control Editorial] Criterio 5: Aprobaci├│n editorial por Administrador con justificaci├│n en auditor├¡a: Status HTTP 200. Estado promovido a APROBADO.
+Γ£à [Indexaci├│n & Retrieval] Criterio 6: B├║squeda y recuperaci├│n tem├ítica exitosa en SQLite FTS5 (BM25): Status HTTP 200. Fragmentos recuperados: 3. Relevancia: 1.57.
+Γ£à [Versionado] Criterio 7: Publicaci├│n de nueva versi├│n y trazabilidad de ├írbol de versiones: Status HTTP 201. Versi├│n: 2. Parent ID: src-4ba3745e-9b8.
+Γ£à [Retirada Efectiva] Criterio 8: Retirada / desactivaci├│n efectiva de la fuente en base de datos: Status HTTP 200. Estado actualizado a DESACTIVADO.
+Γ£à [Retirada Efectiva] Criterio 9: CR├ìTICO: La fuente retirada DEJA DE RECUPERARSE en el motor RAG de los agentes: Status HTTP 200. Fragmentos de fuente desactivada recuperados: 0. Exclusi├│n estricta confirmada.
+Γ£à [Validaci├│n de Archivos] Criterio 10: Validaci├│n de entrada, rechazo de contenido insuficiente o inv├ílido: Status HTTP 400. Mensaje: VALIDATION_ERROR: El contenido del documento es demasiado breve o est├í vac├¡o..
+Γ£à [Control Editorial] Criterio 11: Registro y escalamiento de conflicto editorial para revisi├│n humana: Status HTTP 201. Conflicto ID: ksc-0a9ca263-de4. Estado: REPORTED.
+Γ£à [Control Editorial] Criterio 12: Resoluci├│n formal de conflicto editorial por Administrador: Status HTTP 200. Conflicto resuelto exitosamente.
+Γ£à [Telemetr├¡a] Criterio 13: M├⌐tricas y resumen estad├¡stico del centro de conocimiento: Status HTTP 200. Total Chunks: 9. Grupos de estado: 3.
+
+================================================================
+  RESUMEN FINAL DE LA SUITE DE PRUEBAS DE LA ETAPA 07
+================================================================
+
+Total de pruebas ejecutadas: 16
+Pruebas aprobadas (PAS├ô):   16
+Pruebas fallidas  (FALL├ô):  0
+
+Todas las pruebas cr├¡ticas de la ETAPA 07 fueron APROBADAS con ├⌐xito.
+
+===================================================
+EJECUTANDO: test:etapa08
+===================================================
+
+> react-example@0.0.0 test:etapa08
+> tsx scripts/test-etapa-08.ts
+
+Γùç injected env (4) from .env // tip: Γîÿ multiple files { path: ['.env.local', '.env'] }
+Γùç injected env (10) from .env.local // tip: Γîÿ override existing { override: true }
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS ΓÇö ETAPA 08 (ALSIZ / EKBALLO)
+  PROFESORES IA ESPECIALIZADOS, RAG Y MULTIAGENTE
+================================================================
+
+[Migrator] Migraci├│n 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator] Migraci├│n 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator] Migraci├│n 003_seed_dev_data.sql (v003) aplicada exitosamente.
+[Migrator] Migraci├│n 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator] Migraci├│n 005_lms_seed_data.sql (v005) aplicada exitosamente.
+[Migrator] Migraci├│n 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator] Migraci├│n 007_knowledge_seed_data.sql (v007) aplicada exitosamente.
+[Migrator] Migraci├│n 008_ai_agents_orchestration.sql (v008) aplicada exitosamente.
+[Migrator] Migraci├│n 009_ai_agents_seed.sql (v009) aplicada exitosamente.
+[Migrator] Migraci├│n 010_interactive_pilot.sql (v010) aplicada exitosamente.
+[Migrator] Migraci├│n 011_unified_admin.sql (v011) aplicada exitosamente.
+[Migrator] Migraci├│n 012_continuing_education_courses.sql (v012) aplicada exitosamente.
+Γ£à [Migraciones] Migraciones de esquema completas (v001 a v009): Se verificaron 12 migraciones aplicadas correctamente.
+Γ£à [Autenticaci├│n] Autenticaci├│n inicial de los roles de prueba (incluyendo aislamiento IDOR): Tokens emitidos para ADMIN, TEACHER, STUDENT 1, STUDENT 2 y REPRESENTATIVE.
+Γ£à [Cat├ílogo de Agentes] Criterio 1: Cat├ílogo de agentes piloto representativos activo: Status HTTP 200. Agentes verificados: Kepler (Ciencias), David (Doctrinal), Evaluador (R├║bricas).
+Γ£à [Arquitectura LLM] Criterio 2: Proveedores LLM desacoplados y disponibles en el entorno: Proveedores detectados: SIMULATED_LOCAL, GOOGLE_GEMINI, DEEPSEEK_API, OPENROUTER_API.
+Γ£à [Di├ílogo Socr├ítico] Criterio 3A: Creaci├│n de conversaci├│n socr├ítica para el alumno: Status HTTP 201. Conversaci├│n ID: conv-1e33d19e-7fe.
+Γ£à [Fundamentaci├│n RAG] Criterio 3B: Respuesta socr├ítica fundamentada con citas RAG verificables ([CODE#C#]): Status HTTP 200. Citas obtenidas: [MINEDUC-FIS#C1]. Fragmentos recuperados en BD.
+Γ£à [Gobernanza RAG] Criterio 4: CR├ìTICO: Abstenci├│n pedag├│gica honesta ante falta de evidencia en fuentes autorizadas: Status HTTP 200. Abstenci├│n verificada: "No dispongo de evidencia suficiente en los materiales autorizados para responder a esta pregunta con..."
+Γ£à [Pedagog├¡a Socr├ítica] Criterio 5: Andamiaje socr├ítico ante errores conceptuales sin humillar: Status HTTP 200. Orientaci├│n reflexiva verificada con preguntas de andamiaje.
+Γ£à [Seguridad Infantil] Criterio 6: Seguridad Infantil: Rechazo de diagn├│stico m├⌐dico/psicol├│gico y derivaci├│n a tutor familiar: Status HTTP 200. El agente rechaza prescribir y deriva al representante legal.
+Γ£à [Ciberseguridad IA] Criterio 7: Resistencia a inyecciones de prompt (Prompt Injection Defense): Status HTTP 200. El agente neutraliz├│ el intento de jailbreak y se mantuvo en rol.
+Γ£à [Biling├╝ismo] Criterio 8: Interacci├│n biling├╝e adaptativa (Espa├▒ol e Ingl├⌐s): Status HTTP 200. Respuesta biling├╝e en ingl├⌐s generada correctamente.
+Γ£à [Seguridad & RBAC] Criterio 9: Aislamiento de datos del estudiante (Anti-IDOR 403 Forbidden): Lectura rechazada con HTTP 403. Escritura rechazada con HTTP 403.
+[ProviderManager] Fall├│ Gemini (TIMEOUT_GEMINI: Excedido el tiempo l├¡mite de 8000ms.). Intentando siguiente proveedor...
+Γ£à [Coordinaci├│n Multiagente] Criterio 10: Coordinaci├│n multiagente expl├¡cita (Tutor delega a Evaluador de R├║bricas): Status HTTP 200. Nota: 8.5/10. Estado: DEMONSTRATED_MASTERY.
+Γ£à [Resiliencia y Disponibilidad] Criterio 11: Tolerancia a fallos: Degradaci├│n elegante a simulaci├│n local sin bloquear la experiencia: Status HTTP 200. Fallback activo y respuesta socr├ítica entregada sin error 500.
+Γ£à [Telemetr├¡a y M├⌐tricas] Criterio 12: Telemetr├¡a de latencia, llamadas y tokens registrada sin datos personales: Status HTTP 200. Total interacciones: 7. Latencia media: 12 ms.
+Γ£à [Supervisi├│n Humana] Criterio 13: Supervisi├│n Humana (Human-in-the-Loop): Material inicia en DRAFT y requiere aprobaci├│n docente: Propuesta en DRAFT_REVIEW -> Aprobaci├│n formal por Docente -> APPROVED_PUBLISHED.
+Γ£à [Gobernanza de Agentes] Criterio 14: Control y versionado de agentes por Coordinaci├│n Acad├⌐mica: Status HTTP 200. Versi├│n del agente incrementada a 2.
+
+================================================================
+  RESUMEN FINAL DE LA SUITE DE PRUEBAS DE LA ETAPA 08
+================================================================
+
+Total de pruebas ejecutadas: 17
+Pruebas aprobadas (PAS├ô):   17
+Pruebas fallidas  (FALL├ô):  0
+
+Todas las pruebas cr├¡ticas de la ETAPA 08 fueron APROBADAS con ├⌐xito.
+
+===================================================
+EJECUTANDO: test:etapa09
+===================================================
+
+> react-example@0.0.0 test:etapa09
+> tsx scripts/test-etapa-09.ts
+
+Γùç injected env (4) from .env // tip: Γîÿ suppress logs { quiet: true }
+Γùç injected env (10) from .env.local // tip: Γùê encrypted .env [www.dotenvx.com]
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS ΓÇö ETAPA 09 (ALSIZ / EKBALLO)
+  AULA INTERACTIVA E INTEGRACI├ôN EVALUADA DE OPENMAIC
+================================================================
+
+[Migrator] Migraci├│n 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator] Migraci├│n 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator] Migraci├│n 003_seed_dev_data.sql (v003) aplicada exitosamente.
+[Migrator] Migraci├│n 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator] Migraci├│n 005_lms_seed_data.sql (v005) aplicada exitosamente.
+[Migrator] Migraci├│n 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator] Migraci├│n 007_knowledge_seed_data.sql (v007) aplicada exitosamente.
+[Migrator] Migraci├│n 008_ai_agents_orchestration.sql (v008) aplicada exitosamente.
+[Migrator] Migraci├│n 009_ai_agents_seed.sql (v009) aplicada exitosamente.
+[Migrator] Migraci├│n 010_interactive_pilot.sql (v010) aplicada exitosamente.
+[Migrator] Migraci├│n 011_unified_admin.sql (v011) aplicada exitosamente.
+[Migrator] Migraci├│n 012_continuing_education_courses.sql (v012) aplicada exitosamente.
+Γ£à [Migraciones] Migraciones de esquema completas (v001 a v010): Se verificaron 12 migraciones aplicadas correctamente.
+Γ£à [Autenticaci├│n] Autenticaci├│n inicial de los roles de prueba: Tokens emitidos para ADMIN, TEACHER y STUDENT 1.
+Γ£à [Feature Flag] Criterio 1: Estado del Feature Flag y configuraci├│n p├║blica del piloto: Status HTTP 200. Piloto habilitado: true. Asignaturas autorizadas: subj-mat-801, subj-fis-bgu-01, CN.F.5.1.
+Γ£à [Seguridad & Privacidad] Criterio 2: Inicio de sesi├│n ef├¡mera y aislamiento Anti-PII estricto: Status HTTP 201. Token ef├¡mero generado. Alias sint├⌐tico asignado: "Estudiante Explorador #804". Cero PII transmitida.
+Γ£à [Sesi├│n Ef├¡mera] Criterio 3: Consulta de sesi├│n activa por token ef├¡mero: Status HTTP 200. Estado de sesi├│n: ACTIVE.
+Γ£à [Pedagog├¡a Multiagente] Criterio 4: Din├ímica multiagente interactiva en vivo (Profesor Kepler + Compa├▒era Sof├¡a + F├¡sica Snell): Status HTTP 200. Refracci├│n f├¡sica calculada: 22.1┬░ (Esperado 22.1┬░). Di├ílogo simult├íneo generado.
+Γ£à [Simulador ├ôptico] Criterio 5: Simulaci├│n f├¡sica avanzada de Reflexi├│n Total Interna (TIR): Status HTTP 200. Reflexi├│n Total Interna detectada (n1=1.52 > n2=1.00 a 60┬░). Explicaci├│n ├│ptica provista.
+Γ£à [Control de Costos] Criterio 6: L├¡mite pedag├│gico de turnos por sesi├│n para control de consumo de tokens: Status HTTP 429. L├¡mite excedido bloqueado adecuadamente con HTTP 429.
+Γ£à [Resiliencia y Salida] Criterio 7: Salida inmediata y desacople seguro ("Volver al Aula Tradicional"): Status HTTP 200. Sesi├│n finalizada con raz├│n: USER_EXIT. Estado: ABORTED_BY_USER.
+Γ£à [Telemetr├¡a y M├⌐tricas] Criterio 8: Telemetr├¡a operacional acumulada sin datos personales de menores: Status HTTP 200. Total sesiones: 1. Latencia media: 38 ms. Salidas: 1.
+Γ£à [Seguridad & RBAC] Criterio 9: Control de Acceso RBAC: Bloqueo de telemetr├¡a a estudiantes (HTTP 403): Status HTTP 403. Solicitud de estudiante bloqueada por pol├¡tica de privilegios.
+Γ£à [Gobernanza y Kill-Switch] Criterio 10: CR├ìTICO: Conmutador de Emergencia (Kill-Switch) desactiva el piloto de inmediato sin error 500: Status HTTP 403. Solicitud rechazada limpiamente con c├│digo PILOT_DISABLED.
+Γ£à [Gobernanza y Kill-Switch] Criterio 11: Reactivaci├│n ├ígil del piloto tras contingencia: Status HTTP 201. El piloto interactivo vuelve a admitir sesiones sin necesidad de reiniciar el servidor.
+Γ£à [Ciclo de Vida de Sesi├│n] Criterio 12: Conclusi├│n formativa exitosa con registro de estado COMPLETED: Status HTTP 200. Sesi├│n finalizada con ├⌐xito y estado COMPLETED persistido.
+
+================================================================
+  RESUMEN FINAL DE LA SUITE DE PRUEBAS DE LA ETAPA 09
+================================================================
+
+Total de pruebas ejecutadas: 14
+Pruebas aprobadas (PAS├ô):   14
+Pruebas fallidas  (FALL├ô):  0
+
+Todas las pruebas cr├¡ticas de la ETAPA 09 fueron APROBADAS con ├⌐xito.
+
+===================================================
+EJECUTANDO: test:etapa10
+===================================================
+
+> react-example@0.0.0 test:etapa10
+> tsx scripts/test-etapa-10.ts
+
+Γùç injected env (4) from .env // tip: Γùê secrets for agents [www.dotenvx.com]
+Γùç injected env (10) from .env.local // tip: Γùê encrypted .env [www.dotenvx.com]
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS ΓÇö ETAPA 10 (ALSIZ / EKBALLO)
+  CENTRO ADMINISTRATIVO UNIFICADO Y AUDITOR├ìA LOPDP
+================================================================
+
+[Migrator] Migraci├│n 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator] Migraci├│n 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator] Migraci├│n 003_seed_dev_data.sql (v003) aplicada exitosamente.
+[Migrator] Migraci├│n 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator] Migraci├│n 005_lms_seed_data.sql (v005) aplicada exitosamente.
+[Migrator] Migraci├│n 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator] Migraci├│n 007_knowledge_seed_data.sql (v007) aplicada exitosamente.
+[Migrator] Migraci├│n 008_ai_agents_orchestration.sql (v008) aplicada exitosamente.
+[Migrator] Migraci├│n 009_ai_agents_seed.sql (v009) aplicada exitosamente.
+[Migrator] Migraci├│n 010_interactive_pilot.sql (v010) aplicada exitosamente.
+[Migrator] Migraci├│n 011_unified_admin.sql (v011) aplicada exitosamente.
+[Migrator] Migraci├│n 012_continuing_education_courses.sql (v012) aplicada exitosamente.
+Γ£à [Migraciones] Migraciones de esquema completas (v001 a v011): Se verificaron 12 migraciones aplicadas correctamente.
+Γ£à [Autenticaci├│n] Autenticaci├│n inicial de los roles de prueba (ADMIN, TEACHER, STUDENT): Tokens emitidos satisfactoriamente para los 3 roles.
+Γ£à [Gesti├│n Acad├⌐mica] Criterio 1: Administrador autorizado puede crear una asignatura de prueba: Status HTTP 201. Asignatura creada con ID: subj-78fe047618de.
+Γ£à [Gesti├│n Acad├⌐mica] Criterio 2: Administrador autorizado puede modificar una asignatura de prueba: Status HTTP 200. Nombre actualizado a: "Asignatura Experimental Modificada 10". Horas: 6.
+Γ£à [Seguridad & RBAC] Criterio 3: Rol sin permiso no puede crear ni modificar asignaturas (HTTP 403): PUT status: 403, POST status: 403. Acceso denegado correctamente.
+Γ£à [Centro de Conocimiento] Criterio 4: Se puede actualizar una fuente de conocimiento con justificaci├│n: Status HTTP 200. T├¡tulo actualizado: "Clase 1: Historia, Visi├│n y Misi├│n de Ekballo Church (Actualizada Etapa 10)".
+Γ£à [Centro de Conocimiento] Criterio 5: Se puede consultar el historial completo de cambios de la fuente: Status HTTP 200. Eventos encontrados: 2. Evento UPDATED verificado.
+Γ£à [Agentes IA & Piloto] Criterio 6: Se puede revisar el estado y configuraci├│n p├║blica del agente piloto: Status HTTP 200. Piloto activo: true.
+Γ£à [Agentes IA & Piloto] Criterio 7: Vista de errores de integraci├│n, fallbacks y disponibilidad con datos reales: Status HTTP 200. Sesiones abortadas registradas: 0. Proveedores: SIMULATED_LOCAL, GOOGLE_GEMINI, DEEPSEEK_API, OPENROUTER_API.
+Γ£à [Seguridad & Auditor├¡a] Criterio 8: Acciones sensibles quedan registradas en auditor├¡a inmutable sin secretos (LOPDP): Eventos registrados: 8. Fuga de secretos: CERO (Cumple).
+Γ£à [Configuraci├│n] Criterio 9: Consulta y actualizaci├│n de configuraci├│n institucional por Administrador: Status HTTP 200. Claves actualizadas: institution_name, current_school_year.
+Γ£à [Seguridad & RBAC] Criterio 10: Usuario no autorizado no puede modificar configuraci├│n institucional (HTTP 403): Status HTTP 403. Acceso denegado a rol STUDENT.
+Γ£à [Centro Unificado] Criterio 11: Dashboard consolidado retorna m├⌐tricas reales y tareas pendientes sin invenci├│n: Status HTTP 200. Usuarios: 7. Programas: 2. Tareas pendientes calculadas.
+Γ£à [Gesti├│n de Usuarios] Criterio 12: N├│mina de usuarios con filtros por rol y relaciones de tutela familiar: Filtro TEACHER: 1 usuarios. Representantes vinculados: 2.
+Γ£à [Informes] Criterio 13: Reporte acad├⌐mico consolidado con distribuci├│n de competencias MINEDUC: Status HTTP 200. Asignaturas evaluadas: 3. Dominio demostrado: 1.
+
+================================================================
+  RESUMEN FINAL DE LA SUITE DE PRUEBAS DE LA ETAPA 10
+================================================================
+
+Total de pruebas ejecutadas: 15
+Pruebas aprobadas (PAS├ô):   15
+Pruebas fallidas  (FALL├ô):  0
+
+Todas las pruebas cr├¡ticas de la ETAPA 10 fueron APROBADAS con ├⌐xito.
+===================================================
+EJECUTANDO: test:etapa11
+===================================================
+
+> react-example@0.0.0 test:etapa11
+> tsx scripts/test-etapa-11.ts
+
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS ΓÇö ETAPA 11 (ALSIZ / EKBALLO)
+  MIGRACI├ôN CONTROLADA DE EXPEDIENTES, CURR├ìCULO Y MATERIALES
+================================================================
+
+[Migrator] Migraci├│n 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator] Migraci├│n 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator] Migraci├│n 003_seed_dev_data.sql (v003) aplicada exitosamente.
+[Migrator] Migraci├│n 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator] Migraci├│n 005_lms_seed_data.sql (v005) aplicada exitosamente.
+[Migrator] Migraci├│n 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator] Migraci├│n 007_knowledge_seed_data.sql (v007) aplicada exitosamente.
+[Migrator] Migraci├│n 008_ai_agents_orchestration.sql (v008) aplicada exitosamente.
+[Migrator] Migraci├│n 009_ai_agents_seed.sql (v009) aplicada exitosamente.
+[Migrator] Migraci├│n 010_interactive_pilot.sql (v010) aplicada exitosamente.
+[Migrator] Migraci├│n 011_unified_admin.sql (v011) aplicada exitosamente.
+[Migrator] Migraci├│n 012_continuing_education_courses.sql (v012) aplicada exitosamente.
+Γ£à [Respaldo & Recuperaci├│n] Criterio 1: Respaldo en caliente y restauraci├│n comprobada en ambiente de prueba: Respaldo creado (802816 bytes, SHA-256 verificado), restaurado e integrity_check: ok
+Γ£à [Inventario & Mapeo] Criterio 2: Inventario completo de registros legados (materias, unidades, clases, recursos): Estudiantes: 2, Materias: 20, Clases: 43, Recursos: 86
+Γ£à [Auditor├¡a Curricular] Criterio 3: Clasificaci├│n formal de recursos pedag├│gicos con justificaci├│n documentada: Reutilizar: 12 (PhET, GeoGebra), Actualizar: 74 (PDFs/Video Placeholders), Pendientes: 0
+Γ£à [Auditor├¡a Curricular] Criterio 4: Identificaci├│n rigurosa de IDs colisionados en el repositorio legado original: Colisiones detectadas y aisladas: class-mat-avril-02, class-mat-gael-02, class-sci-gael-01 (3 lecciones distintas con ID compartido)
+Γ£à [Ensayo & Seguridad] Criterio 5: Simulaci├│n Dry-Run proyecta 100% de inserciones sin escribir en disco: Proyecci├│n: 43 clases, 86 recursos, 129 evaluaciones. Registros en BD antes: 0, despu├⌐s: 0
+Γ£à [Ejecuci├│n Controlada] Criterio 6: Migraci├│n en staging inserta la totalidad de expedientes y resuelve colisiones: Usuarios: 2, Materias: 20, Clases: 43, Colisiones resueltas: 3
+Γ£à [Seguridad & Privacidad] Criterio 7: Contrase├▒as y c├│digos PIN protegidos con scryptSync y sal criptogr├ífica (NIST): Todos los hashes inician con 'scrypt$', validados en tiempo constante. Cero credenciales en claro.
+Γ£à [Integridad Acad├⌐mica] Criterio 8: Integridad ├⌐tica: Cero notas ficticias, expedientes no rellenados por suposici├│n: Entregas inventadas: 0, Historial ficticio de notas: 0. Progreso real inicia en 0% seg├║n dise├▒o.
+Γ£à [Trazabilidad Curricular] Criterio 9: Asignaturas trazadas hacia TRONCAL_MINEDUC, FORMACION_CRISTIANA e INTERNACIONAL: Distribuci├│n: AMPLIACION_INTERNACIONAL: 2, COMPLEMENTARIA: 4, FORMACION_CRISTIANA: 2, TRONCAL_MINEDUC: 12
+Γ£à [Integridad Referencial] Criterio 10: Verificaci├│n de integridad relacional: Cero clases, recursos o matr├¡culas hu├⌐rfanas: Chequeos superados: 10 de 10
+Γ£à [Idempotencia] Criterio 11: Idempotencia rigurosa: Re-ejecuci├│n sucesiva produce exactamente los mismos registros: Estudiantes: 2, Materias: 20, Clases: 43
+Γ£à [Auditor├¡a & LOPDP] Criterio 12: Auditor├¡a inmutable de la migraci├│n registrada en audit_events sin datos sensibles: Eventos registrados: 2, IPs anonimizadas con HMAC-SHA256, cero secretos en log.
+Γ£à [Control de Producci├│n] Criterio 13: Salvaguarda de producci├│n: La base de datos de producci├│n permanece intacta: data/alsiz.db verificado: 0 usuarios migrados en producci├│n (requiere autorizaci├│n humana expresa).
+Γ£à [Reversi├│n & Resiliencia] Criterio 14: Reversi├│n quir├║rgica comprobada: Eliminaci├│n de migrados sin afectar datos sint├⌐ticos: Registros revertidos: 395. Estudiantes migrados restantes: 0. Estudiantes sint├⌐ticos intactos: 2.
+Γ£à [Compatibilidad LMS] Criterio 15: Disponibilidad de asignaturas en el nivel correspondiente (8.┬░ Superior y 4.┬░ Elemental): Nivel Superior (8.┬░ EGB): 13 materias, Nivel Elemental (4.┬░ EGB): 9 materias.
+Γ£à [Informe Curricular] Criterio 16: Identificaci├│n t├⌐cnica de brechas curriculares (200 d├¡as MINEDUC, PDFs obsoletos, placeholders): Brechas documentadas: 43 de 200 clases cubiertas, 68 recursos requieren actualizaci├│n pedag├│gica.
+
+================================================================
+  RESUMEN FINAL DE LA SUITE DE PRUEBAS DE LA ETAPA 11
+================================================================
+
+Total de pruebas ejecutadas: 16
+Pruebas aprobadas (PAS├ô):   16
+Pruebas fallidas  (FALL├ô):  0
+
+Todas las pruebas cr├¡ticas de la ETAPA 11 fueron APROBADAS con ├⌐xito.
+===================================================
+EJECUTANDO: test:etapa12
+===================================================
+
+> react-example@0.0.0 test:etapa12
+> tsx scripts/test-etapa-12.ts
+
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADAS ΓÇö ETAPA 12 (ALSIZ / EKBALLO)
+  CURSOS PROFESIONALES, ARTES, OFICIOS Y FORMACI├ôN CONTINUA
+================================================================
+
+[Migrator] Migraci├│n 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator] Migraci├│n 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator] Migraci├│n 003_seed_dev_data.sql (v003) aplicada exitosamente.
+[Migrator] Migraci├│n 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator] Migraci├│n 005_lms_seed_data.sql (v005) aplicada exitosamente.
+[Migrator] Migraci├│n 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator] Migraci├│n 007_knowledge_seed_data.sql (v007) aplicada exitosamente.
+[Migrator] Migraci├│n 008_ai_agents_orchestration.sql (v008) aplicada exitosamente.
+[Migrator] Migraci├│n 009_ai_agents_seed.sql (v009) aplicada exitosamente.
+[Migrator] Migraci├│n 010_interactive_pilot.sql (v010) aplicada exitosamente.
+[Migrator] Migraci├│n 011_unified_admin.sql (v011) aplicada exitosamente.
+[Migrator] Migraci├│n 012_continuing_education_courses.sql (v012) aplicada exitosamente.
+Γ£à [Cat├ílogo & Metadatos] Criterio 1: Carga de cat├ílogo y cursos semilla can├│nicos: 4 cursos encontrados. Categor├¡as verificadas: OFICIOS, TECNOLOGIA, ARTES, FORMACION_MINISTERIAL
+Γ£à [Cat├ílogo & Metadatos] Criterio 2: Filtrado multicriterio de cursos (categor├¡a, texto, modalidad): Filtros de oficios (1), b├║squeda por palabra clave (1) y modalidad h├¡brida (2) comprobados
+Γ£à [Gesti├│n Administrativa] Criterio 3: Creaci├│n y actualizaci├│n de curso con objetivos y prerrequisitos: Curso creado con c├│digo OFIC-002, duraci├│n 60h, cupo m├íx: 2
+Γ£à [Contenidos & Estructura] Criterio 4: Estructura jer├írquica Curso -> M├│dulos -> Lecciones: M├│dulo 'M├│dulo 1: Fundamentos de Circuitos y Seguridad El├⌐ctrica' con 2 lecciones vinculadas correctamente
+Γ£à [Inscripciones & Cupos] Criterio 5: Inscripci├│n de usuarios y salvaguarda estricta de cupo m├íximo: 2 participantes inscritos. Tercer intento rechazado exitosamente por l├¡mite de cupo
+Γ£à [Progreso & Avance] Criterio 6: C├ílculo din├ímico y en tiempo real del progreso del estudiante: Avance calculado: 50% tras lecci├│n 1, 100% tras lecci├│n 2 (2/2 lecciones)
+Γ£à [Evaluaciones & Calificaci├│n] Criterio 7: Evaluaci├│n pr├íctica, entrega estudiantil y calificaci├│n docente: Proyecto pr├íctico evaluado: Nota 9.50 / 10.00 (m├¡nimo aprobatorio: 7.00). Aprobado: true
+Γ£à [Certificados & Marco Legal] Criterio 8: Emisi├│n de certificado no formal con hash SHA-256 y descargo legal: C├│digo: CERT-OFIC-2026-7FAF11, Hash SHA-256: f9f2e0fc9c932097..., Descargo Art. 32 verificado
+Γ£à [Certificados & Marco Legal] Criterio 9: Verificaci├│n p├║blica universal de certificados (c├│digo y hash SHA-256): Verificaci├│n por c├│digo: true, por hash: true, c├│digo inexistente rechazado: true
+Γ£à [Informes & Anal├¡tica] Criterio 10: Informe anal├¡tico de desempe├▒o y finalizaci├│n del curso: Inscritos: 2, Finalizados: 1, Tasa finalizaci├│n: 50%, Certificados: 1
+Γ£à [Certificados & Marco Legal] Criterio 11: Idempotencia en emisi├│n de certificados ante reintentos: Reintento devolvi├│ el certificado previamente generado sin duplicar registros en base de datos
+Γ£à [Separaci├│n Acad├⌐mica] Criterio 12: Aislamiento arquitect├│nico y separaci├│n de malla K-12 EGB: Cero contaminaci├│n en tabla 'subjects' (0), cero en 'student_subject_enrollments' (0), cero en 'programs' (0)
+
+================================================================
+  RESUMEN DE PRUEBAS AUTOMATIZADAS ΓÇö ETAPA 12
+================================================================
+Total Pruebas: 12 | Aprobadas: 12 | Fallidas: 0
+
+Γ£à TODAS LAS PRUEBAS DE LA ETAPA 12 PASARON SATISFACTORIAMENTE.
+===================================================
+EJECUTANDO: test:etapa13
+===================================================
+
+> react-example@0.0.0 test:etapa13
+> tsx scripts/test-etapa-13.ts
+
+================================================================
+  SUITE DE AUDITOR├ìA INTEGRAL Y ACEPTACI├ôN ΓÇö ETAPA 13 (ALSIZ)
+  VERIFICACI├ôN MULTIDISCIPLINAR DE FLUJOS, AISLAMIENTO Y SEGURIDAD
+================================================================
+
+[Migrator] Migraci├│n 001_initial_schema.sql (v001) aplicada exitosamente.
+[Migrator] Migraci├│n 002_security_indexes.sql (v002) aplicada exitosamente.
+[Migrator] Migraci├│n 003_seed_dev_data.sql (v003) aplicada exitosamente.
+[Migrator] Migraci├│n 004_lms_academic_core.sql (v004) aplicada exitosamente.
+[Migrator] Migraci├│n 005_lms_seed_data.sql (v005) aplicada exitosamente.
+[Migrator] Migraci├│n 006_knowledge_base_core.sql (v006) aplicada exitosamente.
+[Migrator] Migraci├│n 007_knowledge_seed_data.sql (v007) aplicada exitosamente.
+[Migrator] Migraci├│n 008_ai_agents_orchestration.sql (v008) aplicada exitosamente.
+[Migrator] Migraci├│n 009_ai_agents_seed.sql (v009) aplicada exitosamente.
+[Migrator] Migraci├│n 010_interactive_pilot.sql (v010) aplicada exitosamente.
+[Migrator] Migraci├│n 011_unified_admin.sql (v011) aplicada exitosamente.
+[Migrator] Migraci├│n 012_continuing_education_courses.sql (v012) aplicada exitosamente.
+Γ£à [Gobernanza Documental] Auditor├¡a 1: Expediente documental completo de todas las etapas previas (00 a 12): Las 13 etapas previas cuentan con los 7 archivos normativos obligatorios y bit├ícora actualizada
+Γ£à [Identidad & Tutela] Auditor├¡a 2: Identidad, roles RBAC, tutela familiar e inmutabilidad de credenciales scrypt: Usuarios verificados (Admin, Docente, Alumno, Tutor). Representante vinculado (rep-01). Cero credenciales en claro.
+Γ£à [N├║cleo Acad├⌐mico LMS] Auditor├¡a 3: Integridad de la Malla Curricular K-12 Homeschool EGB: Programa: 'Educaci├│n en Casa K-12', Asignaturas: 2, Unidades: 1, Clases diarias: 1
+Γ£à [Seguridad & Privacidad] Auditor├¡a 4: Aislamiento estricto de expedientes inter-familiares (Anti-IDOR): Tutor 1 supervisa ├║nicamente a Estudiante 1 (1); Tutor 2 supervisa ├║nicamente a Estudiante 2 (1). Cero fuga transversal.
+Γ£à [Conocimiento & RAG] Auditor├¡a 5: Centro de Conocimiento RAG y exclusi├│n estricta de fuentes desactivadas: Fuentes aprobadas en RAG: 2, Chunks aprobados: 3. Fuente desactivada excluida al 100%.
+Γ£à [Agentes IA & Resiliencia] Auditor├¡a 6: Resiliencia de proveedores de IA y degradaci├│n elegante a simulaci├│n local: Proveedores disponibles: SIMULATED_LOCAL. Respuesta entregada por 'SIMULATED_LOCAL' sin error 500.
+Γ£à [Educaci├│n No Formal] Auditor├¡a 7: Formaci├│n No Formal: Control de cupos, certificado SHA-256 y descargo Art. 32: Cupo respetado: true. Verificaci├│n p├║blica (c├│digo/hash): OK. Descargo Art. 32 MINEDUC incluido.
+Γ£à [Seguridad & Privacidad] Auditor├¡a 8: Privacidad LOPDP: Anonimizaci├│n de IPs (SHA-256) y cero secretos en bit├ícora: Eventos auditados: 4. 100% de IPs anonimizadas con HMAC/SHA-256 de 64 hex. Cero contrase├▒as en logs.
+Γ£à [Respaldo & Recuperaci├│n] Auditor├¡a 9: Respaldo en caliente (Hot Backup) y restauraci├│n comprobada (PRAGMA integrity_check): Respaldo creado (802816 bytes, SHA-256: 1ccefeee2d1963d1...). Restauraci├│n: ok
+Γ£à [Seguridad & Producci├│n] Auditor├¡a 10: Integridad y salvaguarda estricta de la base de datos de producci├│n (data/alsiz.db): data/alsiz.db verificado en modo read-only: 0 contaminaciones de suites de prueba
+
+================================================================
+  RESUMEN DE AUDITOR├ìA INTEGRAL ΓÇö ETAPA 13
+================================================================
+Total Criterios Auditados: 10 | Aprobados: 10 | Fallidos: 0
+
+Γ£à LA AUDITOR├ìA INTEGRAL DE LA ETAPA 13 CONCLUY├ô SATISFACTORIAMENTE (10/10 CRITERIOS APROBADOS).
+===================================================
+EJECUTANDO: test:etapa14
+===================================================
+
+> react-example@0.0.0 test:etapa14
+> tsx scripts/test-etapa-14.ts
+
+================================================================
+  SUITE DE PRUEBAS AUTOMATIZADA ΓÇö ETAPA 14: DESPLIEGUE Y OPERACI├ôN
+  Plataforma Educativa ALSIZ para Ekballo Church
+================================================================
+
+[TEST-01] Γ£à PAS├ô: Verificaci├│n de artefactos de compilaci├│n de producci├│n (dist/, server.cjs, api-server.js)
+          Γä╣∩╕Å  dist/index.html: OK, server.cjs: OK, api-server.js: OK
+[TEST-02] Γ£à PAS├ô: Existencia y contenido sustantivo de los 9 manuales de operaci├│n en docs/operacion/
+          Γä╣∩╕Å  Los 9 manuales existen y superan los umbrales m├¡nimos de contenido.
+[TEST-03] Γ£à PAS├ô: Secuencialidad e inmutabilidad de migraciones relacionales (001 a 012)
+          Γä╣∩╕Å  Se detectaron 12 migraciones ordenadas secuencialmente sin vac├¡os.
+[TEST-04] Γ£à PAS├ô: Generaci├│n at├│mica de respaldo en caliente (Hot Backup) con firma SHA-256
+          Γä╣∩╕Å  Archivo: alsiz_backup_2026-10-17T11-44-46-421Z.db, Tama├▒o: 1104.00 KB, Hash: 47100979053c6929...
+[TEST-05] Γ£à PAS├ô: Restauraci├│n at├│mica de prueba en sandbox y verificaci├│n de integridad SQLite (PRAGMA integrity_check)
+          Γä╣∩╕Å  Resultado de integridad f├¡sica: OK
+[TEST-06] Γ£à PAS├ô: Equivalencia exacta de registros de datos entre BD origen y BD restaurada
+          Γä╣∩╕Å  Validado conteo id├⌐ntico en 7 entidades: users: 7==7, students: 2==2, programs: 19==19, subjects: 19==19...
+[TEST-07] Γ£à PAS├ô: Contrato de diagn├│stico /api/health: estado HEALTHY y cero divulgaci├│n de valores de claves API
+          Γä╣∩╕Å  El endpoint reporta booleans de configuraci├│n sin revelar secretos ni tokens.
+[TEST-08] Γ£à PAS├ô: Pol├¡ticas de seguridad de sesi├│n: TTL acotado (>=24h y <=168h) y longitud criptogr├ífica >=32 bytes
+          Γä╣∩╕Å  TTL configurado: 72 horas, Secreto base: 65 caracteres.
+[TEST-09] Γ£à PAS├ô: Privacidad LOPDP: Algoritmo de anonimizaci├│n irreversible HMAC-SHA256 para telemetr├¡a de red
+          Γä╣∩╕Å  IP en claro '186.101.45.12' transformada en hash seguro: 4f2fa01fc5a864a1...
+[TEST-10] Γ£à PAS├ô: Disponibilidad de comandos operacionales estandarizados en package.json
+          Γä╣∩╕Å  Comandos listos: db:migrate, db:backup, db:restore, health, build, lint, start
+[TEST-11] Γ£à PAS├ô: Limpieza y reciclaje de artefactos ef├¡meros de prueba de respaldo
+          Γä╣∩╕Å  Directorio sandbox temporal eliminado sin dejar residuos en disco.
+[TEST-12] Γ£à PAS├ô: Gobernanza de Etapa 14: Existencia y completitud del plan t├⌐cnico formal (00_PLAN.md)
+          Γä╣∩╕Å  Archivo verificado en: docs/ejecucion/etapas/ETAPA-14/00_PLAN.md (6686 bytes)
+
+================================================================
+  RESUMEN ETAPA 14: 12/12 PRUEBAS APROBADAS
+================================================================
+
+≡ƒÄë TODAS LAS PRUEBAS DE LA ETAPA 14 PASARON SATISFACTORIAMENTE.

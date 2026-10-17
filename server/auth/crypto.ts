@@ -82,3 +82,42 @@ export function generateUuid(): string {
   return crypto.randomUUID();
 }
 
+const INSECURE_DEFAULT_SECRETS = new Set([
+  'alsiz_default_privacy_pepper_2026',
+  'alsiz_ekballo_session_secret_change_in_production_2026_min32bytes',
+  'cambiar_en_produccion_por_un_secreto_largo_y_seguro_minimo_32_chars',
+  'secret',
+  'session_secret',
+  '12345678901234567890123456789012',
+  'alsiz_session_secret_default_change_me_production_min32',
+  'changeme_production_session_secret_min_32_bytes',
+]);
+
+/**
+ * Valida la seguridad de la configuración de sesión en producción.
+ * Si se detecta un secreto nulo, demasiado corto (< 32 caracteres) o un valor de ejemplo por defecto,
+ * arroja un error crítico para impedir el inicio del servidor en producción.
+ */
+export function validateProductionSessionSecret(secret?: string, isProd?: boolean): void {
+  const isProduction = isProd !== undefined ? isProd : (process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL));
+  const currentSecret = secret !== undefined ? secret : process.env.SESSION_SECRET;
+
+  if (isProduction) {
+    if (!currentSecret || typeof currentSecret !== 'string') {
+      throw new Error(
+        'CRITICAL_SECURITY_ERROR: SESSION_SECRET es obligatoria en entorno de producción. Configure una clave secreta aleatoria de al menos 32 caracteres.'
+      );
+    }
+    if (currentSecret.trim().length < 32) {
+      throw new Error(
+        `CRITICAL_SECURITY_ERROR: SESSION_SECRET es demasiado corta (${currentSecret.trim().length} caracteres). Se exige un mínimo de 32 caracteres criptográficamente seguros.`
+      );
+    }
+    if (INSECURE_DEFAULT_SECRETS.has(currentSecret.trim().toLowerCase())) {
+      throw new Error(
+        'CRITICAL_SECURITY_ERROR: SESSION_SECRET coincide con una clave de ejemplo o predeterminada insegura. Genere un secreto único de alta entropía para producción.'
+      );
+    }
+  }
+}
+

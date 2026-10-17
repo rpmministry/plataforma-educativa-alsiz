@@ -17,9 +17,9 @@ export const pilotRouter = Router();
  * GET /api/v1/pilot/status
  * Consulta el estado del feature flag del piloto y parámetros públicos
  */
-pilotRouter.get('/status', (req: Request, res: Response) => {
+pilotRouter.get('/status', async (req: Request, res: Response) => {
   try {
-    const config = PilotConfigService.getConfig();
+    const config = await PilotConfigService.getConfig();
     res.json({
       success: true,
       data: {
@@ -39,7 +39,7 @@ pilotRouter.get('/status', (req: Request, res: Response) => {
  * POST /api/v1/pilot/sessions/initiate
  * Inicia una sesión piloto efímera (Anti-PII: no expone credenciales ni datos personales)
  */
-pilotRouter.post('/sessions/initiate', requireAuth, (req: Request, res: Response) => {
+pilotRouter.post('/sessions/initiate', requireAuth, async (req: Request, res: Response) => {
   try {
     const { subjectCode, lessonTheme } = req.body;
     if (!subjectCode || !lessonTheme) {
@@ -50,7 +50,7 @@ pilotRouter.post('/sessions/initiate', requireAuth, (req: Request, res: Response
       return;
     }
 
-    const session = PilotSessionService.initiateSession({
+    const session = await PilotSessionService.initiateSession({
       subjectCode: String(subjectCode),
       lessonTheme: String(lessonTheme),
     });
@@ -70,9 +70,9 @@ pilotRouter.post('/sessions/initiate', requireAuth, (req: Request, res: Response
  * GET /api/v1/pilot/sessions/:token
  * Consulta el estado de una sesión por su token efímero
  */
-pilotRouter.get('/sessions/:token', (req: Request, res: Response) => {
+pilotRouter.get('/sessions/:token', async (req: Request, res: Response) => {
   try {
-    const session = PilotSessionService.getSessionByToken(req.params.token);
+    const session = await PilotSessionService.getSessionByToken(req.params.token);
     res.json({ success: true, data: session });
   } catch (err: any) {
     const status = err.message.startsWith('SESSION_NOT_FOUND') ? 404 : 500;
@@ -84,9 +84,9 @@ pilotRouter.get('/sessions/:token', (req: Request, res: Response) => {
  * POST /api/v1/pilot/sessions/:token/interact
  * Ejecuta un turno multiagente en el aula interactiva (Profesor + Compañero + Simulador)
  */
-pilotRouter.post('/sessions/:token/interact', (req: Request, res: Response) => {
+pilotRouter.post('/sessions/:token/interact', async (req: Request, res: Response) => {
   try {
-    const session = PilotSessionService.getSessionByToken(req.params.token);
+    const session = await PilotSessionService.getSessionByToken(req.params.token);
     if (session.status !== 'ACTIVE') {
       res.status(400).json({
         success: false,
@@ -97,7 +97,7 @@ pilotRouter.post('/sessions/:token/interact', (req: Request, res: Response) => {
 
     const { turnIndex, userAction, studentMessage, n1, n2, angleIncidentDeg } = req.body;
 
-    const config = PilotConfigService.getConfig();
+    const config = await PilotConfigService.getConfig();
     if (turnIndex && turnIndex > config.maxTurnsPerSession) {
       res.status(429).json({
         success: false,
@@ -129,13 +129,13 @@ pilotRouter.post('/sessions/:token/interact', (req: Request, res: Response) => {
  * POST /api/v1/pilot/sessions/:token/terminate
  * Finaliza la sesión piloto y registra telemetría operativa
  */
-pilotRouter.post('/sessions/:token/terminate', (req: Request, res: Response) => {
+pilotRouter.post('/sessions/:token/terminate', async (req: Request, res: Response) => {
   try {
     const { exitReason, telemetry } = req.body;
     const validReasons = ['USER_EXIT', 'SESSION_TIMEOUT', 'LESSON_COMPLETED', 'SYSTEM_KILL_SWITCH'];
     const reason = validReasons.includes(exitReason) ? exitReason : 'USER_EXIT';
 
-    const result = PilotSessionService.terminateSession(req.params.token, reason, telemetry);
+    const result = await PilotSessionService.terminateSession(req.params.token, reason, telemetry);
 
     res.json({
       success: true,
@@ -156,9 +156,9 @@ pilotRouter.get(
   '/admin/telemetry',
   requireAuth,
   requireRole('ADMIN', 'ACADEMIC_COORDINATOR'),
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
-      const summary = PilotSessionService.getAdminTelemetrySummary();
+      const summary = await PilotSessionService.getAdminTelemetrySummary();
       res.json({ success: true, data: summary });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
@@ -174,11 +174,11 @@ pilotRouter.post(
   '/admin/toggle',
   requireAuth,
   requireRole('ADMIN', 'ACADEMIC_COORDINATOR'),
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const { enabled } = req.body;
       const isEnabled = Boolean(enabled);
-      PilotConfigService.setPilotEnabled(isEnabled);
+      await PilotConfigService.setPilotEnabled(isEnabled);
 
       res.json({
         success: true,
@@ -190,4 +190,3 @@ pilotRouter.post(
     }
   }
 );
-

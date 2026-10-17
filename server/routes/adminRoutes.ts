@@ -7,7 +7,7 @@
 
 import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { getDb } from '../db/database';
+import { getDatabaseAdapter } from '../db/dal';
 import { AuthenticatedRequest, requireAuth, requireRole } from '../middleware/authMiddleware';
 import { recordAuditEvent } from '../middleware/auditMiddleware';
 import { PilotConfigService } from '../pilot/pilotConfigService';
@@ -30,14 +30,14 @@ adminRouter.get(
   requireRole('ADMIN', 'ACADEMIC_COORDINATOR'),
   async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const db = getDb();
+      const db = getDatabaseAdapter();
 
       // Métricas de usuarios por rol
-      const usersByRole = db.prepare(`
+      const usersByRole = await db.query<{ role: string; count: number }>(`
         SELECT role, count(*) as count 
         FROM users 
         GROUP BY role
-      `).all() as Array<{ role: string; count: number }>;
+      `);
 
       const userRoleMap: Record<string, number> = {
         STUDENT: 0,
@@ -53,51 +53,51 @@ adminRouter.get(
       }
 
       // Métricas académicas
-      const programsCount = (db.prepare('SELECT count(*) as cnt FROM programs WHERE is_active = 1').get() as any)?.cnt || 0;
-      const subjectsCount = (db.prepare('SELECT count(*) as cnt FROM subjects').get() as any)?.cnt || 0;
-      const enrollmentsCount = (db.prepare("SELECT count(*) as cnt FROM student_program_enrollments WHERE status = 'ACTIVE'").get() as any)?.cnt || 0;
+      const programsCount = (await db.queryOne<{ cnt: number }>('SELECT count(*) as cnt FROM programs WHERE is_active = 1'))?.cnt || 0;
+      const subjectsCount = (await db.queryOne<{ cnt: number }>('SELECT count(*) as cnt FROM subjects'))?.cnt || 0;
+      const enrollmentsCount = (await db.queryOne<{ cnt: number }>("SELECT count(*) as cnt FROM student_program_enrollments WHERE status = 'ACTIVE'"))?.cnt || 0;
 
       // Métricas del Centro de Conocimiento
-      const knowledgeStats = db.prepare(`
+      const knowledgeStats = (await db.queryOne<any>(`
         SELECT 
           count(*) as total,
           SUM(CASE WHEN status = 'APROBADO' THEN 1 ELSE 0 END) as approved,
           SUM(CASE WHEN status = 'PENDIENTE' THEN 1 ELSE 0 END) as pending,
           SUM(CASE WHEN status = 'DESACTIVADO' THEN 1 ELSE 0 END) as deactivated
         FROM knowledge_sources
-      `).get() as any;
+      `)) || {};
 
-      const chunksCount = (db.prepare('SELECT count(*) as cnt FROM knowledge_chunks').get() as any)?.cnt || 0;
+      const chunksCount = (await db.queryOne<{ cnt: number }>('SELECT count(*) as cnt FROM knowledge_chunks'))?.cnt || 0;
 
       // Métricas de IA y Agentes
-      const activeAgentsCount = (db.prepare("SELECT count(*) as cnt FROM ai_agents WHERE is_active = 1").get() as any)?.cnt || 0;
-      const aiTelemetryStats = db.prepare(`
+      const activeAgentsCount = (await db.queryOne<{ cnt: number }>("SELECT count(*) as cnt FROM ai_agents WHERE is_active = 1"))?.cnt || 0;
+      const aiTelemetryStats = (await db.queryOne<any>(`
         SELECT count(*) as total, avg(latency_ms) as avg_latency 
         FROM ai_telemetry_logs
-      `).get() as any;
+      `)) || {};
 
       // Métricas del Piloto Interactivo
-      const pilotConfig = PilotConfigService.getConfig();
-      const pilotTelemetry = PilotSessionService.getAdminTelemetrySummary();
+      const pilotConfig = await PilotConfigService.getConfig();
+      const pilotTelemetry = await PilotSessionService.getAdminTelemetrySummary();
 
       // Bandeja de Tareas Pendientes (Action Items)
-      const pendingSources = db.prepare(`
+      const pendingSources = await db.query(`
         SELECT id, code, title, source_type, created_at 
         FROM knowledge_sources 
         WHERE status = 'PENDIENTE' 
         ORDER BY created_at ASC 
         LIMIT 10
-      `).all();
+      `);
 
-      const pendingMaterials = db.prepare(`
+      const pendingMaterials = await db.query(`
         SELECT id, title, agent_id, created_at 
         FROM ai_generated_materials 
         WHERE status = 'DRAFT_REVIEW' 
         ORDER BY created_at ASC 
         LIMIT 10
-      `).all();
+      `);
 
-      const reportedConflicts = (db.prepare("SELECT count(*) as cnt FROM knowledge_source_conflicts WHERE status = 'REPORTED'").get() as any)?.cnt || 0;
+      const reportedConflicts = (await db.queryOne<{ cnt: number }>("SELECT count(*) as cnt FROM knowledge_source_conflicts WHERE status = 'REPORTED'"))?.cnt || 0;
 
       res.json({
         success: true,
@@ -165,7 +165,7 @@ adminRouter.get(
   requireRole('ADMIN', 'ACADEMIC_COORDINATOR'),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const db = getDb();
+      const db = getDatabaseAdapter();
       const { role, status, search } = req.query;
 
       let sql = `
@@ -194,7 +194,7 @@ adminRouter.get(
       }
 
       sql += ' ORDER BY created_at DESC';
-      const users = db.prepare(sql).all(...params);
+      const users = await db.query(sql, params);
 
       res.json({
         success: true,
@@ -227,9 +227,9 @@ adminRouter.patch(
     try {
       const { userId } = req.params;
       const { role: newRole, justification } = roleUpdateSchema.parse(req.body);
-      const db = getDb();
+      const db = getDatabaseAdapter();
 
-      const user = db.prepare('SELECT id, username, role FROM users WHERE id = ?').get(userId) as any;
+      const user = await db.queryOne<{ id: string; username: string; role: string }>('SELECT id, username, role FROM users WHERE id = ?', [userId]);
       if (!user) {
         res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Usuario no encontrado.' } });
         return;
@@ -237,7 +237,7 @@ adminRouter.patch(
 
       // Salvaguarda: No permitir degradar al último administrador
       if (user.role === 'ADMIN' && newRole !== 'ADMIN') {
-        const adminCount = (db.prepare("SELECT count(*) as cnt FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE'").get() as any)?.cnt || 0;
+        const adminCount = (await db.queryOne<{ cnt: number }>("SELECT count(*) as cnt FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE'"))?.cnt || 0;
         if (adminCount <= 1) {
           res.status(400).json({
             success: false,
@@ -248,7 +248,7 @@ adminRouter.patch(
       }
 
       const previousRole = user.role;
-      db.prepare("UPDATE users SET role = ?, updated_at = datetime('now') WHERE id = ?").run(newRole, userId);
+      await db.execute("UPDATE users SET role = ?, updated_at = datetime('now') WHERE id = ?", [newRole, userId]);
 
       recordAuditEvent({
         userId: req.user?.userId,
@@ -289,16 +289,16 @@ adminRouter.patch(
     try {
       const { userId } = req.params;
       const { status: newStatus, justification } = statusUpdateSchema.parse(req.body);
-      const db = getDb();
+      const db = getDatabaseAdapter();
 
-      const user = db.prepare('SELECT id, username, status FROM users WHERE id = ?').get(userId) as any;
+      const user = await db.queryOne<{ id: string; username: string; status: string }>('SELECT id, username, status FROM users WHERE id = ?', [userId]);
       if (!user) {
         res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Usuario no encontrado.' } });
         return;
       }
 
       const previousStatus = user.status;
-      db.prepare("UPDATE users SET status = ?, updated_at = datetime('now') WHERE id = ?").run(newStatus, userId);
+      await db.execute("UPDATE users SET status = ?, updated_at = datetime('now') WHERE id = ?", [newStatus, userId]);
 
       recordAuditEvent({
         userId: req.user?.userId,
@@ -332,32 +332,37 @@ adminRouter.get(
   requireRole('ADMIN', 'ACADEMIC_COORDINATOR'),
   async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const db = getDb();
-      const reps = db.prepare(`
+      const db = getDatabaseAdapter();
+      const reps = (await db.query(`
         SELECT 
           r.id, r.user_id, r.phone_number, r.phone_number as emergency_phone, r.consent_lopdp_signed_at, r.address_text,
           u.first_name, u.last_name, u.email, u.status
         FROM representatives r
         JOIN users u ON u.id = r.user_id
         ORDER BY u.last_name ASC
-      `).all() as any[];
+      `)) as any[];
 
-      const enrichedReps = reps.map((rep) => {
-        const students = db.prepare(`
-          SELECT 
-            s.id, s.student_code, u.first_name, u.last_name, 
-            sr.relationship_type, sr.is_primary_contact
-          FROM student_representatives sr
-          JOIN students s ON s.id = sr.student_id
-          JOIN users u ON u.id = s.user_id
-          WHERE sr.representative_id = ?
-        `).all(rep.id);
+      const enrichedReps = await Promise.all(
+        reps.map(async (rep: any) => {
+          const students = await db.query(
+            `
+            SELECT 
+              s.id, s.student_code, u.first_name, u.last_name, 
+              sr.relationship_type, sr.is_primary_contact
+            FROM student_representatives sr
+            JOIN students s ON s.id = sr.student_id
+            JOIN users u ON u.id = s.user_id
+            WHERE sr.representative_id = ?
+          `,
+            [rep.id]
+          );
 
-        return {
-          ...rep,
-          students,
-        };
-      });
+          return {
+            ...rep,
+            students,
+          };
+        })
+      );
 
       res.json({
         success: true,
@@ -391,11 +396,11 @@ adminRouter.post(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const { representativeId, studentId, relationshipType, isPrimaryContact } = linkFamilySchema.parse(req.body);
-      const db = getDb();
+      const db = getDatabaseAdapter();
 
       // Verificar existencia de representante y estudiante
-      const repExists = db.prepare('SELECT id FROM representatives WHERE id = ?').get(representativeId);
-      const studentExists = db.prepare('SELECT id FROM students WHERE id = ?').get(studentId);
+      const repExists = await db.queryOne('SELECT id FROM representatives WHERE id = ?', [representativeId]);
+      const studentExists = await db.queryOne('SELECT id FROM students WHERE id = ?', [studentId]);
 
       if (!repExists || !studentExists) {
         res.status(404).json({
@@ -407,16 +412,19 @@ adminRouter.post(
 
       // Si es contacto primario, desmarcar otros si existen
       if (isPrimaryContact) {
-        db.prepare('UPDATE student_representatives SET is_primary_contact = 0 WHERE student_id = ?').run(studentId);
+        await db.execute('UPDATE student_representatives SET is_primary_contact = 0 WHERE student_id = ?', [studentId]);
       }
 
-      db.prepare(`
+      await db.execute(
+        `
         INSERT INTO student_representatives (representative_id, student_id, relationship_type, is_primary_contact)
         VALUES (?, ?, ?, ?)
         ON CONFLICT(representative_id, student_id) DO UPDATE SET
           relationship_type = excluded.relationship_type,
           is_primary_contact = excluded.is_primary_contact
-      `).run(representativeId, studentId, relationshipType, isPrimaryContact ? 1 : 0);
+      `,
+        [representativeId, studentId, relationshipType, isPrimaryContact ? 1 : 0]
+      );
 
       recordAuditEvent({
         userId: req.user?.userId,
@@ -453,34 +461,34 @@ adminRouter.get(
   requireRole('ADMIN', 'ACADEMIC_COORDINATOR'),
   async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const db = getDb();
+      const db = getDatabaseAdapter();
 
       // Sesiones del piloto con error o abortadas
-      const abortedPilotSessions = db.prepare(`
+      const abortedPilotSessions = await db.query(`
         SELECT id, subject_code, lesson_theme, status, started_at, ended_at 
         FROM interactive_pilot_sessions 
         WHERE status IN ('TERMINATED_ERROR', 'ABORTED_BY_USER')
         ORDER BY started_at DESC 
         LIMIT 20
-      `).all();
+      `);
 
       // Telemetría con errores o latencias críticas
-      const criticalAiLogs = db.prepare(`
+      const criticalAiLogs = await db.query(`
         SELECT id, agent_code, provider_name, latency_ms, status_code, created_at as logged_at, created_at 
         FROM ai_telemetry_logs 
         WHERE status_code >= 400 OR latency_ms > 4000
         ORDER BY created_at DESC 
         LIMIT 20
-      `).all();
+      `);
 
       // Eventos de seguridad o rechazos de autenticación
-      const authFailures = db.prepare(`
+      const authFailures = (await db.query(`
         SELECT id, event_type, resource_type, ip_hash, created_at, details_json
         FROM audit_events 
         WHERE event_type IN ('AUTH_LOGIN_FAILED', 'FORBIDDEN_STUDENT_ACCESS', 'RBAC_ACCESS_DENIED')
         ORDER BY created_at DESC 
         LIMIT 20
-      `).all() as any[];
+      `)) as any[];
 
       const sanitizedAuthFailures = authFailures.map((af) => ({
         ...af,
@@ -521,12 +529,12 @@ adminRouter.get(
   requireRole('ADMIN', 'ACADEMIC_COORDINATOR'),
   async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const db = getDb();
-      const settings = db.prepare(`
+      const db = getDatabaseAdapter();
+      const settings = await db.query(`
         SELECT key, value, description, category, is_editable, updated_at 
         FROM institution_settings 
         ORDER BY category ASC, key ASC
-      `).all();
+      `);
 
       const settingsMap: Record<string, string> = {};
       for (const s of settings as any[]) {
@@ -560,19 +568,20 @@ adminRouter.put(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const updates = settingsUpdateSchema.parse(req.body);
-      const db = getDb();
+      const db = getDatabaseAdapter();
       const userId = req.user?.userId;
-
-      const updateStmt = db.prepare(`
-        UPDATE institution_settings 
-        SET value = ?, updated_at = datetime('now'), updated_by_user_id = ? 
-        WHERE key = ? AND is_editable = 1
-      `);
 
       const updatedKeys: string[] = [];
       for (const [key, val] of Object.entries(updates)) {
-        const info = updateStmt.run(String(val), userId, key);
-        if (info.changes > 0) {
+        const info = await db.execute(
+          `
+          UPDATE institution_settings 
+          SET value = ?, updated_at = datetime('now'), updated_by_user_id = ? 
+          WHERE key = ? AND is_editable = 1
+        `,
+          [String(val), userId, key]
+        );
+        if (info.rowsAffected > 0) {
           updatedKeys.push(key);
         }
       }
@@ -615,7 +624,7 @@ adminRouter.get(
     try {
       const limit = Math.min(Number(req.query.limit) || 50, 200);
       const { eventType, resourceType, userId } = req.query;
-      const db = getDb();
+      const db = getDatabaseAdapter();
 
       let sql = `
         SELECT 
@@ -653,7 +662,7 @@ adminRouter.get(
       sql += ' ORDER BY a.created_at DESC LIMIT ?';
       params.push(limit);
 
-      const rawLogs = db.prepare(sql).all(...params) as any[];
+      const rawLogs = (await db.query(sql, params)) as any[];
       const logs = rawLogs.map((log) => ({
         ...log,
         details: log.details_json ? JSON.parse(log.details_json) : null,
@@ -688,10 +697,10 @@ adminRouter.get(
   requireRole('ADMIN', 'ACADEMIC_COORDINATOR', 'TEACHER'),
   async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const db = getDb();
+      const db = getDatabaseAdapter();
 
       // Métricas por asignatura (promedios y entregas)
-      const subjectMetrics = db.prepare(`
+      const subjectMetrics = (await db.query(`
         SELECT 
           s.id, s.code, s.name, s.category,
           count(DISTINCT e.id) as evaluations_count,
@@ -703,15 +712,15 @@ adminRouter.get(
         LEFT JOIN student_submissions sub ON sub.evaluation_id = e.id
         GROUP BY s.id
         ORDER BY s.name ASC
-      `).all() as any[];
+      `)) as any[];
 
       // Resumen de dominio competencial MINEDUC
-      const masteryStats = db.prepare(`
+      const masteryStats = await db.query<{ mastery_status: string; count: number }>(`
         SELECT 
           mastery_status, count(*) as count 
         FROM student_competency_mastery 
         GROUP BY mastery_status
-      `).all() as Array<{ mastery_status: string; count: number }>;
+      `);
 
       const masteryMap: Record<string, number> = {
         DEMONSTRATED_MASTERY: 0,
@@ -754,17 +763,17 @@ adminRouter.get(
   requireRole('ADMIN', 'ACADEMIC_COORDINATOR'),
   async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const db = getDb();
-      const migrations = db.prepare('SELECT version, name, applied_at FROM schema_migrations ORDER BY version ASC').all();
-      const userCount = (db.prepare('SELECT COUNT(*) as cnt FROM users').get() as any).cnt;
-      const studentCount = (db.prepare('SELECT COUNT(*) as cnt FROM students').get() as any).cnt;
-      const auditCount = (db.prepare('SELECT COUNT(*) as cnt FROM audit_events').get() as any).cnt;
+      const db = getDatabaseAdapter();
+      const migrations = await db.query('SELECT version, name, applied_at FROM schema_migrations ORDER BY version ASC');
+      const userCount = (await db.queryOne<{ cnt: number }>('SELECT COUNT(*) as cnt FROM users'))?.cnt || 0;
+      const studentCount = (await db.queryOne<{ cnt: number }>('SELECT COUNT(*) as cnt FROM students'))?.cnt || 0;
+      const auditCount = (await db.queryOne<{ cnt: number }>('SELECT COUNT(*) as cnt FROM audit_events'))?.cnt || 0;
 
       res.json({
         success: true,
         data: {
           database: {
-            engine: 'node:sqlite (Embedded SQLite3 with WAL)',
+            engine: db.provider === 'TURSO' ? 'Turso Cloud (libSQL Remote)' : 'node:sqlite (Embedded SQLite3 with WAL)',
             status: 'HEALTHY',
             tablesVerified: true,
             totalUsers: userCount,
@@ -782,3 +791,4 @@ adminRouter.get(
     }
   }
 );
+

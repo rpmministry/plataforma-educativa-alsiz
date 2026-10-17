@@ -1,0 +1,43 @@
+================================================================================
+EVIDENCIA DE REPRODUCCIÓN DE PRUEBAS AUTOMATIZADAS (ETAPAS 05 A 14)
+================================================================================
+Fecha de Auditoría: 2026-10-16
+Tipo de Prueba: PRUEBA LOCAL (Aislamiento en sandbox SQLite temporal)
+Total de Suites Ejecutadas: 10 suites automatizadas
+
+RESUMEN POR SUITE:
+- test:etapa05 (Núcleo de Autenticación, RBAC, IDOR y Backup): 16/16 PASÓ
+- test:etapa06 (Núcleo Académico LMS, Calificaciones y Competencias): 25/25 PASÓ
+- test:etapa07 (Centro de Conocimiento RAG y Vectores): 16/16 PASÓ
+- test:etapa08 (Orquestación de Agentes IA y Supervisión Humana): 17/17 PASÓ
+- test:etapa09 (Aula Interactiva OpenMAIC y Sandbox Óptico): 14/14 PASÓ
+- test:etapa10 (Portal de Representantes, Boletines y Privacidad): 15/15 PASÓ
+- test:etapa11 (Migración Controlada y Mapeo de Currículo): 16/16 PASÓ
+- test:etapa12 (Cursos de Formación Continua y Oficios): 12/12 PASÓ
+- test:etapa13 (Auditoría Integral y Aceptación Multidisciplinar): 10/10 PASÓ
+- test:etapa14 (Aseguramiento de Despliegue y Gobernanza): 12/12 PASÓ
+
+SUMA DE PRUEBAS DE REGRESIÓN AUTOMATIZADAS (Etapas 05 a 13):
+16 + 25 + 16 + 17 + 14 + 15 + 16 + 12 + 10 = 141 pruebas
+
+SUMA TOTAL DE PRUEBAS DE ASSERTION (Etapas 05 a 14):
+141 + 12 = 153 pruebas automatizadas
+
+RECONCILIACIÓN DEL CONTEO DOCUMENTAL HISTÓRICO:
+1. En ETAPA-14/06_CIERRE.md se reporta:
+   - Suites históricas (Etapas 05 a 13): 141 pruebas
+   - Suite Etapa 14: 12 pruebas
+   - Total Consolidado: 153 pruebas automatizadas (100% éxito)
+2. En ETAPA-14/02_PRUEBAS.md se reporta una tabla con 163 "verificaciones":
+   - 1 suite lint (1 verificación)
+   - 12 pruebas etapa14
+   - 4 bloques de health-check (4 verificaciones)
+   - 1 proceso de hot-backup
+   - 1 proceso de restore
+   - 3 bundles compilados en build
+   - 141 pruebas de regresión histórica
+   - Total: 1 + 12 + 4 + 1 + 1 + 3 + 141 = 163 verificaciones totales.
+
+CONCLUSIÓN DE AUDITORÍA:
+Ambos conteos son técnicamente ciertos y reproducibles, pero describían granularidades distintas: 153 es el número estricto de casos de prueba ejecutados por los test runners en scripts/test-etapa-*.ts; 163 es el total sumando las 10 verificaciones de infraestructura y empaquetado (lint, health, backup, restore, build).
+

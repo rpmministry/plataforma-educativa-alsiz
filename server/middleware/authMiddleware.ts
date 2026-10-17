@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { validateSession } from '../auth/sessionService';
 import { AuthSessionUser, UserRole } from '../auth/types';
 import { recordAuditEvent } from './auditMiddleware';
-import { getDb } from '../db/database';
+import { getDatabaseAdapter } from '../db/dal';
 
 export interface AuthenticatedRequest extends Request {
   user?: AuthSessionUser;
@@ -48,18 +48,23 @@ export function extractSessionToken(req: Request): string | null {
 /**
  * Middleware para autenticar sesión. Adjunta req.user si es válida.
  */
-export function authenticate(req: AuthenticatedRequest, _res: Response, next: NextFunction): void {
+export async function authenticate(req: AuthenticatedRequest, _res: Response, next: NextFunction): Promise<void> {
   const token = extractSessionToken(req);
   if (!token) {
     req.user = undefined;
     return next();
   }
 
-  const sessionUser = validateSession(token);
-  if (sessionUser) {
-    req.user = sessionUser;
-    req.rawSessionToken = token;
-  } else {
+  try {
+    const sessionUser = await validateSession(token);
+    if (sessionUser) {
+      req.user = sessionUser;
+      req.rawSessionToken = token;
+    } else {
+      req.user = undefined;
+    }
+  } catch (err) {
+    console.warn('[AuthMiddleware] Error validando sesión:', err);
     req.user = undefined;
   }
   next();
@@ -132,7 +137,7 @@ export function requireRole(...allowedRoles: UserRole[]) {
  * - Un estudiante solo acceda a su propio expediente y tareas.
  * - Un representante solo acceda a los menores legalmente asignados en student_representatives.
  */
-export function requireStudentAccess(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+export async function requireStudentAccess(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
   if (!req.user) {
     res.status(401).json({
       success: false,
@@ -152,11 +157,12 @@ export function requireStudentAccess(req: AuthenticatedRequest, res: Response, n
     return;
   }
 
-  const db = getDb();
+  const db = getDatabaseAdapter();
   // Resolver id canónico del estudiante ya sea por UUID o por student_code
-  const studentRow = db
-    .prepare('SELECT id, student_code FROM students WHERE id = ? OR student_code = ?')
-    .get(requestedStudentParam, requestedStudentParam) as { id: string; student_code: string } | undefined;
+  const studentRow = await db.queryOne<{ id: string; student_code: string }>(
+    'SELECT id, student_code FROM students WHERE id = ? OR student_code = ?',
+    [requestedStudentParam, requestedStudentParam]
+  );
 
   if (!studentRow) {
     res.status(404).json({
@@ -221,11 +227,10 @@ export function requireStudentAccess(req: AuthenticatedRequest, res: Response, n
       return;
     }
 
-    const link = db
-      .prepare(
-        'SELECT 1 FROM student_representatives WHERE representative_id = ? AND student_id = ?'
-      )
-      .get(req.user.representativeId, targetStudentId);
+    const link = await db.queryOne(
+      'SELECT 1 FROM student_representatives WHERE representative_id = ? AND student_id = ?',
+      [req.user.representativeId, targetStudentId]
+    );
 
     if (link) {
       return next();

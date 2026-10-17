@@ -2,7 +2,9 @@ import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
-import { runMigrations } from './server/db/migrator';
+import { runMigrations, checkMigrationsStatus, checkMigrationsStatusAsync } from './server/db/migrator';
+import { isDatabaseConnected } from './server/db/database';
+import { isDatabaseConnectedAsync } from './server/db/dal';
 import { authenticate } from './server/middleware/authMiddleware';
 import { errorHandler } from './server/middleware/errorHandler';
 import { authRouter } from './server/routes/authRoutes';
@@ -14,6 +16,9 @@ import knowledgeRouter from './server/routes/knowledgeRoutes';
 import agentRouter from './server/routes/agentRoutes';
 import { pilotRouter } from './server/routes/pilotRoutes';
 import { continuingEducationRouter } from './server/routes/continuingEducationRoutes';
+import { sendStudentPinEmail } from './server/email/emailService';
+import { validateProductionSessionSecret } from './server/auth/crypto';
+import { ProviderManager } from './server/agents/providers/providerManager';
 
 // Carga de variables locales SOLO fuera de Vercel (allí el entorno las inyecta).
 if (!process.env.VERCEL) {
@@ -21,17 +26,42 @@ if (!process.env.VERCEL) {
   dotenv.config({ path: '.env.local' });
 }
 
-// Inicialización de la base de datos relacional y migraciones versionadas
+// Validación obligatoria de seguridad P0 en producción: SESSION_SECRET
 try {
-  runMigrations();
-} catch (migErr: any) {
-  console.error('[Server] Advertencia inicializando base de datos:', migErr?.message || migErr);
+  validateProductionSessionSecret();
+} catch (secErr: any) {
+  console.error('[SecurityGuard] ERROR CRÍTICO DE SEGURIDAD:', secErr.message);
+  process.exit(1);
+}
+
+// Inicialización y verificación de base de datos relacional y migraciones versionadas
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+  try {
+    if (process.env.NODE_ENV === 'production' && process.env.RUN_MIGRATIONS_ON_STARTUP !== 'true') {
+      const migStatus = checkMigrationsStatus();
+      if (migStatus.status === 'UNINITIALIZED') {
+        console.warn('[Server] Base de datos no inicializada. Aplicando migraciones base...');
+        runMigrations();
+      } else if (migStatus.status === 'PENDING') {
+        console.warn(`[Server] ADVERTENCIA: ${migStatus.pendingVersions.length} migraciones pendientes (${migStatus.pendingVersions.join(', ')}). Ejecute 'npm run db:migrate' en el paso de release.`);
+      } else {
+        console.log(`[Server] Esquema de base de datos verificado: v${migStatus.latestVersion || '000'} (${migStatus.appliedCount} migraciones activas).`);
+      }
+    } else {
+      runMigrations();
+    }
+  } catch (migErr: any) {
+    console.error('[Server] Advertencia inicializando base de datos:', migErr?.message || migErr);
+  }
 }
 
 // Base del proyecto. En Vercel process.cwd() es /var/task; en local, la raíz del repo.
 const appRoot = process.cwd();
 
 const app = express();
+
+// Detrás de reverse proxy o reescrituras de Vercel / Nginx / Render, habilitar trust proxy
+app.set('trust proxy', 1);
 
 // Paso 2: desactivamos el ETag para evitar caché agresivo y forzamos una recarga más limpia en frontend durante desarrollo.
 app.disable('etag');
@@ -171,31 +201,22 @@ app.get('/api/students/avatars-status', (req: Request, res: Response) => {
   res.json({ results });
 });
 
-// Paso 9b: envía el PIN por email al iniciar sesión
+// Paso 9b: envía el PIN por email al iniciar sesión usando Resend con fallback a SMTP
 app.post('/api/send-pin', async (req: Request, res: Response) => {
-  const { email, pinCode } = req.body;
+  const { email, pinCode, studentName } = req.body;
   if (!email || !pinCode) {
     return res.status(400).json({ error: 'Missing email or pinCode' });
   }
   try {
-    const { default: nodemailer } = await import('nodemailer');
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
+    const result = await sendStudentPinEmail({
+      toEmail: email,
+      pinCode,
+      studentName,
     });
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Tu PIN de acceso a Wisdom School',
-      text: `Hola,\n\nTu PIN de acceso es: ${pinCode}\nUtilízalo para ingresar a la plataforma.\n\n¡Éxitos!\n`,
-    });
-    res.json({ success: true });
-  } catch (e) {
-    console.error('Error sending PIN email', e);
-    res.status(500).json({ error: 'Failed to send email' });
+    res.json({ success: true, result });
+  } catch (e: any) {
+    console.error('Error sending PIN email:', e);
+    res.status(500).json({ error: e?.message || 'Failed to send email' });
   }
 });
 
@@ -224,25 +245,45 @@ app.get(['/api/health', '/api/v1/health'], async (req: Request, res: Response) =
   try {
     hierarchySummary = (await getAIHierarchy()).map((layer) => `${layer.label}: ${layer.models.slice(0, 3).join(' | ')}${layer.models.length > 3 ? ` (+${layer.models.length - 3} free más)` : ''}`);
   } catch { /* no debe tumbar el health */ }
-  res.json({
-    status: 'ok',
+
+  const dbConnected = await isDatabaseConnectedAsync();
+  const migStatus = await checkMigrationsStatusAsync();
+  const isHealthy = dbConnected && (migStatus.status === 'SYNCED' || migStatus.status === 'PENDING');
+
+  const payload = {
+    status: isHealthy ? 'ok' : 'degraded',
+    version: '1.0.0',
     service: 'Plataforma Educativa ALSIZ — Ekballo Church',
     database: {
-      engine: 'node:sqlite (Embedded SQLite3 with WAL)',
-      status: 'HEALTHY',
+      engine: process.env.TURSO_DATABASE_URL ? 'Turso Cloud (libSQL Remote)' : 'node:sqlite (Embedded SQLite3 with WAL)',
+      connected: dbConnected,
+      status: dbConnected ? (migStatus.status === 'SYNCED' ? 'HEALTHY' : 'NEEDS_MIGRATION') : 'DISCONNECTED',
+      migrations: {
+        status: migStatus.status,
+        appliedCount: migStatus.appliedCount,
+        latestVersion: migStatus.latestVersion,
+      },
     },
     ai: {
-      deepSeekConfigured: Boolean(process.env.DEEPSEEK_API_KEY?.trim()),
+      deepSeekConfigured: ProviderManager.isProviderAvailable('DEEPSEEK'),
       deepSeekModel: (process.env.DEEPSEEK_MODEL || 'deepseek-chat').trim(),
-      geminiConfigured: isUsableGeminiKey(process.env.GEMINI_API_KEY),
-      openRouterConfigured: Boolean(process.env.OPENROUTER_API_KEY?.trim()),
-      openCodeConfigured: Boolean(process.env.OPENCODE_API_KEY?.trim()),
+      geminiConfigured: ProviderManager.isProviderAvailable('GEMINI'),
+      openRouterConfigured: ProviderManager.isProviderAvailable('OPENROUTER'),
       ttsConfigured: Boolean(process.env.GOOGLE_TTS_API_KEY?.trim()),
-      freeFirst: !process.env.DEEPSEEK_API_KEY?.trim(),
+      freeFirst: !ProviderManager.isProviderAvailable('DEEPSEEK'),
+      availableProviders: ProviderManager.getAvailableProviders(),
       hierarchy: hierarchySummary,
     },
+    uptime: Math.floor(process.uptime()),
+    environment: process.env.NODE_ENV || 'development',
     time: new Date().toISOString(),
-  });
+  };
+
+  if (!dbConnected) {
+    return res.status(503).json(payload);
+  }
+
+  res.json(payload);
 });
 
 // --- TTS: voz Neuronal2 de Google (la clave vive SOLO en el servidor) ---
@@ -549,22 +590,9 @@ async function getOpenRouterFreeModels(preferredRaw?: string): Promise<string[]>
   return freeModelsCache.list.length > 0 ? freeModelsCache.list : FREE_FALLBACKstaticHint;
 }
 
-function getOpenCodeFreeModels(): string[] {
-  const explicit = (process.env.AI_TIER2_MODEL || '').split(',').map((s) => s.trim()).filter(Boolean);
-  if (explicit.length > 0) return explicit;
-  // Limitación verificada en vivo: OpenCode Zen bloquea sus modelos "-free" fuera de su propia app
-  // ("OpenCode's free tier can only be used in OpenCode"). Con clave gratuita esta capa falla rápido (400);
-  // solo es útil si tu cuenta OpenCode tiene modelos de pago. Se puede desactivar vaciando OPENCODE_API_KEY.
-  return [
-    'deepseek-v4-flash-free',
-    'mimo-v2.5-free',
-  ];
-}
-
 async function getAIHierarchy(): Promise<AIChatLayer[]> {
   const deepSeekKey = process.env.DEEPSEEK_API_KEY?.trim();
   const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
-  const openCodeKey = process.env.OPENCODE_API_KEY?.trim();
   const geminiKey = process.env.GEMINI_API_KEY?.trim();
 
   const layers: AIChatLayer[] = [];
@@ -595,17 +623,6 @@ async function getAIHierarchy(): Promise<AIChatLayer[]> {
         'HTTP-Referer': process.env.APP_URL || 'https://wisdomschool.edu',
         'X-Title': 'Wisdom School AI Teacher',
       },
-    });
-  }
-
-  if (openCodeKey) {
-    layers.push({
-      id: 'opencode',
-      label: 'OpenCode Zen (gratuito)',
-      provider: 'openai-compatible',
-      baseUrl: 'https://opencode.ai/zen/v1',
-      apiKey: openCodeKey,
-      models: getOpenCodeFreeModels(),
     });
   }
 

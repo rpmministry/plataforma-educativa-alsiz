@@ -2,212 +2,155 @@
 ## Plataforma Educativa ALSIZ para Ekballo Church
 
 - **Documento**: `docs/operacion/guia_instalacion_despliegue.md`
-- **Versión**: 1.0.0 (Producción / Staging)
-- **Fecha**: 2026-10-16
+- **Versión**: 2.1.0 (Producción / Arquitectura Dual Serverless y Persistente)
+- **Fecha**: 2026-10-17
 - **Audiencia**: Administradores de Sistemas, Ingenieros DevOps y Líderes Técnicos
 
 ---
 
-### 1. Arquitectura y Modelos de Despliegue
+### 1. Modelos de Arquitectura Soportados
 
-La **Plataforma Educativa ALSIZ** está diseñada como un sistema híbrido de alto rendimiento:
-- **Frontend**: Single Page Application (SPA) desarrollada en React 19, TypeScript 5.8, Tailwind CSS 4 y Vite 6.
-- **Backend**: API RESTful modular en Node.js 22 LTS con Express 4.
-- **Persistencia**: Base de datos relacional transaccional embebida SQLite3 (mediante el módulo nativo de Node.js `node:sqlite`), optimizada con Write-Ahead Logging (`WAL`), claves foráneas activas (`PRAGMA foreign_keys = ON`) y sincronización balanceada (`PRAGMA synchronous = NORMAL`).
+La Plataforma Educativa ALSIZ cuenta con una arquitectura de persistencia flexible basada en un Adaptador Agnóstico de Base de Datos (DAL `IDatabaseAdapter`). Admite dos opciones de despliegue según el presupuesto y la estrategia operativa:
 
-#### Modelos de Despliegue Soportados:
+```
+                                      [ Navegador del Usuario ]
+                                                 │
+                                                 ▼
+                       [ Vercel — Frontend Estático y Servidor Serverless ]
+                              https://educacion.ekballochurch.org
+                                        │               │
+                                        │               │
+               (Opción 1: $0/mes)       │               │       (Opción 2: $9.50+/mes)
+        ┌───────────────────────────────┘               └───────────────────────────────┐
+        ▼                                                                               ▼
+[ api-entry.js Serverless Directo ]                                            [ api-entry.js Proxy Reverso ]
+        │                                                                               │
+        ▼                                                                               ▼
+[ Turso Cloud libSQL ]                                                       [ Backend Express en Render / VPS ]
+(9 GB distribuidos, $0/mes)                                                  (Disco montado /data/alsiz.db)
+```
 
-1. **Despliegue Recomendado para Producción Permanente (VPS / Docker / PaaS Persistente)**:
-   - Servidor Linux (Ubuntu 22.04 LTS / 24.04 LTS o Debian 12) con Node.js 22.x LTS.
-   - Gestión de procesos mediante `PM2` o contenedor Docker con volumen montado para `./data/` y `./backups/`.
-   - Reverse Proxy inverso Nginx o Caddy con terminación SSL/TLS (HTTPS obligatorio para cookies seguras y Web APIs de audio/micrófono).
-   - Plataformas PaaS compatibles: Render (con persistent disk en `/data`), Fly.io (con persistent volume), Railway o VPS dedicado (Hetzner, DigitalOcean, Linode, AWS EC2).
+#### Opción 1 (Recomendada para Iniciar a Costo $0): Vercel Serverless + Turso Cloud libSQL
+- **Frontend y Backend:** Alojados conjuntamente en Vercel.
+- **Base de Datos:** Turso Cloud (libSQL remoto de alta velocidad sobre HTTP/2).
+- **Costo:** **$0.00 USD/mes** (Starter Plan gratuito permanente con 9 GB de almacenamiento, 1B lecturas/mes y 25M escrituras/mes).
+- **Mantenimiento:** Cero servidores que administrar (*Zero Ops*). Sin riesgo de pérdida de datos en `/tmp`.
 
-2. **Despliegue Serverless (Vercel / AWS Lambda)**:
-   - Configurado en `vercel.json` para hospedar la SPA estática y enrutar las funciones backend en `api-entry.js` -> `api-server.js`.
-   - *Consideración crítica de persistencia*: Las funciones serverless de Vercel son de naturaleza efímera (*stateless*). En este entorno, el directorio de trabajo solo permite escrituras en `/tmp`. Para despliegues productivos permanentes en Vercel, debe utilizarse almacenamiento distribuido/externo (ej. Turso / LibSQL sobre HTTP) o destinar Vercel al frontend y un servidor Node.js dedicado al backend persistente.
-
-3. **Entorno de Desarrollo Local y Homologación**:
-   - Ejecución mediante `npm run dev` (Vite dev server con HMR + Express) o `npm run start` (servidor compilado de producción local).
+#### Opción 2 (Alternativa Tradicional): Vercel CDN + Backend Persistente en Render / VPS
+- **Frontend:** Estático en Vercel CDN.
+- **Backend:** Servicio Node 22 persistente en Render, Fly.io o VPS Linux con volumen de disco montado (`/data/alsiz.db`).
+- **Enrutamiento:** Vercel reenvía `/api/*` mediante proxy reverso (`BACKEND_URL`).
+- **Costo:** Mínimo **$9.50 USD/mes** en Render (requiere plan Starter para disco persistente).
 
 ---
 
-### 2. Requisitos Previos del Sistema
+### 2. Guía Paso a Paso — Opción 1: Vercel Serverless + Turso Cloud ($0/mes)
 
-| Componente | Requisito Mínimo | Requisito Recomendado |
-|---|---|---|
-| **Sistema Operativo** | Linux (Ubuntu/Debian), Windows 10/11, macOS | Ubuntu Server 24.04 LTS |
-| **Node.js** | v22.12.0 LTS (requiere soporte nativo `node:sqlite`) | v22.14.0 LTS |
-| **npm** | v10.x o superior | v10.9.x |
-| **Memoria RAM** | 1 GB disponible | 2 GB a 4 GB RAM |
-| **Almacenamiento** | 2 GB libres en disco (SSD recomendado) | 10 GB (para histórico de backups y activos) |
-| **Puertos** | 3000 (HTTP backend/app) | 80/443 (Reverse Proxy Nginx) |
-
----
-
-### 3. Procedimiento de Instalación Paso a Paso
-
-#### Paso 1: Clonar el Repositorio Oficial
-```bash
-git clone https://github.com/rpmministry/plataforma-educativa-alsiz.git
-cd plataforma-educativa-alsiz
-```
-
-#### Paso 2: Verificar la Rama Autorizada
-```bash
-# Para verificar la versión a desplegar
-git fetch origin
-git checkout main
-```
-
-#### Paso 3: Instalación Limpia y Determinista de Dependencias
-```bash
-# Utilizar npm ci para garantizar que se respeten exactamente las versiones de package-lock.json
-npm ci --prefer-offline
-```
-
-#### Paso 4: Configurar Variables de Entorno
-Copiar el archivo de plantilla a la configuración del entorno:
-```bash
-cp .env.example .env.production
-# O editar directamente .env respetando los permisos de archivo (chmod 600)
-```
-*Consulte la `Guía de Configuración de Entornos` para el detalle de cada variable.*
-
-#### Paso 5: Ejecutar Migraciones de Base de Datos
-Antes de arrancar la aplicación, se debe garantizar la creación de tablas e índices:
-```bash
-npm run db:migrate
-```
-*Salida esperada*: Migraciones v001 a v012 aplicadas o verificadas con éxito.
-
-#### Paso 6: Compilación de Artefactos de Producción
-```bash
-npm run build
-```
-Este comando ejecuta en secuencia:
-1. `vite build`: Compila la SPA de React en la carpeta `./dist`.
-2. `esbuild dev-server.ts`: Genera el bundle de producción del servidor en `dist/server.cjs`.
-3. `esbuild server.ts`: Genera el bundle de la API serverless en `api-server.js`.
-
-#### Paso 7: Diagnóstico Pre-Vuelo (Health Check)
-```bash
-npm run health
-```
-Debe certificar:
-- Archivo de base de datos íntegro (`PRAGMA integrity_check: ok`).
-- 12 migraciones registradas.
-- Artefactos de producción en `dist/` presentes.
-
----
-
-### 4. Ejecución en Producción
-
-#### Opción A: Ejecución Directa con Node.js
-```bash
-NODE_ENV=production PORT=3000 node dist/server.cjs
-```
-
-#### Opción B: Ejecución con Gestor de Procesos PM2 (Recomendado)
-Crear el archivo `ecosystem.config.cjs`:
-```javascript
-module.exports = {
-  apps: [
-    {
-      name: 'alsiz-ekballo-platform',
-      script: 'dist/server.cjs',
-      instances: 1, // Modo single-process por ser SQLite con WAL
-      exec_mode: 'fork',
-      watch: false,
-      env: {
-        NODE_ENV: 'production',
-        PORT: 3000,
-        DATABASE_PATH: './data/alsiz.db'
-      },
-      max_memory_restart: '1G',
-      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-      error_file: './logs/pm2-error.log',
-      out_file: './logs/pm2-out.log',
-      merge_logs: true
-    }
-  ]
-};
-```
-Iniciar y persistir el servicio:
-```bash
-pm2 start ecosystem.config.cjs
-pm2 save
-pm2 startup
-```
-
----
-
-### 5. Configuración de Nginx Reverse Proxy (con HTTPS)
-
-```nginx
-server {
-    listen 80;
-    server_name educacion.ekballochurch.org;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name educacion.ekballochurch.org;
-
-    ssl_certificate /etc/letsencrypt/live/educacion.ekballochurch.org/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/educacion.ekballochurch.org/privkey.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers HIGH:!aNULL:!MD5;
-
-    # Encabezados de Seguridad
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-
-    # Tamaño máximo de carga (para fotos de tareas y documentos)
-    client_max_body_size 50M;
-
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        
-        # Timeouts para streaming de respuestas de IA
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-
-    # Bloquear acceso a archivos sensibles o base de datos por HTTP
-    location ~* \.(db|sql|env|log)$ {
-        deny all;
-        return 404;
-    }
-}
-```
-
----
-
-### 6. Comprobaciones Posteriores al Despliegue (Smoke Tests)
-
-Una vez iniciado el servicio, ejecute las siguientes verificaciones:
-1. **Endpoint de Salud**:
+#### Paso 1.1: Aprovisionar Base de Datos en Turso Cloud
+1. **[PENDIENTE DEL ADMINISTRADOR]** Crear cuenta gratuita en [Turso Cloud](https://turso.tech).
+2. Instalar Turso CLI localmente (o usar el panel web):
    ```bash
-   curl -I https://educacion.ekballochurch.org/api/health
-   # Debe responder HTTP 200 OK con JSON de estado.
+   # En Windows (PowerShell):
+   irm https://get.tur.so/install.ps1 | iex
    ```
-2. **Acceso al Frontend**:
-   Cargar `https://educacion.ekballochurch.org` en un navegador en modo incógnito; verificar que la página inicial cargue con el logotipo de Ekballo Church y las opciones de acceso.
-3. **Inicio de Sesión y Aislamiento**:
-   Ingresar con un usuario tutor de prueba y verificar que solo se visualicen sus hijos asignados.
-4. **Verificación de Respaldo Inicial**:
-   Ejecutar `npm run db:backup` para generar la copia base del nuevo despliegue.
+3. Iniciar sesión y crear la base de datos:
+   ```bash
+   turso auth login
+   turso db create alsiz-db
+   ```
+4. **[PENDIENTE DEL ADMINISTRADOR]** Obtener la URL y generar el token de autenticación:
+   ```bash
+   turso db show alsiz-db --url
+   # Ejemplo: libsql://alsiz-db-ekballo.turso.io
 
+   turso db tokens create alsiz-db
+   # Guarda el token generado de forma segura
+   ```
+5. Aplicar las migraciones a Turso (desde el entorno local con las variables configuradas):
+   ```bash
+   # Configura temporalmente en tu .env local:
+   # TURSO_DATABASE_URL=libsql://alsiz-db-ekballo.turso.io
+   # TURSO_AUTH_TOKEN=<tu-token>
+   npm run db:migrate
+   ```
+
+#### Paso 1.2: Desplegar en Vercel
+1. **[PENDIENTE DEL ADMINISTRADOR]** Iniciar sesión en [Vercel](https://vercel.com) e importar el repositorio `rpmministry/plataforma-educativa-alsiz`.
+2. Configurar Build & Output:
+   - Framework Preset: `Vite`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+   - Install Command: `npm ci`
+3. **[PENDIENTE DEL ADMINISTRADOR]** Configurar Variables de Entorno en Vercel (**Project Settings -> Environment Variables**):
+   - `TURSO_DATABASE_URL`: `libsql://alsiz-db-ekballo.turso.io`
+   - `TURSO_AUTH_TOKEN`: `<tu-token-secreto>`
+   - `SESSION_SECRET`: Generar una cadena de 32+ caracteres criptográficos (`node -e "console.log(crypto.randomBytes(32).toString('hex'))"`).
+   - `GEMINI_API_KEY`: Clave de Google AI Studio.
+   - `RESEND_API_KEY`: Clave de despacho de correos Resend.
+   - `RESEND_FROM_EMAIL`: Remitente verificado (ej. `onboarding@resend.dev` o `no-responder@ekballochurch.org`).
+   - `NODE_ENV`: `production`
+4. Desplegar haciendo clic en **Deploy**.
+5. **[PENDIENTE DEL ADMINISTRADOR]** Asignar el dominio institucional (ej. `educacion.ekballochurch.org`).
+
+---
+
+### 3. Guía Paso a Paso — Opción 2: Vercel CDN + Backend en Render / VPS ($9.50+/mes)
+
+#### Paso 2.1: Despliegue del Backend en Render con Disco Persistente
+1. **[PENDIENTE DEL ADMINISTRADOR]** Crear cuenta en [Render.com](https://render.com) e iniciar sesión.
+2. Crear un **Web Service** usando el repositorio `rpmministry/plataforma-educativa-alsiz` o el archivo `render.yaml`.
+   - **Environment:** `Node`
+   - **Plan:** `Starter` ($7/mes)
+   - **Build Command:** `npm ci && npm run build`
+   - **Pre-Deploy Command:** `npm run db:migrate`
+   - **Start Command:** `npm run start`
+3. **[PENDIENTE DEL ADMINISTRADOR]** Crear el **Persistent Disk**:
+   - **Mount Path:** `/data`
+   - **Size:** `10 GB` ($2.50/mes)
+4. Configurar Variables de Entorno en Render:
+   - `NODE_ENV`: `production`
+   - `PORT`: `10000`
+   - `DATABASE_PATH`: `/data/alsiz.db`
+   - `RUN_MIGRATIONS_ON_STARTUP`: `false`
+   - `TRUST_PROXY`: `1`
+   - `SESSION_SECRET`: `<cadena-criptografica>`
+   - `GEMINI_API_KEY`: `<clave-gemini>`
+   - `RESEND_API_KEY`: `<clave-resend>`
+5. Desplegar el Web Service y copiar la URL pública (ej. `https://alsiz-backend-api.onrender.com`).
+
+#### Paso 2.2: Conectar Vercel con el Backend Persistente
+1. En el panel de Vercel (**Project Settings -> Environment Variables**):
+   - Configurar `BACKEND_URL`: `https://alsiz-backend-api.onrender.com`.
+   - *Nota:* Asegúrese de NO definir `TURSO_DATABASE_URL` para que `api-entry.js` opere como proxy reverso hacia `BACKEND_URL`.
+2. Re-desplegar Vercel para activar el proxy reverso.
+
+---
+
+### 4. Verificación Posterior al Despliegue (Smoke Tests)
+
+Independientemente de la opción elegida, verifique el correcto funcionamiento del sistema:
+
+1. **Chequeo de Salud de la API**:
+   ```bash
+   curl -i https://<tu-app>.vercel.app/api/health
+   # Respuesta esperada: HTTP 200 OK
+   # {
+   #   "status": "ok",
+   #   "version": "1.0.0",
+   #   "database": { "connected": true, "status": "HEALTHY", "migrations": { "status": "SYNCED" } }
+   # }
+   ```
+
+2. **Verificación de Inyección de Credenciales**:
+   El JSON retornado por `/api/health` debe mostrar `geminiConfigured: true` (o false) como booleano, **sin jamás mostrar las claves API**.
+
+3. **Prueba de Autenticación de Estudiante (Sintética)**:
+   - Acceder al frontend en `https://<tu-app>.vercel.app`.
+   - Abrir DevTools (pestaña Red).
+   - Iniciar sesión con el modal de PIN de estudiante sintético.
+   - Constatar que la respuesta HTTP incluye la cookie `alsiz_session` con flags `HttpOnly; SameSite=Lax; Secure`.
+   - Recargar la página y confirmar que la sesión del alumno persiste.
+
+4. **Respaldo de Base de Datos**:
+   - En **Turso Cloud**: Generar dump con `turso db dump alsiz-db > backup.sql`.
+   - En **Render/VPS**: Ejecutar `npm run db:backup` para generar el snapshot en `/data/backups/`.

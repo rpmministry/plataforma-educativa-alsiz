@@ -1,0 +1,71 @@
+================================================================================
+EVIDENCIA DE AUDITORÍA: INVENTARIO DE CLASES Y RECURSOS DE AVRIL Y GAEL
+================================================================================
+Fecha de Auditoría: 2026-10-16
+Archivos auditados:
+- src/data/mockData.ts
+- src/data/dailyClassesAvril.ts
+- src/data/dailyClassesGael.ts
+
+1. ESTUDIANTE: AVRIL (8vo EGB Superior)
+- Total de asignaturas en malla: 11
+  (Lengua y Literatura, Matemáticas, Ciencias Naturales, Estudios Sociales, Inglés B2,
+   Software e IA, Formación Cristiana, Educación Cultural y Artística, Educación Física,
+   Administración Básica, Políticas Públicas/Cívica)
+- Total de unidades temáticas en macrocurrículo: 33 unidades
+- Total de lecciones/clases diarias definidas: 23 lecciones
+- Desglose de clases por asignatura:
+  * Lengua y Literatura: 4 clases
+  * Matemáticas: 3 clases
+  * Administración Básica: 3 clases
+  * Ciencias Naturales: 2 clases
+  * Estudios Sociales: 2 clases
+  * Software e IA: 2 clases
+  * Inglés B2: 2 clases
+  * Cívica y Políticas Públicas: 2 clases
+  * Formación Cristiana: 1 clase
+  * Arte (ECA): 1 clase
+  * Educación Física: 1 clase
+- Total de actividades evaluativas: 69 actividades (3 por lección)
+- Total de recursos vinculados: 46 recursos (2 por lección)
+- Recursos clasificados como Dummy / Placeholder: 23 recursos
+  (Ejemplos: https://wisdom-school.edu/guides/Guia_Didactica_class_mat_avril_01.pdf y dominios inexistentes)
+- Enlaces de video duplicados / placeholders:
+  * URL más repetida: https://www.youtube.com/embed/dQw4w9WgXcQ (usada 15 veces como video dummy)
+- Cobertura de calendario:
+  * Rango de fechas: 2026-09-07 al 2026-09-11 (Exactamente 1 semana escolar = 5 días hábiles).
+  * Huecos temporales: No existen lecciones estáticas para las restantes 39 semanas del año escolar (semana 2 a 40 vacías en dailyClassesAvril.ts).
+
+2. ESTUDIANTE: GAEL (4to EGB Elemental)
+- Total de asignaturas en malla: 9
+  (Lengua y Literatura, Matemáticas, Ciencias Naturales, Estudios Sociales, Inglés,
+   Software y Programación, Relación con Dios, Arte ECA, Educación Física)
+- Total de unidades temáticas en macrocurrículo: 9 unidades
+- Total de lecciones/clases diarias definidas: 20 lecciones
+- Desglose de clases por asignatura:
+  * Matemáticas: 4 clases
+  * Lengua y Literatura: 3 clases
+  * Ciencias Naturales: 3 clases
+  * Inglés: 3 clases
+  * Estudios Sociales: 2 clases
+  * Software y Programación: 2 clases
+  * Relación con Dios: 1 clase
+  * Arte (ECA): 1 clase
+  * Educación Física: 1 clase
+- Total de actividades evaluativas: 60 actividades (3 por lección)
+- Total de recursos vinculados: 40 recursos (2 por lección)
+- Recursos clasificados como Dummy / Placeholder: 20 recursos
+  (Ejemplos: https://wisdom-school.edu/guides/Guia_Didactica_... y enlaces inexistentes)
+- Enlaces de video duplicados / placeholders:
+  * URL más repetida: https://www.youtube.com/embed/dQw4w9WgXcQ (usada 10 veces como video dummy)
+- Cobertura de calendario:
+  * Rango de fechas: 2026-09-07 al 2026-09-11 (Exactamente 1 semana escolar = 5 días hábiles).
+  * Huecos temporales: No existen lecciones estáticas para las restantes 39 semanas del año escolar (semana 2 a 40 vacías en dailyClassesGael.ts).
+
+3. TOTALES CONSOLIDADOS:
+- Clases diarias reales en archivos estáticos: 43 (23 Avril + 20 Gael)
+- Actividades formativas: 129 (69 Avril + 60 Gael)
+- Recursos totales: 86 (46 Avril + 40 Gael)
+- Recursos dummy/simulados que requieren reemplazo por material pedagógico real: 43 recursos (50%)
+- Videos placeholder que apuntan al videoclip de Rick Astley (dQw4w9WgXcQ): 25 instancias (29%)
+
