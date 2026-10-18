@@ -468,7 +468,7 @@ export const AdminShell: React.FC = () => {
             <DevelopmentBadge stage="Etapa 10" label="Gobierno Central" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">
-            Plataforma Educativa ALSIZ • Ekballo Church
+            Wisdom Academy • Panel de Administración
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
             Administración centralizada de operaciones académicas, cuentas de tutores y estudiantes, RAG, IA y gobernanza LOPDP.

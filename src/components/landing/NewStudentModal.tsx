@@ -75,7 +75,7 @@ export const NewStudentModal: React.FC<NewStudentModalProps> = ({
 
     const parts = studentName.trim().split(/\s+/);
     const firstName = parts[0] || 'Estudiante';
-    const lastName = parts.slice(1).join(' ') || 'ALSIZ';
+    const lastName = parts.slice(1).join(' ') || 'Wisdom';
 
     const progId = gradeLevel === 'inicial' ? 'prog-inicial' : (gradeLevel === 'bachillerato' ? 'prog-bgu' : 'prog-egb');
     const lvlId = gradeLevel === 'inicial' ? 'lvl-inicial-2' : (gradeLevel === 'elemental' ? 'lvl-egb-04' : (gradeLevel === 'media' ? 'lvl-egb-06' : (gradeLevel === 'superior' ? 'lvl-egb-08' : 'lvl-bgu-01')));

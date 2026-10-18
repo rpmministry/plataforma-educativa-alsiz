@@ -429,7 +429,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             email: sUser.email,
             pinCode: '',
             age: 12,
-            grade: 'Estudiante ALSIZ',
+            grade: 'Estudiante Wisdom Academy',
             avatar: sUser.avatarUrl || '/avatars/student_avatar_01.png',
           });
           found = {
@@ -554,7 +554,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         email: s.email,
         pinCode: res.data.temporaryCredentials.initialPin || '',
         age: 12,
-        grade: s.levelName || 'Estudiante ALSIZ',
+        grade: s.levelName || 'Estudiante Wisdom Academy',
         avatar: '/avatars/student_avatar_01.png',
       });
       const newStudent: Student = {

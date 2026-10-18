@@ -280,7 +280,7 @@ export const ParentDashboard: React.FC = () => {
             Rol del Padre como Tutor Principal en el Hogar
           </h3>
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            La plataforma ALSIZ empodera a los padres con herramientas socráticas y guías didácticas diarias. La tecnología asiste con contenido riguroso, mientras el hogar preserva el discipulado y el carácter moral.
+            Wisdom Academy empodera a los padres con herramientas socráticas y guías didácticas diarias. La tecnología asiste con contenido riguroso, mientras el hogar preserva el discipulado y el carácter moral.
           </p>
 
           <div className="pt-2 border-t border-[#283545] flex items-center justify-between">
@@ -311,7 +311,7 @@ export const ParentDashboard: React.FC = () => {
                   Boletín de Progreso Curricular y Dominio
                 </h3>
                 <p className="text-xs text-slate-400">
-                  Plataforma Educativa ALSIZ • Ekballo Church • Art. 32 Acuerdo MINEDUC-2023-00069-A
+                  Wisdom Academy • Ekballo Church • Art. 32 Acuerdo MINEDUC-2023-00069-A
                 </p>
               </div>
               <button
