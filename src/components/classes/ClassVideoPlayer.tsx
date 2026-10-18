@@ -152,30 +152,30 @@ export const ClassVideoPlayer: React.FC<ClassVideoPlayerProps> = ({
   };
 
   return (
-    <div className="rounded-2xl bg-slate-800/70 border border-slate-700/70 overflow-hidden shadow-xl space-y-0">
+    <div className="rounded-3xl bg-[#18181B] border border-[#27272A] overflow-hidden shadow-xl space-y-0">
       {/* Top Header & Mode Navigation Tabs */}
-      <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border-b border-slate-700/70 flex flex-wrap items-center justify-between gap-3">
+      <div className="p-4 sm:p-5 bg-[#141417] border-b border-[#27272A] flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
             <Tv className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">
-                Centro Multimedia & Video de la Clase
+                Centro Multimedia & Video Pedagógico
               </h3>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
-                100% Disponible
+                Verificado
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              Tema: <span className="text-slate-200 font-medium">{currentClass.theme}</span>
+            <p className="text-xs text-[#A1A1AA]">
+              Tema: <span className="text-zinc-200 font-medium">{currentClass.theme}</span>
             </p>
           </div>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-1 bg-slate-950/70 p-1 rounded-xl border border-slate-800 text-xs max-w-full overflow-x-auto overscroll-x-contain touch-scroll-x scrollbar-none">
+        <div className="flex items-center gap-1 bg-[#0D0D10] p-1 rounded-xl border border-[#27272A] text-xs max-w-full overflow-x-auto overscroll-x-contain touch-scroll-x scrollbar-none">
           <button
             onClick={() => {
               handleStopSpeech();
@@ -183,8 +183,8 @@ export const ClassVideoPlayer: React.FC<ClassVideoPlayerProps> = ({
             }}
             className={`px-3 py-1.5 min-h-[40px] shrink-0 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
               playerTab === 'video'
-                ? 'bg-rose-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-rose-600/90 text-white shadow-md'
+                : 'text-[#A1A1AA] hover:text-white hover:bg-[#27272A]'
             }`}
           >
             <Play className="w-3.5 h-3.5" />
@@ -197,11 +197,11 @@ export const ClassVideoPlayer: React.FC<ClassVideoPlayerProps> = ({
             }}
             className={`px-3 py-1.5 min-h-[40px] shrink-0 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
               playerTab === 'interactive'
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-amber-500 text-zinc-950 font-bold shadow-md'
+                : 'text-[#A1A1AA] hover:text-white hover:bg-[#27272A]'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <Sparkles className="w-3.5 h-3.5" />
             <span>Clase con Voz</span>
           </button>
 
@@ -212,8 +212,8 @@ export const ClassVideoPlayer: React.FC<ClassVideoPlayerProps> = ({
             }}
             className={`px-3 py-1.5 min-h-[40px] shrink-0 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
               playerTab === 'channels'
-                ? 'bg-amber-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-[#27272A] text-white shadow-md'
+                : 'text-[#A1A1AA] hover:text-white hover:bg-[#27272A]'
             }`}
           >
             <ListVideo className="w-3.5 h-3.5" />
