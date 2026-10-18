@@ -12,7 +12,7 @@ import {
 
 /**
  * 1. Estado de Carga (LoadingState)
- * Accesible con aria-live y visualmente armónico con el tema oscuro #0A0D11.
+ * Accesible con aria-live y visualmente sobrio sin resplandores neón.
  */
 export const LoadingState: React.FC<{
   title?: string;
@@ -20,30 +20,27 @@ export const LoadingState: React.FC<{
   className?: string;
 }> = ({
   title = 'Cargando contenido...',
-  description = 'Obteniendo datos pedagógicos y sincronizando con el servidor local.',
+  description = 'Obteniendo datos pedagógicos y sincronizando con el servidor.',
   className = '',
 }) => (
   <div
     role="status"
     aria-live="polite"
-    className={`flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-3xl bg-[#121820]/80 border border-[#283545] space-y-4 ${className}`}
+    className={`flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-2xl bg-[#18181B] border border-[#27272A] space-y-4 ${className}`}
   >
-    <div className="relative">
-      <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-        <Loader2 className="w-6 h-6 animate-spin" />
-      </div>
-      <div className="absolute inset-0 rounded-2xl bg-amber-400/20 blur-xl animate-pulse" />
+    <div className="w-12 h-12 rounded-xl bg-[#27272A] border border-[#3F3F46] flex items-center justify-center text-[#E0A82E]">
+      <Loader2 className="w-6 h-6 animate-spin" />
     </div>
     <div className="space-y-1 max-w-sm">
       <h3 className="text-base font-bold text-white tracking-tight">{title}</h3>
-      <p className="text-xs text-slate-400 leading-relaxed">{description}</p>
+      <p className="text-xs text-[#A1A1AA] leading-relaxed">{description}</p>
     </div>
   </div>
 );
 
 /**
  * 2. Estado Vacío (EmptyState)
- * Comunica ausencia de registros sin frustrar al usuario, ofreciendo acción de recuperación.
+ * Comunica ausencia de registros sin frustrar al usuario, ofreciendo acción clara.
  */
 export const EmptyState: React.FC<{
   title: string;
@@ -61,20 +58,20 @@ export const EmptyState: React.FC<{
   className = '',
 }) => (
   <div
-    className={`flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-3xl bg-[#121820]/60 border border-dashed border-[#283545] space-y-4 ${className}`}
+    className={`flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-2xl bg-[#18181B]/50 border border-dashed border-[#27272A] space-y-4 ${className}`}
   >
-    <div className="w-14 h-14 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-400">
-      <Icon className="w-7 h-7" />
+    <div className="w-12 h-12 rounded-xl bg-[#18181B] border border-[#27272A] flex items-center justify-center text-[#71717A]">
+      <Icon className="w-6 h-6" />
     </div>
     <div className="space-y-1.5 max-w-md">
       <h3 className="text-base font-bold text-white tracking-tight">{title}</h3>
-      <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{description}</p>
+      <p className="text-xs sm:text-sm text-[#A1A1AA] leading-relaxed">{description}</p>
     </div>
     {actionLabel && onAction && (
       <button
         type="button"
         onClick={onAction}
-        className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition-all hover:scale-105"
+        className="px-4 py-2 rounded-xl bg-[#27272A] hover:bg-[#3F3F46] text-white font-medium text-xs border border-[#3F3F46] transition-colors"
       >
         {actionLabel}
       </button>
@@ -99,20 +96,20 @@ export const ErrorState: React.FC<{
 }) => (
   <div
     role="alert"
-    className={`flex flex-col items-center justify-center p-8 sm:p-10 text-center rounded-3xl bg-rose-950/20 border border-rose-500/30 space-y-4 ${className}`}
+    className={`flex flex-col items-center justify-center p-8 sm:p-10 text-center rounded-2xl bg-[#18181B] border border-[#B42318]/40 space-y-4 ${className}`}
   >
-    <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
+    <div className="w-12 h-12 rounded-xl bg-[#B42318]/15 border border-[#B42318]/30 flex items-center justify-center text-[#F87171]">
       <AlertTriangle className="w-6 h-6" />
     </div>
     <div className="space-y-1.5 max-w-md">
       <h3 className="text-base font-bold text-white tracking-tight">{title}</h3>
-      <p className="text-xs text-rose-300 leading-relaxed">{message}</p>
+      <p className="text-xs text-[#F87171] leading-relaxed">{message}</p>
     </div>
     {onRetry && (
       <button
         type="button"
         onClick={onRetry}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md transition-all hover:scale-105"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#B42318] hover:bg-[#991B1B] text-white font-semibold text-xs transition-colors"
       >
         <RefreshCw className="w-3.5 h-3.5" />
         <span>Reintentar</span>
@@ -122,8 +119,7 @@ export const ErrorState: React.FC<{
 );
 
 /**
- * 4. Estado de Acceso Denegado (AccessDeniedState)
- * Para roles insuficientes o sesiones no autorizadas.
+ * 4. Estado de Acceso Restringido (AccessDeniedState)
  */
 export const AccessDeniedState: React.FC<{
   title?: string;
@@ -140,25 +136,25 @@ export const AccessDeniedState: React.FC<{
 }) => (
   <div
     role="alert"
-    className={`flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-3xl bg-amber-950/20 border border-amber-500/30 space-y-4 ${className}`}
+    className={`flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-2xl bg-[#18181B] border border-[#B45309]/40 space-y-4 ${className}`}
   >
-    <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-      <ShieldAlert className="w-7 h-7" />
+    <div className="w-12 h-12 rounded-xl bg-[#B45309]/15 border border-[#B45309]/30 flex items-center justify-center text-[#FBBF24]">
+      <ShieldAlert className="w-6 h-6" />
     </div>
     <div className="space-y-1.5 max-w-md">
       {requiredRole && (
-        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#B45309]/15 text-[#FBBF24] border border-[#B45309]/30">
           Rol Requerido: {requiredRole}
         </span>
       )}
       <h3 className="text-lg font-bold text-white tracking-tight">{title}</h3>
-      <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{message}</p>
+      <p className="text-xs sm:text-sm text-[#A1A1AA] leading-relaxed">{message}</p>
     </div>
     {onNavigateHome && (
       <button
         type="button"
         onClick={onNavigateHome}
-        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition-all"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#27272A] hover:bg-[#3F3F46] text-white font-medium text-xs border border-[#3F3F46] transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Volver al Inicio</span>
@@ -185,20 +181,20 @@ export const SuccessState: React.FC<{
 }) => (
   <div
     role="status"
-    className={`flex flex-col items-center justify-center p-8 sm:p-10 text-center rounded-3xl bg-emerald-950/20 border border-emerald-500/30 space-y-4 ${className}`}
+    className={`flex flex-col items-center justify-center p-8 sm:p-10 text-center rounded-2xl bg-[#18181B] border border-[#1B7F4B]/40 space-y-4 ${className}`}
   >
-    <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+    <div className="w-12 h-12 rounded-xl bg-[#1B7F4B]/15 border border-[#1B7F4B]/30 flex items-center justify-center text-[#34D399]">
       <CheckCircle2 className="w-6 h-6" />
     </div>
     <div className="space-y-1.5 max-w-md">
       <h3 className="text-base font-bold text-white tracking-tight">{title}</h3>
-      <p className="text-xs text-emerald-300 leading-relaxed">{message}</p>
+      <p className="text-xs text-[#34D399] leading-relaxed">{message}</p>
     </div>
     {actionLabel && onAction && (
       <button
         type="button"
         onClick={onAction}
-        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all hover:scale-105"
+        className="px-4 py-2 rounded-xl bg-[#1B7F4B] hover:bg-[#15803D] text-white font-semibold text-xs transition-colors"
       >
         {actionLabel}
       </button>
@@ -208,24 +204,21 @@ export const SuccessState: React.FC<{
 
 /**
  * 6. Badge de Datos de Desarrollo
- * Garantiza cumplimiento de la regla:
- * "Usa contenido de muestra solamente cuando esté marcado como datos de desarrollo; no lo presentes como información real."
  */
 export const DevelopmentBadge: React.FC<{
   stage?: string;
   label?: string;
   className?: string;
 }> = ({
-  stage = 'Etapa 04',
-  label = 'Datos de desarrollo controlado',
+  stage = 'Validación',
+  label = 'Modo controlado',
   className = '',
 }) => (
   <div
-    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${className}`}
-    title="Los registros exhibidos en esta vista son demostrativos para validación de interfaz."
+    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#18181B] border border-[#27272A] text-[#A1A1AA] text-[10px] font-medium tracking-wide ${className}`}
+    title="Entorno activo"
   >
-    <Sparkles className="w-3 h-3 text-purple-400 shrink-0" />
+    <span className="w-1.5 h-1.5 rounded-full bg-[#E0A82E]" />
     <span>{stage}: {label}</span>
   </div>
 );
-

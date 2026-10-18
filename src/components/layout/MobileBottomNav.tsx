@@ -18,13 +18,8 @@ interface NavItem {
 }
 
 export const MobileBottomNav: React.FC = () => {
-  const { activeTab, setActiveTab, todayClasses, currentStudent } = useSchool();
+  const { activeTab, setActiveTab, todayClasses } = useSchool();
 
-  // Tema visual dinámico: Snoopy (ámbar) para Avril/Karen, Mario (rojo) para Gael.
-  const isAvril = currentStudent.id === 'avril' || currentStudent.id === 'karen';
-
-  // Mapa de sitio unificado: "Mi Espacio de Estudio" absorbe "Clases del Día" y
-  // "Actividades" ya no existe como pestaña (vive dentro de cada clase).
   const navItems: NavItem[] = [
     {
       id: 'space',
@@ -38,14 +33,12 @@ export const MobileBottomNav: React.FC = () => {
     { id: 'progress', label: 'Progreso', icon: TrendingUp },
   ];
 
-  const activeClasses = isAvril
-    ? 'text-amber-300 bg-amber-500/15 border-amber-500/40'
-    : 'text-red-300 bg-red-500/15 border-red-500/40';
-
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/98 backdrop-blur-md border-t border-slate-800 pb-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <div className="flex items-center justify-around px-1 py-1 overflow-x-auto scrollbar-none touch-scroll-x">
-        {/* Navegación principal unificada (el "atrás" vive solo en el PageHeader). */}
+    <div
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0A0A0A]/95 backdrop-blur-md border-t border-[#27272A] pb-safe"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
+      <div className="flex items-center justify-around px-2 py-1.5 overflow-x-auto scrollbar-none touch-scroll-x">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = isNavItemActive(item.id, activeTab);
@@ -56,25 +49,21 @@ export const MobileBottomNav: React.FC = () => {
               title={item.fullLabel || item.label}
               aria-label={item.fullLabel || item.label}
               aria-current={isActive ? 'page' : undefined}
-              className={`flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl transition-all min-w-[56px] min-h-[52px] relative border ${
+              className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-xl transition-all min-w-[60px] min-h-[50px] relative border ${
                 isActive
-                  ? `${activeClasses} font-bold`
-                  : 'text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-800/50'
+                  ? 'text-[#E0A82E] bg-[#18181B] border-[#27272A] font-semibold'
+                  : 'text-[#A1A1AA] border-transparent hover:text-white hover:bg-[#18181B]/40 font-medium'
               }`}
             >
               <div className="relative">
-                <Icon className="w-5 h-5" />
+                <Icon className={`w-5 h-5 ${isActive ? 'text-[#E0A82E]' : 'text-[#71717A]'}`} />
                 {item.badge && (
-                  <span
-                    className={`absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-black flex items-center justify-center ${
-                      isAvril ? 'bg-amber-500 text-slate-950' : 'bg-red-500 text-white'
-                    }`}
-                  >
+                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-black flex items-center justify-center bg-[#E0A82E] text-[#0A0A0A]">
                     {item.badge}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-medium leading-none">
+              <span className="text-[10px] leading-none tracking-tight">
                 {item.label}
               </span>
             </button>

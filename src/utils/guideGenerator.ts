@@ -176,12 +176,8 @@ const COVER_CSS = `
   .portada .firma { margin-top: auto; }
 `;
 
-const bannerFor = (studentId: string): string =>
-  studentId === 'avril' || studentId === 'karen'
-    ? `<div style="margin:2mm 0 3mm;background:#7c9cff14;border:1px solid #7c9cff55;border-radius:2mm;padding:2mm 3mm;font:10pt 'Segoe UI',Arial;">🐶 Snoopy confía en tu prosa: el mundo tiene orden porque Dios lo pensó. <em>Guía Peanuts</em></div>`
-    : studentId === 'gael'
-    ? `<div style="margin:2mm 0 3mm;background:#e11d4814;border:1px solid #e11d4855;border-radius:2mm;padding:2mm 3mm;font:10pt 'Segoe UI',Arial;">🍄 ¡Power-up de conocimiento! Mario cuenta contigo para cuidar lo que Dios creó. <em>Guía Super Mario</em></div>`
-    : '';
+const bannerFor = (_studentId: string): string =>
+  `<div style="margin:2mm 0 3mm;background:#f8fafc;border:1px solid #cbd5e1;border-radius:2mm;padding:2mm 3mm;font:9.5pt 'Segoe UI',Arial;color:#334155;">🎓 <strong>Wisdom Academy:</strong> Aprender con profundidad. Avanzar con propósito. <em>Guía Pedagógica Socrática</em></div>`;
 
 const buildQuestionsHtml = (preguntas: GuideQuestion[], level: EgbLevel): string => {
   const lines = level === 'Elemental' ? 3 : 2;

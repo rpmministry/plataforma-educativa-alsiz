@@ -1,0 +1,37 @@
+﻿
+> react-example@0.0.0 test:etapa02
+> tsx scripts/test-etapa-02.ts
+
+================================================================
+  SUITE DE PRUEBAS DE ARQUITECTURA Y PERSISTENCIA ΓÇö ETAPA 02
+  Plataforma Educativa ALSIZ ΓÇö Ekballo Church
+================================================================
+
+[E2-TEST-01] Γ£à PAS├ô: Persistencia y normalizaci├│n multiplataforma de rutas en DATABASE_PATH
+             Γä╣∩╕Å  Relativa normalizada: true, Absoluta preservada: true
+[E2-TEST-02] Γ£à PAS├ô: Detecci├│n y comprobaci├│n activa de conectividad de base de datos
+             Γä╣∩╕Å  isDatabaseConnected(): true
+[E2-TEST-03] Γ£à PAS├ô: Inspecci├│n no destructiva de migraciones (validaci├│n de versiones y checksums)
+             Γä╣∩╕Å  Estado: SYNCED, Aplicadas: 12, En disco: 12, ├Ültima: v012
+Γùç injected env (4) from .env // tip: Γîÿ override existing { override: true }
+Γùç injected env (11) from .env.local // tip: Γùê encrypted .env [www.dotenvx.com]
+[E2-TEST-04] Γ£à PAS├ô: Contrato de salud /api/health enriquecido (versi├│n, conectividad, migraciones y cero secretos)
+             Γä╣∩╕Å  HTTP Status: 200, API Version: 1.0.0, DB Connected: true, Sin secretos: true
+[E2-TEST-05] Γ£à PAS├ô: Proxy reverso local (api-entry.js) reenviando tr├ífico y cabeceras hacia backend de ensayo
+             Γä╣∩╕Å  Status: 200, Headers recibidos: OK, Cookie forwarded: OK
+[E2-TEST-06] Γ£à PAS├ô: Preservaci├│n bidireccional de cookies HttpOnly y SameSite a trav├⌐s del proxy
+             Γä╣∩╕Å  Set-Cookie recibido: SI, Atributos v├ílidos: true
+[E2-TEST-07] Γ£à PAS├ô: Contingencia estructurada 503 en Vercel cuando falta BACKEND_URL (cero SQLite ef├¡mero)
+             Γä╣∩╕Å  HTTP Status: 503, Error: persistent_backend_not_configured, Acci├│n: PENDIENTE_DEL_ADMINISTRADOR
+[E2-TEST-08] Γ£à PAS├ô: Unificaci├│n de gestor de paquetes (bun.lock eliminado, package-lock.json activo, engines Node 22)
+             Γä╣∩╕Å  bun.lock ausente: true, package-lock.json presente: true, engines definidos: true
+[E2-TEST-09] Γ£à PAS├ô: Validaci├│n de manifiestos de despliegue (PM2 single-process, Render disk, Docker, Vercel proxy)
+             Γä╣∩╕Å  PM2: true (instances: 1), Render: true (/data mount), Docker: true, Vercel: true
+[E2-TEST-10] Γ£à PAS├ô: Segregaci├│n formal de variables de entorno (separaci├│n frontend/backend y cero secretos en VITE_*)
+             Γä╣∩╕Å  Secciones segregadas: true, BACKEND_URL documentada: true, Cero secretos VITE: true
+
+================================================================
+  RESULTADO: 10 / 10 PRUEBAS PASADAS
+  ESTADO: Γ£à SUITE DE ARQUITECTURA Y PERSISTENCIA APROBADA
+================================================================
+

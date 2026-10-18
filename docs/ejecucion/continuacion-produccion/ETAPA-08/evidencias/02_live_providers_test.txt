@@ -1,0 +1,40 @@
+﻿Γùç injected env (4) from .env // tip: Γùê secrets for agents [www.dotenvx.com]
+Γùç injected env (11) from .env.local // tip: Γîÿ custom filepath { path: '/custom/path/.env' }
+================================================================
+  PRUEBA REAL EXTERNA DE CONEXI├ôN A PROVEEDORES IA (ETAPA 08)
+  VALIDACI├ôN DE LLAMADAS REALES SIN SIMULACI├ôN FICTICIA
+================================================================
+
+1. Probando Proveedor Oficial Google Gemini...
+   Resultado: FAILED | Modelo: gemini-3.8-flash | Latencia: 1217ms
+   Detalle: GEMINI_QUOTA_ERROR: {"error":{"code":429,"message":"You exceeded your current quota, please check your plan and billing 
+
+2. Probando Proveedor DeepSeek API...
+   Resultado: SUCCESS | Modelo: deepseek-flash | Latencia: 1185ms
+   Salida: "CONECTADO"
+
+3. Probando Proveedor OpenRouter API...
+   Resultado: FAILED | Modelo: nvidia/nemotron-3.5-lightning:free | Latencia: 10018ms
+   Detalle: TIMEOUT_OPENROUTER_API: Excedido el tiempo l├¡mite de 10000ms.
+
+4. Probando Cascada Natural mediante ProviderManager.generateResponse()...
+   Proveedor Utilizado: DEEPSEEK_API
+   Modelo Utilizado:    deepseek-flash
+   Es Fallback Simulado: NO (proveedor real externo)
+   Latencia:            2563ms
+   Salida Sanitizada:   "Una planta es un ser vivo que crece en la tierra, fabrica su propio alimento con"
+
+5. Probando Validaci├│n de Respuestas Fundamentadas (Citas RAG estrictas)...
+   Fragmentos entregados al prompt: 2 (EKB-DOC-CIENCIAS#C1, EKB-DOC-NO-USADO#C9)
+   Citas reportadas por el proveedor: [EKB-DOC-CIENCIAS#C1]
+   Respuesta generada: "Excelente pregunta. Antes de responderte, perm├¡teme preguntarte algo a ti: cuando piensas en una hoj"
+   Fundamentaci├│n estricta verificada: Γ£à S├ì
+
+================================================================
+RESUMEN DE PRUEBA REAL EXTERNA DE PROVEEDORES:
+----------------------------------------------------------------
+Al menos un proveedor real funciona: Γ£à S├ì
+Cascada a proveedor real exitosa:   Γ£à S├ì
+Citas RAG estrictas y honestas:     Γ£à S├ì
+================================================================
+

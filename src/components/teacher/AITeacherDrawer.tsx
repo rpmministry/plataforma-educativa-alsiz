@@ -36,9 +36,7 @@ export const AITeacherDrawer: React.FC = () => {
 
   const studentTheme = (() => {
     const base = currentStudent?.colorTheme || { accent: '#6366f1', primary: 'indigo', secondary: 'violet', gradient: 'from-indigo-600 via-violet-600 to-purple-600' };
-    if (currentStudent?.id === 'avril') return { ...base, accent: '#7c9cff', chip: '#fff8d6', textStrong: '#1f2937', label: 'Peanuts' };
-    if (currentStudent?.id === 'gael') return { ...base, accent: '#e11d48', chip: '#fef3c7', textStrong: '#111827', label: 'Super Mario Bros' };
-    return { ...base, chip: '#1f2937', textStrong: '#f8fafc', label: 'Original' };
+    return { ...base, chip: '#1f2937', textStrong: '#f8fafc', label: 'Wisdom Academy' };
   })();
 
   // Tablet táctil (iPad, Android…), en cualquier orientación y ancho, incluso con teclado/trackpad:

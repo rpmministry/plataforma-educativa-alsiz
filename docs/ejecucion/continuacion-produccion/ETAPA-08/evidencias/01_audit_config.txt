@@ -1,0 +1,48 @@
+﻿Γùç injected env (4) from .env // tip: Γîÿ suppress logs { quiet: true }
+Γùç injected env (11) from .env.local // tip: Γîÿ multiple files { path: ['.env.local', '.env'] }
+================================================================
+  AUDITOR├ìA DE CONFIGURACI├ôN DE PROVEEDORES IA (ETAPA 08)
+  POL├ìTICA DE SEGURIDAD P0: CERO EXPOSICI├ôN DE VALORES
+================================================================
+
+ESTADO DE VARIABLES SECRETAS (Solo presencia / NUNCA valores):
+----------------------------------------------------------------
+≡ƒƒó [OBLIGATORIA] GEMINI_API_KEY      : CONFIGURADA
+     Prop├│sito: Proveedor Primario LLM (Google AI Studio Free Tier / gemini-3.8-flash)
+     Gesti├│n:   Google AI Studio (https://aistudio.google.com/apikey)
+≡ƒƒó [OPCIONAL]    DEEPSEEK_API_KEY    : CONFIGURADA
+     Prop├│sito: Proveedor Secundario LLM (DeepSeek Platform API / deepseek-chat)
+     Gesti├│n:   DeepSeek Platform (https://platform.deepseek.com/api_keys)
+≡ƒƒó [OPCIONAL]    OPENROUTER_API_KEY  : CONFIGURADA
+     Prop├│sito: Proveedor Terciario / Respaldo Multimodelo (OpenRouter Free Models)
+     Gesti├│n:   OpenRouter (https://openrouter.ai/settings/keys)
+≡ƒƒó [OPCIONAL]    GOOGLE_TTS_API_KEY  : CONFIGURADA
+     Prop├│sito: Voz Neuronal Docente (Google Cloud Text-to-Speech Neural2)
+     Gesti├│n:   Google Cloud Console (Cloud Text-to-Speech API)
+≡ƒƒó [OPCIONAL]    OPENCODE_API_KEY    : CONFIGURADA
+     Prop├│sito: No consumido en runtime por la plataforma ALSIZ (Cat├ílogo honesto)
+     Gesti├│n:   N/A (Desactivado en runtime)
+
+----------------------------------------------------------------
+MODELOS CONFIGURADOS (Valores p├║blicos de modelo):
+----------------------------------------------------------------
+ - GEMINI_MODEL:     gemini-3.8-flash (predeterminado)
+ - DEEPSEEK_MODEL:   deepseek-chat (predeterminado)
+ - OPENROUTER_MODEL: nex-agi/nex-n2.5-mini:free,nex-agi/nex-n2.5-pro:free,nvidia/nemotron-3.5-lightning:free,poolside/laguna-s-2.1:free,nvidia/nemotron-3-ultra-550b-a55b:free
+ - SIMULATED_MODEL:  alsiz-socratic-local-v1 (fallback offline)
+
+----------------------------------------------------------------
+REPORTE SANITIZADO DEL GESTOR (ProviderManager.getHealthReport):
+----------------------------------------------------------------
+Estado General:    HEALTHY
+Proveedor Activo:  GOOGLE_GEMINI
+Pol├¡tica de Cuota: 15 req/min | 100 req/d├¡a
+Modo de Operaci├│n: ON_DEMAND_STUDENT_ACTIVITY
+
+Proveedores Registrados:
+ - GOOGLE_GEMINI    | Modelo: gemini-3.8-flash         | Estado: CONFIGURED             | Prioridad: 1 | Fallback: NO
+ - DEEPSEEK_API     | Modelo: deepseek-chat            | Estado: CONFIGURED             | Prioridad: 2 | Fallback: NO
+ - OPENROUTER_API   | Modelo: nvidia/nemotron-3.5-lightning:free | Estado: CONFIGURED             | Prioridad: 3 | Fallback: NO
+ - SIMULATED_LOCAL  | Modelo: alsiz-socratic-local-v1  | Estado: AVAILABLE              | Prioridad: 99 | Fallback: S├ì
+
+Γ£à AUDITOR├ìA DE CONFIGURACI├ôN COMPLETADA CON ├ëXITO (0 SECRETOS EXPUESTOS)

@@ -56,7 +56,6 @@ export const CourseDetailView: React.FC = () => {
     );
   }
 
-  const isAvril = currentStudent.id === 'avril' || currentStudent.id === 'karen';
   const units = subject.units || [];
   const teacher = subject.teacher;
 

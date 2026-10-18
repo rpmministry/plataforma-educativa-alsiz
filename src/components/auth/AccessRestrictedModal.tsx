@@ -28,7 +28,7 @@ export const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({ is
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
       onClick={onClose}
       role="presentation"
     >
@@ -36,70 +36,70 @@ export const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({ is
         role="dialog"
         aria-modal="true"
         aria-labelledby="access-restricted-title"
-        className="relative w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-slate-100"
+        className="relative w-full max-w-md bg-[#18181B] border border-[#27272A] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-[#F4F4F5]"
         onClick={(e) => e.stopPropagation()}
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         {/* Encabezado */}
-        <div className="relative bg-gradient-to-r from-amber-950 via-slate-900 to-slate-900 p-6 sm:p-8 border-b border-slate-800 shrink-0">
+        <div className="relative bg-[#121214] p-6 sm:p-7 border-b border-[#27272A] shrink-0">
           <button
             onClick={onClose}
             aria-label="Cerrar"
-            className="absolute top-4 right-4 p-2.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors after:absolute after:-inset-1 after:content-['']"
+            className="absolute top-4 right-4 p-2 rounded-xl bg-[#27272A]/70 hover:bg-[#27272A] text-[#A1A1AA] hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
-              <ShieldAlert className="w-6 h-6" />
+            <div className="p-3 rounded-xl bg-[#E0A82E]/10 border border-[#E0A82E]/30 text-[#E0A82E]">
+              <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[11px] font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E0A82E]/15 text-[#E0A82E] border border-[#E0A82E]/25 text-[11px] font-semibold uppercase tracking-wider">
                 <Lock className="w-3 h-3" />
                 <span>Cuenta no registrada</span>
               </span>
-              <h2 id="access-restricted-title" className="text-xl sm:text-2xl font-extrabold text-white mt-1">
+              <h2 id="access-restricted-title" className="text-xl sm:text-2xl font-bold text-white mt-1">
                 Acceso Restringido
               </h2>
             </div>
           </div>
         </div>
 
-        <div className="p-6 sm:p-8 space-y-5 overflow-y-auto overscroll-contain">
-          <p className="text-sm text-slate-300 leading-relaxed">
-            El correo que intentas usar no se encuentra inscrito en <strong className="text-white">Wisdom School</strong>. Si deseas inscribir a tu hijo(a) o acceder a un plan de estudios, comunícate directamente con administración:
+        <div className="p-6 sm:p-7 space-y-5 overflow-y-auto overscroll-contain">
+          <p className="text-sm text-[#D4D4D8] leading-relaxed">
+            El correo que intentas usar no se encuentra inscrito en <strong className="text-white">Wisdom Academy</strong>. Si deseas inscribir a tu hijo(a) o acceder a un plan de estudios, comunícate directamente con administración:
           </p>
 
           {email && (
-            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-400">
-              <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#0A0A0A] border border-[#27272A] text-xs text-[#A1A1AA]">
+              <Mail className="w-3.5 h-3.5 text-[#71717A] shrink-0" />
               <span className="truncate">{email}</span>
             </div>
           )}
 
           {/* Tarjeta de contacto integrada */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-800">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-300 shrink-0">
-                <User className="w-5 h-5" />
+          <div className="rounded-xl border border-[#27272A] bg-[#0A0A0A] overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-[#27272A]">
+              <div className="w-9 h-9 rounded-lg bg-[#27272A] flex items-center justify-center text-[#E0A82E] shrink-0">
+                <User className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <span className="block text-[10px] font-black uppercase tracking-wider text-slate-500">Director</span>
-                <span className="block text-sm font-bold text-white truncate">{CONTACT_INFO.name}</span>
+                <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#71717A]">Director</span>
+                <span className="block text-sm font-semibold text-white truncate">{CONTACT_INFO.name}</span>
               </div>
             </div>
 
             <a
               href={MAILTO_HREF}
-              className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-800 hover:bg-indigo-500/10 transition-colors group"
+              className="flex items-center gap-3 px-4 py-3 border-b border-[#27272A] hover:bg-[#18181B] transition-colors group"
             >
-              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-indigo-300 shrink-0 group-hover:scale-105 transition-transform">
-                <Mail className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-lg bg-[#27272A] flex items-center justify-center text-[#A1A1AA] shrink-0 group-hover:text-white">
+                <Mail className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <span className="block text-[10px] font-black uppercase tracking-wider text-slate-500">Correo</span>
-                <span className="block text-sm font-semibold text-slate-200 group-hover:text-white truncate">{CONTACT_INFO.email}</span>
+                <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#71717A]">Correo</span>
+                <span className="block text-sm font-medium text-[#D4D4D8] group-hover:text-white truncate">{CONTACT_INFO.email}</span>
               </div>
             </a>
 
@@ -107,21 +107,21 @@ export const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({ is
               href={WHATSAPP_HREF}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 px-4 py-3.5 hover:bg-emerald-500/10 transition-colors group"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-[#18181B] transition-colors group"
             >
-              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-emerald-300 shrink-0 group-hover:scale-105 transition-transform">
-                <MessageCircle className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-lg bg-[#27272A] flex items-center justify-center text-emerald-400 shrink-0">
+                <MessageCircle className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <span className="block text-[10px] font-black uppercase tracking-wider text-slate-500">WhatsApp</span>
-                <span className="block text-sm font-semibold text-slate-200 group-hover:text-white">{CONTACT_INFO.whatsappDisplay}</span>
+                <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#71717A]">WhatsApp</span>
+                <span className="block text-sm font-medium text-[#D4D4D8] group-hover:text-white">{CONTACT_INFO.whatsappDisplay}</span>
               </div>
             </a>
           </div>
 
           <button
             onClick={onClose}
-            className="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-950/50 transition-all active:scale-95"
+            className="w-full min-h-[44px] py-2.5 px-6 rounded-xl bg-[#E0A82E] hover:bg-[#B77D06] text-[#0A0A0A] font-semibold text-sm transition-colors"
           >
             Entendido
           </button>

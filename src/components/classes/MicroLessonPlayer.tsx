@@ -14,6 +14,7 @@ import {
   RotateCcw,
   Sparkles,
   XCircle,
+  GraduationCap,
 } from 'lucide-react';
 
 interface MicroLessonPlayerProps {
@@ -40,21 +41,31 @@ const firstUnclearedIndex = (arr: number[]) => {
   return MICRO_TOTAL - 1;
 };
 
-// Contenido de relleno instantáneo (y definitivo si la IA no responde): el learningPath ya escrito de la clase.
+// Contenido de respaldo determinista: el learningPath ya redactado de la clase.
 const fallbackLesson = (dailyClass: DailyClass, i: number): MicroLesson => {
   const stage = (dailyClass.learningPath || [])[i];
   const cc = stage?.coreConcept;
   return {
     id: `micro-${dailyClass.id}-L${i + 1}-fb`,
-    title: stage?.title ? stage.title.replace(/^Paso\s*\d+\s*[:\-—]\s*/i, '') : `Lo esencial de ${dailyClass.theme} (${i + 1})`,
-    theory: [cc?.summary, cc?.detailedExplanation].filter(Boolean).join(' ') || `Hoy descubrimos una pieza clave de "${dailyClass.theme}". Avanza y pregúntale a tu profesor lo que no quede claro.`,
+    title: stage?.title ? stage.title.replace(/^Paso\s*\d+\s*[:\-—]\s*/i, '') : `Concepto fundamental de ${dailyClass.theme} (${i + 1})`,
+    theory: [cc?.summary, cc?.detailedExplanation].filter(Boolean).join(' ') || `Hoy exploramos una parte esencial de "${dailyClass.theme}". Avanza con tu profesor virtual en este concepto socrático.`,
     analogy: cc?.visualAnalogy,
     example: Array.isArray(cc?.keyTakeaways) ? cc.keyTakeaways.slice(0, 2).join(' · ') : undefined,
     quiz: null,
   };
 };
 
-export const MicroLessonPlayer: React.FC<MicroLessonPlayerProps> = ({ dailyClass, subject, student, onGoToLab, onStepsResolved, cleared, onMarkCleared, onResetRoute, onRouteComplete }) => {
+export const MicroLessonPlayer: React.FC<MicroLessonPlayerProps> = ({
+  dailyClass,
+  subject,
+  student,
+  onGoToLab,
+  onStepsResolved,
+  cleared,
+  onMarkCleared,
+  onResetRoute,
+  onRouteComplete,
+}) => {
   const theme = getWorldTheme(student);
   const world = getWorldDecor(student);
   const teacher = subject.teacher;
@@ -108,7 +119,6 @@ export const MicroLessonPlayer: React.FC<MicroLessonPlayerProps> = ({ dailyClass
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dailyClass?.id, student?.id, subject?.id]);
 
-  // ensureBite es idempotente: asegura la lección actual y precarga la siguiente.
   useEffect(() => {
     void ensureBite(lessonIndex);
     void ensureBite(lessonIndex + 1);
@@ -117,9 +127,6 @@ export const MicroLessonPlayer: React.FC<MicroLessonPlayerProps> = ({ dailyClass
 
   const lesson = view(lessonIndex);
 
-  // Expone al padre los pasos REALES que la ruta muestra (title+theory de cada bite).
-  // Solo publica cuando TODAS las micro-lecciones terminaron (ready|failed): así la guía nunca
-  // publica placeholders a medias ni pasos de otra clase.
   useEffect(() => {
     if (!onStepsResolved) return;
     const allSettled = Array.from({ length: MICRO_TOTAL }).every((_, i) => bites[i] && bites[i].status !== 'loading');
@@ -131,13 +138,12 @@ export const MicroLessonPlayer: React.FC<MicroLessonPlayerProps> = ({ dailyClass
     onStepsResolved(steps);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bites, dailyClass?.id, subject?.id]);
+
   const quiz = lesson.quiz;
   const answered = selectedOption !== null;
   const isCorrect = answered && !!quiz && selectedOption === quiz.correctIndex;
   const isLast = lessonIndex >= MICRO_TOTAL - 1;
   const canAdvance = !quiz || cleared.includes(lessonIndex);
-  // Secuencia guiada: se puede releer lo ya visto y avanzar UN paso cuando el reto
-  // actual está superado (o la lección no trae reto). Nunca saltar hacia adelante.
   const maxUnlocked = canAdvance ? Math.min(lessonIndex + 1, MICRO_TOTAL - 1) : lessonIndex;
 
   const goTo = (i: number) => {
@@ -159,7 +165,6 @@ export const MicroLessonPlayer: React.FC<MicroLessonPlayerProps> = ({ dailyClass
       onMarkCleared(lessonIndex);
       return;
     }
-    // FALLÓ: explicación determinista INMEDIATA (con el contenido real de la ficha) + versión del profe en paralelo.
     setWrongCount((w) => w + 1);
     setCelebrate(false);
     setReviewOpen(true);
@@ -185,7 +190,7 @@ export const MicroLessonPlayer: React.FC<MicroLessonPlayerProps> = ({ dailyClass
   };
 
   const retryQuiz = () => {
-    setSelectedOption(null); // la explicación (reviewOpen) permanece visible como apoyo
+    setSelectedOption(null);
   };
 
   const handleContinue = () => {
@@ -198,10 +203,8 @@ export const MicroLessonPlayer: React.FC<MicroLessonPlayerProps> = ({ dailyClass
 
   const correctText = quiz ? quiz.options[quiz.correctIndex] : '';
   const correctLetter = quiz ? OPTION_LETTERS[quiz.correctIndex] : '';
-
   const routeCompleted = (isLast && answered && isCorrect) || finished;
 
-  // Cierre de ciclo: al completar la ruta se persiste el avance (una sola vez por render de éxito).
   useEffect(() => {
     if (routeCompleted) onRouteComplete?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -218,158 +221,247 @@ export const MicroLessonPlayer: React.FC<MicroLessonPlayerProps> = ({ dailyClass
     onResetRoute();
   };
 
-  const accentBg = `linear-gradient(135deg, ${theme.accent}, ${theme.accent}cc)`;
   const bite = bites[lessonIndex];
   const quizPreparing = !!bite && bite.status !== 'ready' && !quiz;
 
   return (
-    <div className="rounded-3xl border overflow-hidden bg-slate-900/80 shadow-2xl relative" style={{ borderColor: `${theme.accent}44` }}>
+    <div className="rounded-3xl border border-[#27272A] bg-[#18181B] shadow-xl overflow-hidden relative">
+      {/* Indicador sutil de verificación */}
       {celebrate && (
-        <div className="absolute inset-0 pointer-events-none z-20 flex justify-around items-start pt-10 select-none" aria-hidden>
-          {['🎉', '⭐', '✨', '🎊', '🌟'].map((e, i) => (
-            <span key={i} className="text-3xl animate-bounce" style={{ animationDelay: `${i * 90}ms`, animationDuration: '900ms' }}>{e}</span>
-          ))}
+        <div className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold animate-fade-in flex items-center gap-1.5 shadow-lg">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>¡Respuesta correcta verificada!</span>
         </div>
       )}
 
-      {/* CABECERA DE LA RUTA */}
-      <div className="p-4 sm:p-5 border-b" style={{ background: `linear-gradient(135deg, ${theme.accent}26, rgba(15,23,42,0.94) 60%)` }}>
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="text-2xl shrink-0">{world.emoji}</span>
-            <div className="min-w-0">
-              <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block">Ruta interactiva · {dailyClass.theme}</span>
-              <h2 className="text-base sm:text-lg font-black text-white leading-tight truncate">{lesson.title}</h2>
+      {/* Cabecera de la Lección Socrática */}
+      <div className="p-5 sm:p-6 border-b border-[#27272A] bg-gradient-to-r from-[#18181B] via-[#1E1E22] to-[#18181B]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                Fase 01 · Lección Socrática Guiada
+              </span>
+              <span className="text-xs text-[#A1A1AA] truncate">
+                {dailyClass.theme}
+              </span>
             </div>
+            <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight leading-snug">
+              {lesson.title}
+            </h2>
           </div>
-          <div className="shrink-0 text-right">
-            <span className="text-xs font-black" style={{ color: theme.accent }}>{Math.min(lessonIndex + 1, MICRO_TOTAL)}/{MICRO_TOTAL}</span>
-            <span className="text-[9px] uppercase font-black tracking-wider text-slate-500 block">micro-lecciones</span>
+
+          <div className="sm:text-right shrink-0">
+            <span className="text-xs font-mono font-bold text-amber-400">
+              Micro-lección {Math.min(lessonIndex + 1, MICRO_TOTAL)} de {MICRO_TOTAL}
+            </span>
+            <span className="text-[10px] uppercase font-semibold text-[#71717A] block">
+              Paso guiado con tutor IA
+            </span>
           </div>
         </div>
-        <div className="flex gap-1.5 mt-3">
-          {Array.from({ length: MICRO_TOTAL }).map((__, i) => (
-            <div key={i} className="h-1.5 flex-1 rounded-full bg-slate-800 overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{
-                  width: cleared.includes(i) || i < lessonIndex ? '100%' : i === lessonIndex ? (answered ? '100%' : bite?.status === 'ready' ? '55%' : '25%') : '0%',
-                  background: cleared.includes(i) || i < lessonIndex ? 'linear-gradient(90deg,#10b981,#34d399)' : theme.accent,
-                }}
-              />
-            </div>
-          ))}
+
+        {/* Barra de progreso de micro-lecciones */}
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          {Array.from({ length: MICRO_TOTAL }).map((__, i) => {
+            const isCleared = cleared.includes(i) || i < lessonIndex;
+            const isCurrent = i === lessonIndex;
+            return (
+              <div key={i} className="space-y-1">
+                <div className="h-1.5 w-full rounded-full bg-[#27272A] overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: isCleared ? '100%' : isCurrent ? (answered ? '100%' : '50%') : '0%',
+                      background: isCleared ? '#10B981' : isCurrent ? '#E0A82E' : 'transparent',
+                    }}
+                  />
+                </div>
+                <span className="text-[9px] font-mono block text-[#71717A]">
+                  Paso 0{i + 1} {isCleared ? '✓' : ''}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* CUERPO */}
-      <div className="p-4 sm:p-6 space-y-5 min-h-[420px] flex flex-col">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full inline-block" style={{ background: `${theme.accent}22`, color: theme.accent, border: `1px solid ${theme.accent}55` }}>
-            Lección {lessonIndex + 1} de {MICRO_TOTAL}
-          </span>
-          {bite?.status === 'loading' && (
-            <span className="text-[11px] text-slate-500 inline-flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> {teacher?.name} está preparando tu reto…</span>
-          )}
-        </div>
+      {/* Cuerpo Académico */}
+      <div className="p-5 sm:p-6 space-y-6">
+        {/* Ficha Teórica Principal */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#121215] border border-[#27272A] space-y-4">
+          <div className="flex items-center justify-between gap-2 border-b border-[#27272A] pb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              <span>Fundamento Conceptual</span>
+            </span>
+            {bite?.status === 'loading' && (
+              <span className="text-xs text-[#A1A1AA] inline-flex items-center gap-1.5">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                <span>{teacher?.name} prepara el reto socrático…</span>
+              </span>
+            )}
+          </div>
 
-        {/* FICHA DE TEORÍA (siempre visible: es el sustento) */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2">
-          <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" style={{ color: theme.accent }} /> ¿Qué aprendemos?</span>
-          <p className="text-sm sm:text-[15px] text-slate-200 leading-relaxed whitespace-pre-line">{lesson.theory}</p>
+          <p className="text-[15px] sm:text-base text-zinc-200 leading-relaxed font-normal whitespace-pre-line">
+            {lesson.theory}
+          </p>
+
+          {/* Analogía Socrática */}
           {lesson.analogy && (
-            <div className="mt-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-2">
+            <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 flex items-start gap-3">
               <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <p className="text-xs sm:text-sm text-amber-100 leading-relaxed"><strong className="text-amber-300">Piénsalo así:</strong> {lesson.analogy}</p>
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 block">
+                  Analogía Didáctica
+                </span>
+                <p className="text-xs sm:text-sm text-amber-100/90 leading-relaxed">
+                  {lesson.analogy}
+                </p>
+              </div>
             </div>
           )}
+
+          {/* Ejemplo Práctico */}
           {lesson.example && (
-            <div className="mt-2 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-start gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-300 shrink-0 mt-0.5" />
-              <p className="text-xs sm:text-sm text-indigo-100 leading-relaxed"><strong className="text-indigo-300">Ejemplo:</strong> {lesson.example}</p>
+            <div className="p-4 rounded-xl bg-[#18181B] border border-[#27272A] flex items-start gap-3">
+              <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-300 block">
+                  Ejemplo en la Realidad
+                </span>
+                <p className="text-xs sm:text-sm text-[#A1A1AA] leading-relaxed">
+                  {lesson.example}
+                </p>
+              </div>
             </div>
           )}
         </div>
 
-        {/* EXPLICACIÓN AL FALLO: determinista e inmediata + versión del profe cuando llega */}
+        {/* Explicación Socrática de Apoyo en caso de fallo */}
         {reviewOpen && quiz && (
-          <div className="p-4 sm:p-5 rounded-2xl border space-y-3 bg-amber-950/25 border-amber-500/40">
-            <h4 className="text-base font-black text-amber-200 flex items-center gap-2"><HelpCircle className="w-4 h-4" /> {teacher?.name} te lo explica (sin prisa) 💛</h4>
-            <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
-              <p className="text-sm text-emerald-300 font-bold">✔ La respuesta correcta es <span className="underline decoration-emerald-500/40 decoration-2 underline-offset-2">«{correctText}»</span> (opción {correctLetter}).</p>
-              <p className="text-xs text-slate-300 leading-relaxed"><span className="text-slate-500 font-black uppercase tracking-wider text-[9px] block mb-0.5">Lo que dice tu ficha</span>{selectedOption !== null ? lesson.theory : `${quiz.question} → «${correctText}» porque ${quiz.correctExplanation || 'así lo enseña la ficha de arriba'}. Relee la ficha, respira y vuelve a intentarlo.`}</p>
-              {lesson.example && selectedOption !== null && (
-                <p className="text-xs text-indigo-100 leading-relaxed"><span className="text-slate-500 font-black uppercase tracking-wider text-[9px] block mb-0.5">Con el ejemplo de la lección</span>{lesson.example}</p>
-              )}
+          <div className="p-5 sm:p-6 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-4 animate-fade-in">
+            <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
+              <HelpCircle className="w-4 h-4" />
+              <span>Orientación Socrática del Profesor {teacher?.name}</span>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#121215] border border-[#27272A] space-y-2">
+              <p className="text-xs sm:text-sm text-emerald-400 font-semibold">
+                ✔ Respuesta correcta esperada: <strong className="underline decoration-emerald-500/40">«{correctText}»</strong> (opción {correctLetter}).
+              </p>
+              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                {selectedOption !== null
+                  ? lesson.theory
+                  : `${quiz.question} → «${correctText}» porque ${quiz.correctExplanation || 'así se desprende del concepto estudiado'}.`}
+              </p>
               {aiHelp.status === 'loading' && (
-                <p className="text-[11px] text-slate-400 flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> {teacher?.name} te lo explica con otras palabras…</p>
+                <p className="text-xs text-[#A1A1AA] flex items-center gap-1.5 pt-1">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                  <span>Generando explicación alternativa adaptada…</span>
+                </p>
               )}
               {aiHelp.status === 'ready' && aiHelp.text && (
-                <div className="pt-1 border-t border-slate-800 mt-1">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-0.5">🔁 Con otras palabras</span>
-                  <p className="text-[13px] text-amber-50 leading-relaxed whitespace-pre-line">{aiHelp.text}</p>
+                <div className="pt-2 border-t border-[#27272A] mt-2 space-y-1">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#A1A1AA] block">
+                    Explicación con enfoque alternativo:
+                  </span>
+                  <p className="text-xs sm:text-sm text-amber-100 leading-relaxed whitespace-pre-line">
+                    {aiHelp.text}
+                  </p>
                 </div>
               )}
             </div>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={retryQuiz}
-                className="w-full px-4 py-3 rounded-xl text-sm font-black text-white shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 hover:brightness-110"
-                style={{ background: accentBg, boxShadow: `0 8px 22px ${theme.accent}44` }}
-              >
-                <RotateCcw className="w-4 h-4" /> Reintentar el reto
-              </button>
-              <p className="text-[11px] text-slate-400 text-center">Relee la ficha de arriba y elige otra vez. Tú puedes.</p>
-            </div>
+
+            <button
+              type="button"
+              onClick={retryQuiz}
+              className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Reintentar el Reto de Comprensión</span>
+            </button>
           </div>
         )}
 
-        {/* ZONA DEL RETO */}
+        {/* Zona del Reto Interactivo */}
         {quiz && !answered && (
-          <div className="p-4 sm:p-5 rounded-2xl bg-slate-800/70 border space-y-3.5" style={{ borderColor: `${theme.accent}44` }}>
+          <div className="p-5 sm:p-6 rounded-2xl bg-[#141417] border border-[#27272A] space-y-4">
             <div className="flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 shrink-0" style={{ color: theme.accent }} />
-              <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">{reviewOpen ? 'Reta de nuevo con lo que aprendiste' : 'Reto de comprensión'}</span>
+              <HelpCircle className="w-4 h-4 text-amber-400" />
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#A1A1AA]">
+                Reto de Comprensión Socrática
+              </span>
             </div>
-            <p className="text-sm sm:text-base font-bold text-white leading-snug">{quiz.question}</p>
-            <div className="space-y-2.5 pt-1">
+
+            <h3 className="text-sm sm:text-base font-bold text-white leading-snug">
+              {quiz.question}
+            </h3>
+
+            <div className="space-y-2 pt-1">
               {quiz.options.map((opt, i) => (
                 <button
                   key={i}
+                  type="button"
                   onClick={() => handleAnswer(i)}
-                  className="w-full text-left p-3.5 rounded-xl border bg-slate-900/70 border-slate-700 hover:border-slate-500 text-slate-200 transition-all active:scale-[0.99] flex items-center gap-3"
+                  className="w-full text-left p-3.5 sm:p-4 rounded-xl border border-[#27272A] bg-[#18181B] hover:border-amber-500/50 hover:bg-[#1E1E22] text-zinc-200 transition-all flex items-center gap-3.5 group active:scale-[0.99]"
                 >
-                  <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 bg-slate-800 text-slate-400">{OPTION_LETTERS[i]}</span>
-                  <span className="text-sm font-semibold leading-snug">{opt}</span>
+                  <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono font-bold shrink-0 bg-[#27272A] text-zinc-300 group-hover:bg-amber-500/20 group-hover:text-amber-300 transition-colors">
+                    {OPTION_LETTERS[i]}
+                  </span>
+                  <span className="text-xs sm:text-sm font-medium leading-relaxed flex-1">
+                    {opt}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* RESULTADO: ACIERTO */}
+        {/* Retroalimentación de Éxito Inmediata */}
         {quiz && answered && isCorrect && (
-          <div className={`p-4 sm:p-5 rounded-2xl border space-y-3 bg-emerald-950/40 border-emerald-500/40 ${isLast ? 'hidden' : ''}`}>
-            <p className="text-3xl text-center leading-none select-none">🎉</p>
-            <h4 className="text-lg font-black text-emerald-300 text-center">¡Correcto, {student.name}! {world.celebrationWord}</h4>
-            {quiz.correctExplanation && <p className="text-sm text-emerald-100/90 text-center leading-relaxed">{quiz.correctExplanation}</p>}
+          <div className={`p-5 rounded-2xl border border-emerald-500/40 bg-emerald-950/20 space-y-3 ${isLast ? 'hidden' : ''}`}>
+            <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+              <CheckCircle2 className="w-5 h-5" />
+              <span>¡Comprensión demostrada exitosamente!</span>
+            </div>
+            {quiz.correctExplanation && (
+              <p className="text-xs sm:text-sm text-emerald-200/90 leading-relaxed">
+                {quiz.correctExplanation}
+              </p>
+            )}
             <button
+              type="button"
               onClick={handleContinue}
-              className="w-full py-3.5 rounded-xl text-sm font-black text-white shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 hover:brightness-110"
-              style={{ background: accentBg, boxShadow: `0 10px 28px ${theme.accent}44` }}
+              className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
             >
-              <span>{isLast ? '¡Finalizar la ruta!' : 'Continuar al siguiente paso'}</span>
+              <span>{isLast ? 'Finalizar lección socrática' : 'Continuar al siguiente paso'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         )}
 
-        {/* MARCAS VISUALES tras respuesta incorrecta (el review ya explica; esto muestra por qué falló) */}
+        {/* Desglose de opciones tras fallo */}
         {quiz && answered && !isCorrect && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {quiz.options.map((opt, i) => (
-              <div key={i} className={`p-2.5 rounded-xl border text-[12px] leading-snug flex items-start gap-2 ${i === quiz.correctIndex ? 'bg-emerald-950/50 border-emerald-500/50 text-emerald-100' : i === selectedOption ? 'bg-rose-950/40 border-rose-500/40 text-rose-50' : 'bg-slate-900/40 border-slate-800 text-slate-500'}`}>
-                {i === quiz.correctIndex ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /> : i === selectedOption ? <XCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" /> : <span className="w-4 shrink-0" />}
+              <div
+                key={i}
+                className={`p-3 rounded-xl border text-xs leading-snug flex items-start gap-2 ${
+                  i === quiz.correctIndex
+                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
+                    : i === selectedOption
+                    ? 'bg-rose-950/30 border-rose-500/40 text-rose-200'
+                    : 'bg-[#121215] border-[#27272A] text-[#71717A]'
+                }`}
+              >
+                {i === quiz.correctIndex ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                ) : i === selectedOption ? (
+                  <XCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                ) : (
+                  <span className="w-4 shrink-0 font-mono text-[10px]">{OPTION_LETTERS[i]}.</span>
+                )}
                 <span><strong>{OPTION_LETTERS[i]}.</strong> {opt}</span>
               </div>
             ))}
@@ -377,40 +469,53 @@ export const MicroLessonPlayer: React.FC<MicroLessonPlayerProps> = ({ dailyClass
         )}
 
         {quizPreparing && !answered && (
-          <div className="p-4 rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 flex items-center gap-3">
-            <Loader2 className="w-4 h-4 animate-spin shrink-0" style={{ color: theme.accent }} />
-            <p className="text-xs text-slate-400">Relee la ficha. {teacher?.name} está terminando tu reto de esta lección…</p>
+          <div className="p-4 rounded-xl border border-dashed border-[#27272A] bg-[#121215] flex items-center gap-3">
+            <Loader2 className="w-4 h-4 animate-spin text-amber-400 shrink-0" />
+            <p className="text-xs text-[#A1A1AA]">
+              Revisa la ficha teórica mientras tu tutor genera el reto socrático…
+            </p>
           </div>
         )}
 
         {bite?.status === 'failed' && !quiz && (
-          <div className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-700/70 flex items-center justify-between gap-3 flex-wrap">
-            <p className="text-[11px] text-slate-400">El reto con IA tarda por la red gratuita — usa el chat con {teacher?.name} para repasar 💬</p>
-            <button onClick={() => void ensureBite(lessonIndex, true)} className="px-3 py-1.5 min-h-[40px] rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-black uppercase tracking-wider">Reintentar</button>
+          <div className="p-3.5 rounded-xl bg-[#121215] border border-[#27272A] flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-xs text-[#A1A1AA]">
+              Reto generado mediante síntesis local determinista. Puedes dialogar con {teacher?.name} en cualquier momento.
+            </p>
+            <button
+              type="button"
+              onClick={() => void ensureBite(lessonIndex, true)}
+              className="px-3 py-1.5 rounded-lg bg-[#27272A] hover:bg-[#3F3F46] text-white text-xs font-bold"
+            >
+              Reintentar
+            </button>
           </div>
         )}
 
         {!quiz && !reviewOpen && (
           <button
+            type="button"
             onClick={handleContinue}
-            className="w-full py-3.5 rounded-xl text-sm font-black text-white shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 hover:brightness-110"
-            style={{ background: accentBg, boxShadow: `0 10px 28px ${theme.accent}44` }}
+            className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
           >
-            <span>Entendí, {isLast ? 'finalizar la ruta' : 'siguiente lección'}</span>
+            <span>{isLast ? 'Finalizar lección socrática' : 'Continuar a la siguiente micro-lección'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         )}
 
-        {/* NAVEGACIÓN CLARIA: retroceder / avanzar siempre visibles */}
-        <div className="mt-auto pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+        {/* Barra de Navegación Inferior Discreta */}
+        <div className="pt-4 border-t border-[#27272A] flex items-center justify-between gap-3">
           <button
+            type="button"
             onClick={() => goTo(lessonIndex - 1)}
             disabled={lessonIndex === 0}
-            className="px-4 py-2.5 min-h-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 text-xs font-black flex items-center gap-1.5 transition-all touch-lift"
+            className="px-3.5 py-2 min-h-[40px] rounded-xl bg-[#27272A] hover:bg-[#3F3F46] disabled:opacity-30 disabled:cursor-not-allowed text-zinc-200 text-xs font-semibold flex items-center gap-1.5 transition-all"
           >
-            <ChevronLeft className="w-4 h-4" /> Volver
+            <ChevronLeft className="w-4 h-4" />
+            <span>Paso Anterior</span>
           </button>
-          <div className="flex items-center gap-1">
+
+          <div className="flex items-center gap-1.5">
             {Array.from({ length: MICRO_TOTAL }).map((__, i) => {
               const isUnlocked = i <= maxUnlocked;
               return (
@@ -419,70 +524,91 @@ export const MicroLessonPlayer: React.FC<MicroLessonPlayerProps> = ({ dailyClass
                   type="button"
                   onClick={() => goTo(i)}
                   disabled={!isUnlocked}
-                  className="relative p-2.5 -m-1 rounded-full after:absolute after:-inset-1 after:content-[''] disabled:cursor-not-allowed"
-                  title={`Lección ${i + 1}${cleared.includes(i) ? ' · superada ✔' : isUnlocked ? '' : ' · bloqueada'}`}
-                  aria-label={`Ir a la lección ${i + 1}`}
+                  className="p-1 disabled:cursor-not-allowed"
+                  title={`Paso ${i + 1}${cleared.includes(i) ? ' · superado' : isUnlocked ? '' : ' · pendiente'}`}
+                  aria-label={`Ir al paso ${i + 1}`}
                 >
                   <span
-                    className={`block w-2.5 h-2.5 rounded-full ${cleared.includes(i) ? 'bg-emerald-400' : i === lessonIndex ? 'animate-pulse' : isUnlocked ? 'bg-slate-600' : 'bg-slate-800'}`}
-                    style={i === lessonIndex && !cleared.includes(i) ? { background: theme.accent } : undefined}
+                    className={`block w-2.5 h-2.5 rounded-full transition-all ${
+                      cleared.includes(i)
+                        ? 'bg-emerald-400'
+                        : i === lessonIndex
+                        ? 'bg-amber-400 scale-125'
+                        : isUnlocked
+                        ? 'bg-zinc-600'
+                        : 'bg-[#27272A]'
+                    }`}
                   />
                 </button>
               );
             })}
           </div>
+
           {isLast ? (
             <button
+              type="button"
               onClick={handleContinue}
               disabled={!canAdvance && !finished}
-              className="px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-black text-white flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ background: canAdvance ? 'linear-gradient(135deg,#10b981,#34d399)' : '#334155', color: canAdvance ? '#052e16' : '#94a3b8' }}
-              title={!canAdvance ? 'Primero supera el reto de esta lección' : undefined}
+              className={`px-4 py-2 min-h-[40px] rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                canAdvance
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md'
+                  : 'bg-[#27272A] text-[#71717A] cursor-not-allowed'
+              }`}
             >
-              Finalizar ruta <CheckCircle2 className="w-4 h-4" />
+              <span>Finalizar Fase 1</span>
+              <CheckCircle2 className="w-4 h-4" />
             </button>
           ) : (
             <button
+              type="button"
               onClick={handleContinue}
               disabled={!canAdvance}
-              className="px-4 py-2.5 min-h-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black flex items-center gap-1.5 transition-all touch-lift"
-              title={!canAdvance ? 'Responde bien el reto para desbloquear' : undefined}
+              className="px-4 py-2 min-h-[40px] rounded-xl bg-[#27272A] hover:bg-[#3F3F46] disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs font-bold flex items-center gap-1.5 transition-all"
             >
-              Avanzar <ArrowRight className="w-4 h-4" />
+              <span>Avanzar</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           )}
         </div>
       </div>
 
-      {/* PANTALLA DE ÉXITO FINAL */}
+      {/* Tarjeta de Cierre de la Fase Socrática */}
       {routeCompleted && (
-        <div className="border-t p-4 sm:p-6 bg-gradient-to-b from-emerald-950/30 to-slate-950/60 relative overflow-hidden" style={{ borderColor: '#10b98155' }}>
-          <div className="absolute inset-x-0 top-0 flex justify-around select-none pointer-events-none text-xl opacity-80"><span>🎊</span><span>⭐</span><span>🎊</span></div>
-          <div className="flex flex-col items-center text-center gap-4 pt-3">
-            <div className="text-5xl animate-bounce select-none">🏆</div>
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Etapa completada</span>
-              <h3 className="text-2xl sm:text-3xl font-black text-white mt-1">¡Lo lograste, {student.name}!</h3>
-              <p className="text-sm text-slate-300 mt-2 max-w-md leading-relaxed">
-                {teacher?.name} confirma que dominaste <strong className="text-white">{dailyClass.theme}</strong>: {MICRO_TOTAL} micro-lecciones con sus retos. {world.celebrationWord}
-              </p>
-              <p className="text-[11px] text-slate-500 mt-1">{wrongCount === 0 ? 'Ruta perfecta: todos los retos al primer intento' : `${MICRO_TOTAL - wrongCount}/${MICRO_TOTAL} retos al primer intento`}</p>
-            </div>
-            <button
-              onClick={onGoToLab}
-              className="w-full max-w-md py-5 rounded-2xl text-white shadow-2xl transition-all active:scale-[0.97] hover:brightness-110 flex items-center justify-center gap-3 group animate-pulse"
-              style={{ background: `linear-gradient(135deg, #0ea5e9, ${theme.accent})`, boxShadow: `0 16px 44px ${theme.accent}55` }}
-            >
-              <FlaskConical className="w-7 h-7 group-hover:rotate-12 transition-transform" />
-              <span className="text-left">
-                <span className="block text-base font-black leading-tight">IR AL LABORATORIO DIGITAL</span>
-                <span className="block text-[10px] font-bold uppercase tracking-widest opacity-80">refuerza lo aprendido con video y simulador</span>
+        <div className="border-t border-emerald-500/30 p-6 bg-gradient-to-b from-[#141E18] to-[#121215] space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4" />
+                <span>Fase 1 Completada con Éxito</span>
               </span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
-            <button onClick={restart} className="px-4 py-2 min-h-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold flex items-center gap-1.5 transition-all touch-lift">
-              <RotateCcw className="w-3.5 h-3.5" /> Repasar la ruta
-            </button>
+              <h3 className="text-lg sm:text-xl font-bold text-white">
+                ¡Conceptos asimilados, {student.name}!
+              </h3>
+              <p className="text-xs text-zinc-300 max-w-xl leading-relaxed">
+                Has superado los {MICRO_TOTAL} fundamentos de <strong className="text-white">{dailyClass.theme}</strong>. Tu siguiente paso pedagógico es reforzar lo aprendido mediante simulación o laboratorio.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={onGoToLab}
+                className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-2"
+              >
+                <FlaskConical className="w-4 h-4" />
+                <span>Ir al Laboratorio Digital (Fase 2)</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={restart}
+                className="px-3.5 py-3 rounded-xl bg-[#27272A] hover:bg-[#3F3F46] text-zinc-300 text-xs font-bold transition-all flex items-center gap-1.5"
+                title="Repasar conceptos desde el inicio"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Repasar</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

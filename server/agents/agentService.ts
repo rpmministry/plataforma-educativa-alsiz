@@ -39,6 +39,35 @@ export class AgentService {
   }
 
   /**
+   * Obtiene el agente asignado a una asignatura por ID de asignatura, o por código de asignatura y nivel
+   */
+  public static getAgentForSubject(subjectIdOrCode: string, levelId?: string): AIAgent | null {
+    const db = getDb();
+    // 1. Búsqueda directa por subject_id en ai_agents
+    let row = db.prepare('SELECT * FROM ai_agents WHERE subject_id = ? AND is_active = 1').get(subjectIdOrCode) as unknown as AIAgent | undefined;
+    if (row) return row;
+
+    // 2. Buscar por coincidencia con la tabla subjects
+    const subj = db.prepare('SELECT id, code, level_id FROM subjects WHERE id = ? OR code = ?').get(subjectIdOrCode, subjectIdOrCode) as any;
+    if (subj) {
+      row = db.prepare('SELECT * FROM ai_agents WHERE subject_id = ? AND is_active = 1').get(subj.id) as unknown as AIAgent | undefined;
+      if (row) return row;
+
+      const targetLevel = levelId || subj.level_id;
+      if (targetLevel) {
+        row = db.prepare(`
+          SELECT a.* FROM ai_agents a
+          JOIN subjects s ON a.subject_id = s.id
+          WHERE s.code = ? AND a.level_id = ? AND a.is_active = 1
+        `).get(subj.code, targetLevel) as unknown as AIAgent | undefined;
+        if (row) return row;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Actualiza la configuración de un agente (Admin / Coordinador)
    */
   public static updateAgent(
@@ -241,6 +270,8 @@ export class AgentService {
       safetyRestrictions: agent.safety_restrictions,
       language: options?.language || agent.default_language,
       forceProvider: options?.forceProvider,
+      studentId,
+      isManualUserAction: true,
     });
 
     // 5. Registrar respuesta del Agente
@@ -254,12 +285,14 @@ export class AgentService {
       conversationId,
       llmResponse.content,
       JSON.stringify(llmResponse.citationTags),
-      JSON.stringify(ragChunks.map((c) => ({ tag: c.citationTag, source: c.sourceCode }))),
+      JSON.stringify(ragChunks.map((c) => ({ tag: c.citationTag, source: c.sourceCode, title: c.sourceTitle, snippet: c.contentText.slice(0, 100) }))),
       JSON.stringify({
         provider: llmResponse.providerName,
         model: llmResponse.modelName,
         latencyMs: llmResponse.latencyMs,
         isFallback: llmResponse.isFallback,
+        citationsFound: llmResponse.citationTags,
+        chunksRetrievedCount: ragChunks.length,
       }),
       llmResponse.safetyFlags ? JSON.stringify(llmResponse.safetyFlags) : null
     );
@@ -271,7 +304,7 @@ export class AgentService {
     db.prepare(`
       INSERT INTO ai_telemetry_logs (
         id, agent_code, provider_name, model_name, latency_ms, tokens_prompt, tokens_completion, status_code
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 200)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       `tel-${crypto.randomUUID().slice(0, 12)}`,
       agent.code,
@@ -279,7 +312,8 @@ export class AgentService {
       llmResponse.modelName,
       llmResponse.latencyMs,
       llmResponse.tokensPrompt,
-      llmResponse.tokensCompletion
+      llmResponse.tokensCompletion,
+      llmResponse.isFallback ? 206 : 200
     );
 
     const studentMessage = db.prepare('SELECT * FROM ai_messages WHERE id = ?').get(studentMsgId) as unknown as AIMessage;

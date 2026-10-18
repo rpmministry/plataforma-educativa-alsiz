@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSchool } from '../../context/SchoolContext';
 import { StudentAvatar } from '../common/StudentAvatar';
-import { WorldHeaderBanner } from '../common/WorldCharacters';
 import { DevocionalCard } from './DevocionalCard';
 import { PageHeader } from '../layout/PageHeader';
 import { DevelopmentBadge } from '../common/StateFeedback';
@@ -15,16 +14,13 @@ import {
   Sparkles,
   ArrowRight,
   TrendingUp,
-  FileCheck2,
-  AlertCircle,
-  HelpCircle,
-  Coffee,
   Award,
-  ChevronRight,
+  Coffee,
+  GraduationCap,
+  FileCheck2,
 } from 'lucide-react';
 
 export const StudentDashboard: React.FC = () => {
-  const isReviewWeek = new Date() < new Date('2026-09-07T00:00:00');
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -35,6 +31,7 @@ export const StudentDashboard: React.FC = () => {
     currentStudent,
     studentSubjects,
     todayClasses,
+    allStudentClasses,
     selectedDayOfWeek,
     setSelectedDayOfWeek,
     setActiveTab,
@@ -47,13 +44,20 @@ export const StudentDashboard: React.FC = () => {
   } = useSchool();
 
   const studentSubmissions = submissions.filter((s: any) => s.studentId === currentStudent.id);
-  const activeClass = todayClasses[0];
-  const activeSubject = activeClass
-    ? studentSubjects.find((s: any) => s.id === activeClass.subjectId)
+  const featuredClass = todayClasses[0];
+  const featuredSubject = featuredClass
+    ? studentSubjects.find((s: any) => s.id === featuredClass.subjectId)
     : studentSubjects[0];
 
   const plan = currentStudent.academicPlan;
-  const currentProject = plan.projects.find((p: any) => p.status === 'active') || plan.projects[0];
+  const currentProject = plan?.projects?.find((p: any) => p.status === 'active') || plan?.projects?.[0];
+
+  // Métricas reales derivadas de los datos del estudiante
+  const totalActivitiesCount = allStudentClasses.reduce((acc: number, c: any) => acc + (c.activities?.length || 0), 0);
+  const completedSubmissionsCount = studentSubmissions.length;
+  const avgProgress = studentSubjects.length > 0
+    ? Math.round(studentSubjects.reduce((acc: number, s: any) => acc + (s.progressPercentage || 0), 0) / studentSubjects.length)
+    : 0;
 
   const handleStartClass = (cls: typeof todayClasses[0]) => {
     setActiveClass(cls);
@@ -67,46 +71,187 @@ export const StudentDashboard: React.FC = () => {
     setActiveTab('subjects');
   };
 
-  const isAvril = currentStudent.id === 'avril' || currentStudent.id === 'karen';
-
   if (!isMounted) {
     return (
       <div className="space-y-6 animate-pulse" aria-hidden>
-        <div className="h-10 w-56 rounded-xl bg-slate-800/70" />
-        <div className="h-40 rounded-3xl bg-slate-800/60" />
-        <div className="h-20 rounded-2xl bg-slate-800/60" />
-        <div className="h-64 rounded-3xl bg-slate-800/60" />
+        <div className="h-10 w-56 rounded-xl bg-[#18181B]" />
+        <div className="h-40 rounded-2xl bg-[#18181B]" />
+        <div className="h-16 rounded-xl bg-[#18181B]" />
+        <div className="h-64 rounded-2xl bg-[#18181B]" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      
-      {/* Única puerta de entrada: widgets + clases del día en una sola vista */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <PageHeader title="Mi Espacio de Estudio" />
-        <DevelopmentBadge stage="Etapa 04" label="Entorno de Desarrollo" />
+      {/* Encabezado Institucional de la Vista */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <PageHeader title="Panel del Estudiante" />
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[#A1A1AA] hidden sm:inline">Período Lectivo 2026-2027</span>
+          <DevelopmentBadge stage="Etapa 04" label="Entorno de Aprendizaje" />
+        </div>
       </div>
 
-      {/* Student Movie World Banner */}
-      <WorldHeaderBanner
-        studentId={currentStudent.id}
-        studentName={currentStudent.name}
-      />
+      {/* 1. Tarjeta de Perfil Institucional (Genérica y Autorizada) */}
+      <section className="relative overflow-hidden rounded-2xl bg-[#18181B] border border-[#27272A] p-6 sm:p-7 shadow-xl">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <StudentAvatar
+              studentId={currentStudent.id}
+              name={currentStudent.name}
+              size="xl"
+              editable={true}
+            />
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#E0A82E]/10 border border-[#E0A82E]/30 text-[#E0A82E] text-xs font-semibold">
+                <GraduationCap className="w-3.5 h-3.5" />
+                <span>{currentStudent.grade || 'Educación Básica'}</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                ¡Bienvenido(a), {currentStudent.name}!
+              </h2>
+              <p className="text-xs text-[#A1A1AA] max-w-xl leading-relaxed">
+                {plan?.educationLevel || 'Plan Académico Oficial Integrado'} • Trimestre {currentProject?.trimesterNumber || 1}: Fundamentación Teórica y Aprendizaje Guiado.
+              </p>
+            </div>
+          </div>
 
-      {/* Devocional Diario - nuevo */}
-      <DevocionalCard />
+          {/* Acciones Rápidas del Perfil */}
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full md:w-auto pt-2 md:pt-0 border-t md:border-t-0 border-[#27272A]">
+            {featuredSubject && (
+              <button
+                type="button"
+                onClick={() => openTeacherDrawerWithContext(featuredSubject, featuredClass || undefined)}
+                className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-[#27272A] hover:bg-[#3F3F46] border border-[#3F3F46] text-[#F4F4F5] text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+                title="Abrir diálogo socrático con el Profesor Virtual"
+              >
+                <Bot className="w-4 h-4 text-[#E0A82E]" />
+                <span>Tutor Socrático IA</span>
+              </button>
+            )}
 
-      {/* Day Selector Bar */}
-      <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl border ${
-        isAvril
-          ? 'bg-slate-900/90 border-amber-500/30'
-          : 'bg-slate-900/90 border-red-500/30'
-      }`}>
+            <button
+              type="button"
+              onClick={() => setActiveTab('schedule')}
+              className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-[#121214] hover:bg-[#27272A] border border-[#27272A] text-[#A1A1AA] hover:text-white text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Horario</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('progress')}
+              className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-[#121214] hover:bg-[#27272A] border border-[#27272A] text-[#A1A1AA] hover:text-white text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>Progreso</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Barra resumida de indicadores educativos reales */}
+        <div className="mt-6 pt-5 border-t border-[#27272A] grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-semibold text-[#71717A] uppercase tracking-wider">Clases Hoy</span>
+            <p className="text-lg font-bold text-white tabular-nums">{todayClasses.length}</p>
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-semibold text-[#71717A] uppercase tracking-wider">Asignaturas</span>
+            <p className="text-lg font-bold text-white tabular-nums">{studentSubjects.length}</p>
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-semibold text-[#71717A] uppercase tracking-wider">Actividades Entregadas</span>
+            <p className="text-lg font-bold text-emerald-400 tabular-nums">{completedSubmissionsCount}</p>
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-semibold text-[#71717A] uppercase tracking-wider">Avance Promedio</span>
+            <p className="text-lg font-bold text-[#E0A82E] tabular-nums">{avgProgress}%</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. Hero Action: Continuar Aprendiendo (Prioridad para el Estudiante) */}
+      {featuredClass ? (
+        <section className="relative overflow-hidden rounded-2xl border border-[#E0A82E]/40 bg-gradient-to-r from-[#18181B] via-[#18181B] to-[#241F16] p-5 sm:p-6 shadow-xl">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+            <div className="space-y-2 max-w-3xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#E0A82E] text-[#0A0A0A] text-[11px] font-bold uppercase tracking-wider">
+                  <Play className="w-3 h-3 fill-current" />
+                  <span>Continuar Aprendiendo</span>
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#27272A] text-[#F4F4F5] text-xs font-semibold border border-[#3F3F46]">
+                  {featuredSubject?.name || 'Asignatura'}
+                </span>
+                <span className="text-xs text-[#A1A1AA] flex items-center gap-1 font-mono">
+                  <Clock className="w-3.5 h-3.5 text-[#E0A82E]" />
+                  <span>{featuredClass.scheduleTime || '08:00 - 09:30'}</span>
+                </span>
+              </div>
+
+              <div>
+                <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                  {featuredClass.theme}
+                </h3>
+                <p className="text-xs font-medium text-[#71717A] uppercase tracking-wider mt-0.5">
+                  {featuredClass.unit}
+                </p>
+                <p className="text-xs sm:text-sm text-[#D4D4D8] mt-1.5 line-clamp-2 leading-relaxed">
+                  {featuredClass.objective}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-4 text-xs text-[#A1A1AA] pt-1">
+                <span className="flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-[#E0A82E]" />
+                  <span>{featuredClass.resources?.length || 0} recursos didácticos</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{featuredClass.activities?.length || 0} actividades formativas</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 w-full md:w-auto shrink-0">
+              <button
+                type="button"
+                onClick={() => handleStartClass(featuredClass)}
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#E0A82E] hover:bg-[#B77D06] text-[#0A0A0A] font-bold text-sm shadow-md transition-colors flex items-center justify-center gap-2"
+              >
+                <Play className="w-4 h-4 fill-current" />
+                <span>Entrar a Clase Ahora</span>
+              </button>
+              {featuredSubject && (
+                <button
+                  type="button"
+                  onClick={() => openTeacherDrawerWithContext(featuredSubject, featuredClass)}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#27272A] hover:bg-[#3F3F46] border border-[#3F3F46] text-[#E4E4E7] text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                  <Bot className="w-3.5 h-3.5 text-[#E0A82E]" />
+                  <span>Preguntar a Docente IA</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : (
+        <section className="p-6 rounded-2xl bg-[#18181B] border border-[#27272A] text-center text-[#A1A1AA] space-y-2">
+          <BookOpen className="w-8 h-8 text-[#71717A] mx-auto" />
+          <h3 className="text-base font-bold text-white">Jornada escolar sin clases programadas</h3>
+          <p className="text-xs text-[#A1A1AA] max-w-md mx-auto">
+            Selecciona un día en la barra superior o explora tus asignaturas para repasar contenidos y adelantar actividades.
+          </p>
+        </section>
+      )}
+
+      {/* 3. Selector de Jornada Escolar (Lunes - Viernes) */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl border border-[#27272A] bg-[#18181B]">
         <div className="flex items-center gap-2">
-          <Calendar className={`w-5 h-5 ${isAvril ? 'text-amber-400' : 'text-red-400'}`} />
-          <span className="text-sm font-extrabold text-white">Seleccionar Día Escolar:</span>
+          <Calendar className="w-4 h-4 text-[#E0A82E]" />
+          <span className="text-xs font-bold text-white uppercase tracking-wider">Jornada Escolar:</span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -115,30 +260,25 @@ export const StudentDashboard: React.FC = () => {
             return (
               <button
                 key={day}
+                type="button"
                 onClick={() => setSelectedDayOfWeek(day)}
-                className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${
                   isSelected
-                    ? isAvril
-                      ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30 scale-105 ring-2 ring-amber-300'
-                      : 'bg-red-600 text-white shadow-md shadow-red-600/30 scale-105 ring-2 ring-red-400'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700/80 hover:text-white border border-slate-700/60'
+                    ? 'bg-[#E0A82E] text-[#0A0A0A] shadow-sm'
+                    : 'bg-[#27272A] text-[#A1A1AA] hover:text-white hover:bg-[#3F3F46]'
                 }`}
               >
                 <span>{day}</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-                    isSelected
-                      ? isAvril ? 'bg-amber-600 text-amber-100' : 'bg-red-700 text-red-100'
-                      : 'bg-slate-700/80 text-slate-400'
-                  }`}
-                >
+                <span className={`text-[10px] px-1 py-0.2 rounded font-mono ${
+                  isSelected ? 'bg-[#0A0A0A]/20 text-[#0A0A0A]' : 'text-[#71717A]'
+                }`}>
                   {dateLabel}
                 </span>
                 {isFirstSchoolDay && (
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Primer Día de Clases (07 Sep 2026)" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Inicio de Año Lectivo" />
                 )}
                 {!isFirstSchoolDay && isToday && (
-                  <span className="w-2 h-2 rounded-full bg-amber-400" title="Día de hoy" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#E0A82E]" title="Día actual" />
                 )}
               </button>
             );
@@ -146,380 +286,316 @@ export const StudentDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Active Trimester 1 Project Spotlight Banner */}
-      {currentProject && (
-        <section className={`p-5 sm:p-6 rounded-3xl border shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5 transition-all ${
-          isAvril
-            ? 'bg-gradient-to-r from-amber-950/50 via-slate-900 to-amber-900/30 border-amber-500/40 shadow-amber-950/20'
-            : 'bg-gradient-to-r from-red-950/50 via-slate-900 to-red-900/30 border-red-500/40 shadow-red-950/20'
-        }`}>
-          <div className="space-y-1.5 max-w-2xl">
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
-                isAvril
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                  : 'bg-red-500/20 text-red-300 border-red-500/40'
-              }`}>
-                {isAvril ? '🐶 PROYECTO MAESTRO • TRIMESTRE ' : '🍄 MISIÓN ESPECIAL • TRIMESTRE '}{currentProject.trimesterNumber}
-              </span>
-              <span className="text-xs text-slate-300">Evaluación por Productos y Evidencias</span>
-            </div>
-            <h3 className="text-lg font-extrabold text-white flex items-center gap-2">
-              <Award className={`w-5 h-5 shrink-0 ${isAvril ? 'text-amber-400' : 'text-red-400'}`} />
-              <span>Proyecto: "{currentProject.title}"</span>
-            </h3>
-            <p className="text-xs text-slate-200 line-clamp-2 leading-relaxed">
-              {currentProject.description}
-            </p>
-          </div>
-        </section>
-      )}
-
-      {/* Grid: Main Today's Class & Quick Stats */}
+      {/* 4. Grid Principal: Clases & Materias (Col-span 2) vs Horario & Progreso (Col-span 1) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Today's Classes for selected day (2 Columns) */}
+
+        {/* Columna Izquierda: Clases programadas + Asignaturas + Proyecto */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Sparkles className={`w-5 h-5 ${isAvril ? 'text-amber-400' : 'text-red-400'}`} />
-              <span>Clases Programadas ({selectedDayOfWeek})</span>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
-                isAvril
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                  : 'bg-red-500/20 text-red-300 border-red-500/30'
-              }`}>
-                {todayClasses.length} {todayClasses.length === 1 ? 'clase' : 'clases'}
-              </span>
-            </h2>
-          </div>
 
-          {/* List of classes for the selected day */}
-          {todayClasses.length > 0 ? (
-            <div className="space-y-4">
-              {todayClasses.map((cls: any, idx: number) => {
-                const sub = studentSubjects.find((s: any) => s.id === cls.subjectId);
-                const isFeatured = idx === 0;
-                return (
-                  <div
-                    key={cls.id}
-                    className={`rounded-2xl border transition-all ${
-                      isFeatured
-                        ? isAvril
-                          ? 'bg-slate-900/90 border-amber-500/50 p-6 shadow-xl shadow-amber-950/20'
-                          : 'bg-slate-900/90 border-red-500/50 p-6 shadow-xl shadow-red-950/20'
-                        : 'bg-slate-900/60 border-slate-800 p-5 hover:border-slate-700'
-                    } space-y-4`}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                          isAvril
-                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                            : 'bg-red-500/20 text-red-300 border-red-500/30'
-                        }`}>
-                          {sub?.name || 'Materia'}
-                        </span>
-                        {isFeatured && (
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${
-                            isAvril
-                              ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                              : 'bg-red-500/20 text-red-300 border-red-500/30'
-                          }`}>
-                            {isAvril ? '🐶 Cuento Vivo del Día' : '⭐ Misión Principal del Día'}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs text-slate-300 flex items-center gap-1 font-mono">
-                        <Clock className={`w-3.5 h-3.5 ${isAvril ? 'text-amber-400' : 'text-red-400'}`} />
-                        <span>{cls.scheduleTime || '08:00 - 09:30'}</span>
-                      </span>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <h3 className="text-lg font-extrabold text-white hover:text-amber-200 transition-colors">
-                        {cls.theme}
-                      </h3>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">
-                        {cls.unit}
-                      </p>
-                      <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
-                        {cls.objective}
-                      </p>
-                    </div>
-
-                    {/* Progress and quick action */}
-                    <div className="pt-3 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                      <div className="flex items-center gap-4 text-xs text-slate-400">
-                        <div className="flex items-center gap-1">
-                          <BookOpen className={`w-4 h-4 ${isAvril ? 'text-amber-400' : 'text-red-400'}`} />
-                          <span>{cls.resources?.length || 1} recursos</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                          <span>{cls.activities?.length || 1} actividades</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        
-                        <button
-                          onClick={() => handleStartClass(cls)}
-                          className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-black shadow-md transition-all flex items-center justify-center gap-2 ${
-                            isAvril
-                              ? 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                              : 'bg-red-600 hover:bg-red-500 text-white'
-                          }`}
-                        >
-                          <Play className="w-3.5 h-3.5 fill-current" />
-                          <span>Entrar a Clase</span>
-                        </button>
-
-                        {sub && (
-                          <button
-                            onClick={() => openTeacherDrawerWithContext(sub, cls)}
-                            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-all flex items-center gap-1"
-                            title="Preguntar al Profesor IA"
-                          >
-                            <Bot className={`w-4 h-4 ${isAvril ? 'text-amber-400' : 'text-red-400'}`} />
-                            <span className="hidden sm:inline">Tutor IA</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="p-8 rounded-2xl bg-slate-900/60 border border-slate-800 text-center text-slate-400 space-y-2">
-              <Calendar className="w-8 h-8 text-slate-500 mx-auto" />
-              <p className="font-bold text-white">No hay clases programadas para el {selectedDayOfWeek}.</p>
-              <p className="text-xs text-slate-400">Selecciona otro día en la barra superior para explorar las clases.</p>
-            </div>
-          )}
-
-          {/* Seguimiento por Competencias (Etapa 06 - Actividad vs Dominio Demostrado) */}
-          <div className="p-5 sm:p-6 rounded-3xl bg-[#121820] border border-[#283545] space-y-4 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="p-2 rounded-xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  <Award className="w-5 h-5" />
-                </span>
-                <div>
-                  <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-                    <span>Seguimiento de Competencias MINEDUC</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      Normativa Art. 32
-                    </span>
-                  </h3>
-                  <p className="text-xs text-slate-400">
-                    Diferenciación estricta entre actividades entregadas y dominio conceptual demostrado.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-mono">
-                <span className="text-slate-400">Dominio Requerido:</span>
-                <span className="text-amber-400 font-bold">≥ 7.00 / 10.00</span>
-              </div>
-            </div>
-
-            {/* Métricas diferenciadas: Actividades vs Dominio */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="p-3 rounded-2xl bg-[#0A0D11]/70 border border-[#283545]">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Destrezas</span>
-                <p className="text-xl font-black text-white mt-0.5">18</p>
-                <span className="text-[10px] text-slate-500">Malla 2026-2027</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-[#0A0D11]/70 border border-[#283545]">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Entregadas</span>
-                <p className="text-xl font-black text-indigo-300 mt-0.5">12</p>
-                <span className="text-[10px] text-indigo-400/80">Actividades listas</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-[#0A0D11]/70 border border-emerald-500/30 bg-emerald-500/5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Dominio Demostrado</span>
-                <p className="text-xl font-black text-emerald-300 mt-0.5">9</p>
-                <span className="text-[10px] text-emerald-400/80">≥ 7.00 alcanzado</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-[#0A0D11]/70 border border-amber-500/30 bg-amber-500/5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Sin Dominio / Refuerzo</span>
-                <p className="text-xl font-black text-amber-300 mt-0.5">3</p>
-                <span className="text-[10px] text-amber-400/80">Entregado &lt; 7.00</span>
-              </div>
-            </div>
-
-            {/* Barra de progreso de dominio real */}
-            <div className="space-y-1.5 pt-1">
-              <div className="flex justify-between text-xs text-slate-400">
-                <span>Progreso hacia Perfil de Egreso y Acreditación</span>
-                <span className="font-mono text-emerald-400 font-bold">50% de Dominio Consolidado</span>
-              </div>
-              <div className="h-2.5 w-full bg-[#0A0D11] rounded-full overflow-hidden flex border border-[#283545]">
-                <div style={{ width: '50%' }} className="bg-emerald-500 h-full rounded-full transition-all" title="Dominio demostrado" />
-                <div style={{ width: '16.6%' }} className="bg-amber-500/70 h-full transition-all" title="Actividad completada sin alcanzar dominio" />
-              </div>
-              <div className="flex items-center gap-4 text-[10px] text-slate-400 pt-1">
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Dominio Demostrado (Verificado)</span>
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500" /> Actividad Entregada (Refuerzo Requerido)</span>
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-slate-700" /> Por Iniciar</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Subjects Progress Grid */}
-          <div className="space-y-4 pt-2">
+          {/* Clases programadas para el día seleccionado */}
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <BookOpen className={`w-5 h-5 ${isAvril ? 'text-amber-400' : 'text-red-400'}`} />
-                {/* INDICADOR VISUAL PARA CONFIRMAR EL CAMBIO */}
-                <span>Materias del Plan - Modo Repaso</span>
-              </h2>
-              <button
-                onClick={() => setActiveTab('subjects')}
-                className={`text-xs font-bold flex items-center gap-1 ${isAvril ? 'text-amber-400 hover:text-amber-300' : 'text-red-400 hover:text-red-300'}`}
-              >
-                <span>Ver todas</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#E0A82E]" />
+                <span>Clases del {selectedDayOfWeek}</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#27272A] text-[#E0A82E] border border-[#3F3F46]">
+                  {todayClasses.length} {todayClasses.length === 1 ? 'clase' : 'clases'}
+                </span>
+              </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {studentSubjects.map((subject: any) => {
-                // Cálculo visual del progreso interceptado
-                const displayProgress = isReviewWeek ? 0 : subject.progressPercentage;
+            {todayClasses.length > 0 ? (
+              <div className="space-y-3.5">
+                {todayClasses.map((cls: any, idx: number) => {
+                  const sub = studentSubjects.find((s: any) => s.id === cls.subjectId);
+                  const isFirst = idx === 0;
 
-                return (
-                <div
-                  key={subject.id}
-                  onClick={() => handleOpenSubject(subject)}
-                  className={`p-4 rounded-2xl bg-slate-900/80 border transition-all cursor-pointer group shadow-sm hover:shadow-md ${
-                    isAvril ? 'border-amber-500/30 hover:border-amber-400/60' : 'border-red-500/30 hover:border-red-400/60'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
-                        isAvril
-                          ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
-                          : 'bg-red-500/10 text-red-300 border-red-500/20'
-                      }`}>
-                        {subject.code}
-                      </span>
-                      <h4 className="text-sm font-bold text-white group-hover:text-amber-200 transition-colors">
-                        {subject.name}
-                      </h4>
-                    </div>
-                    <img
-                      src={subject.teacher.avatar}
-                      alt={subject.teacher.name}
-                      title={`Profesor: ${subject.teacher.name}`}
-                      className="w-9 h-9 rounded-xl object-cover ring-1 ring-slate-600 shrink-0"
-                    />
-                  </div>
-
-                  <p className="text-xs text-slate-300 mt-2 line-clamp-2 leading-relaxed">
-                    {subject.description}
-                  </p>
-
-                  <div className="mt-4 pt-2 border-t border-slate-800">
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-slate-400">Progreso del curso</span>
-                      <span className={`font-bold ${isAvril ? 'text-amber-300' : 'text-red-300'}`}>
-                        {displayProgress}%
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${
-                          isAvril
-                            ? 'bg-gradient-to-r from-amber-500 to-yellow-400'
-                            : 'bg-gradient-to-r from-red-500 to-amber-500'
-                        }`}
-                        style={{ width: `${displayProgress}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )})}
-            </div>
-          </div>
-
-        </div>
-
-          {/* Right Sidebar: Schedule for selected day & Devocional */}
-          <div className="space-y-6">
-            {/* Schedule Mini-Timeline for selected day (08:00 - 12:00) */}
-            <div className={`p-5 rounded-2xl border shadow-md ${
-              isAvril
-                ? 'bg-slate-900/90 border-amber-500/30'
-                : 'bg-slate-900/90 border-red-500/30'
-            }`}>
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Calendar className={`w-4 h-4 ${isAvril ? 'text-amber-400' : 'text-red-400'}`} />
-                  <span>Horario ({selectedDayOfWeek})</span>
-                </h3>
-                <button
-                  onClick={() => setActiveTab('schedule')}
-                  className={`text-xs font-bold ${isAvril ? 'text-amber-400 hover:text-amber-300' : 'text-red-400 hover:text-red-300'}`}
-                >
-                  Ver Plan
-                </button>
-              </div>
-
-              <div className="space-y-2.5">
-                {todaySchedule.map((entry: any) => {
-                  const matchingClass = entry.classId
-                    ? todayClasses.find((c: any) => c.id === entry.classId)
-                    : null;
                   return (
                     <div
-                      key={entry.id}
-                      onClick={() => {
-                        if (matchingClass) handleStartClass(matchingClass);
-                        else if (!entry.isRecess && todayClasses[0]) handleStartClass(todayClasses[0]);
-                      }}
-                      className={`p-3 rounded-xl border transition-all ${
-                        entry.isRecess
-                          ? 'bg-amber-950/20 border-amber-500/30'
-                          : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 cursor-pointer'
-                      }`}
+                      key={cls.id}
+                      className="p-5 rounded-xl border border-[#27272A] bg-[#18181B] hover:border-[#3F3F46] transition-colors space-y-3.5"
                     >
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-mono text-slate-300 flex items-center gap-1">
-                          <Clock className={`w-3 h-3 ${isAvril ? 'text-amber-400' : 'text-red-400'}`} />
-                          {entry.startTime} - {entry.endTime}
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-[#27272A] text-[#F4F4F5] border border-[#3F3F46]">
+                            {sub?.name || 'Materia'}
+                          </span>
+                          {isFirst && (
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase bg-[#E0A82E]/10 text-[#E0A82E] border border-[#E0A82E]/30">
+                              Primera Sesión
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-[#A1A1AA] flex items-center gap-1 font-mono">
+                          <Clock className="w-3.5 h-3.5 text-[#E0A82E]" />
+                          <span>{cls.scheduleTime || '08:00 - 09:30'}</span>
                         </span>
-                        {entry.isRecess ? (
-                          <span className="text-[10px] font-bold text-amber-300 flex items-center gap-1">
-                            <Coffee className="w-3 h-3" />
-                            Descanso
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
-                            ▶ Ver clase
-                          </span>
-                        )}
                       </div>
-                      <h4 className={`text-xs font-bold mt-1 ${entry.isRecess ? 'text-amber-200' : 'text-slate-200'}`}>
-                        {entry.subjectName}
-                      </h4>
+
+                      <div className="space-y-1">
+                        <h4 className="text-base font-bold text-white">
+                          {cls.theme}
+                        </h4>
+                        <p className="text-xs font-medium text-[#71717A] uppercase tracking-wider">
+                          {cls.unit}
+                        </p>
+                        <p className="text-xs text-[#D4D4D8] line-clamp-2 leading-relaxed">
+                          {cls.objective}
+                        </p>
+                      </div>
+
+                      <div className="pt-3 border-t border-[#27272A] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-4 text-xs text-[#A1A1AA]">
+                          <span className="flex items-center gap-1">
+                            <BookOpen className="w-3.5 h-3.5 text-[#E0A82E]" />
+                            <span>{cls.resources?.length || 1} recursos</span>
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>{cls.activities?.length || 1} actividades</span>
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <button
+                            type="button"
+                            onClick={() => handleStartClass(cls)}
+                            className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-[#E0A82E] hover:bg-[#B77D06] text-[#0A0A0A] font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <Play className="w-3 h-3 fill-current" />
+                            <span>Entrar a Clase</span>
+                          </button>
+
+                          {sub && (
+                            <button
+                              type="button"
+                              onClick={() => openTeacherDrawerWithContext(sub, cls)}
+                              className="px-3 py-2 rounded-xl bg-[#27272A] hover:bg-[#3F3F46] text-[#E4E4E7] text-xs font-medium border border-[#3F3F46] transition-colors flex items-center gap-1"
+                              title="Consultar al Docente IA"
+                            >
+                              <Bot className="w-3.5 h-3.5 text-[#E0A82E]" />
+                              <span className="hidden sm:inline">Tutor IA</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
               </div>
-
-              <div className="pt-2 text-center">
-                <span className="text-[11px] text-slate-400">
-                  Fin de la jornada escolar: 12:00
-                </span>
+            ) : (
+              <div className="p-8 rounded-xl bg-[#18181B] border border-[#27272A] text-center text-[#A1A1AA] space-y-1.5">
+                <Calendar className="w-6 h-6 text-[#71717A] mx-auto" />
+                <p className="font-semibold text-white">No hay clases programadas para el {selectedDayOfWeek}.</p>
+                <p className="text-xs text-[#71717A]">Selecciona otro día en la barra superior para explorar la planificación.</p>
               </div>
-            </div>
-
+            )}
           </div>
 
-      </div>
+          {/* Asignaturas en Curso */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-[#E0A82E]" />
+                <span>Asignaturas del Plan Académico</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setActiveTab('subjects')}
+                className="text-xs font-semibold text-[#E0A82E] hover:underline flex items-center gap-1"
+              >
+                <span>Ver todas ({studentSubjects.length})</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {studentSubjects.map((subject: any) => (
+                <div
+                  key={subject.id}
+                  onClick={() => handleOpenSubject(subject)}
+                  className="p-4 rounded-xl bg-[#18181B] border border-[#27272A] hover:border-[#3F3F46] transition-colors cursor-pointer group shadow-sm flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-[#27272A] text-[#A1A1AA] border border-[#3F3F46]">
+                          {subject.code}
+                        </span>
+                        <h4 className="text-sm font-bold text-white group-hover:text-[#E0A82E] transition-colors">
+                          {subject.name}
+                        </h4>
+                      </div>
+                      <img
+                        src={subject.teacher?.avatar}
+                        alt={subject.teacher?.name}
+                        title={`Docente: ${subject.teacher?.name}`}
+                        className="w-8 h-8 rounded-lg object-cover ring-1 ring-[#3F3F46] shrink-0"
+                      />
+                    </div>
+                    <p className="text-xs text-[#A1A1AA] mt-2 line-clamp-2 leading-relaxed">
+                      {subject.description}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 pt-2 border-t border-[#27272A]">
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="text-[#71717A]">Avance curricular</span>
+                      <span className="font-semibold text-[#E0A82E]">
+                        {subject.progressPercentage || 0}%
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-[#27272A] overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#E0A82E] transition-all"
+                        style={{ width: `${subject.progressPercentage || 0}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Proyecto Interdisciplinario Activo */}
+          {currentProject && (
+            <section className="p-5 sm:p-6 rounded-2xl border border-[#27272A] bg-[#18181B] shadow-md space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#E0A82E]/10 text-[#E0A82E] border border-[#E0A82E]/30">
+                  Proyecto Interdisciplinario • Trimestre {currentProject.trimesterNumber}
+                </span>
+                <span className="text-xs text-[#71717A]">Evaluación Continua y Portafolio</span>
+              </div>
+              <h4 className="text-base font-bold text-white flex items-center gap-2">
+                <Award className="w-4 h-4 text-[#E0A82E] shrink-0" />
+                <span>{currentProject.title}</span>
+              </h4>
+              <p className="text-xs text-[#D4D4D8] leading-relaxed">
+                {currentProject.description}
+              </p>
+            </section>
+          )}
+
+        </div>
+
+        {/* Columna Derecha: Horario + Resumen de Progreso + Devocional */}
+        <div className="space-y-6">
+
+          {/* Horario del día */}
+          <div className="p-5 rounded-2xl border border-[#27272A] bg-[#18181B] shadow-md space-y-3.5">
+            <div className="flex items-center justify-between border-b border-[#27272A] pb-3">
+              <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                <Clock className="w-4 h-4 text-[#E0A82E]" />
+                <span>Horario ({selectedDayOfWeek})</span>
+              </h4>
+              <button
+                type="button"
+                onClick={() => setActiveTab('schedule')}
+                className="text-xs font-semibold text-[#E0A82E] hover:underline"
+              >
+                Ver completo
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {todaySchedule.map((entry: any) => {
+                const matchingClass = entry.classId
+                  ? todayClasses.find((c: any) => c.id === entry.classId)
+                  : null;
+
+                return (
+                  <div
+                    key={entry.id}
+                    onClick={() => {
+                      if (matchingClass) handleStartClass(matchingClass);
+                      else if (!entry.isRecess && todayClasses[0]) handleStartClass(todayClasses[0]);
+                    }}
+                    className={`p-3 rounded-xl border transition-colors ${
+                      entry.isRecess
+                        ? 'bg-[#1F1B14] border-[#E0A82E]/20 text-[#E0A82E]'
+                        : 'bg-[#0A0A0A] border-[#27272A] hover:border-[#3F3F46] cursor-pointer'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-mono text-[#A1A1AA] flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-[#E0A82E]" />
+                        {entry.startTime} - {entry.endTime}
+                      </span>
+                      {entry.isRecess ? (
+                        <span className="text-[10px] font-bold text-[#E0A82E] flex items-center gap-1">
+                          <Coffee className="w-3 h-3" />
+                          Descanso
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-semibold text-emerald-400">
+                          Entrar
+                        </span>
+                      )}
+                    </div>
+                    <h5 className={`text-xs font-semibold mt-1 ${entry.isRecess ? 'text-[#E0A82E]' : 'text-white'}`}>
+                      {entry.subjectName}
+                    </h5>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-1 text-center border-t border-[#27272A]">
+              <span className="text-[11px] text-[#71717A]">
+                Jornada formativa: 08:00 a 12:00
+              </span>
+            </div>
+          </div>
+
+          {/* Resumen de Progreso y Actividades */}
+          <div className="p-5 rounded-2xl border border-[#27272A] bg-[#18181B] shadow-md space-y-3.5">
+            <div className="flex items-center justify-between border-b border-[#27272A] pb-3">
+              <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                <FileCheck2 className="w-4 h-4 text-[#E0A82E]" />
+                <span>Progreso de Actividades</span>
+              </h4>
+              <button
+                type="button"
+                onClick={() => setActiveTab('progress')}
+                className="text-xs font-semibold text-[#E0A82E] hover:underline"
+              >
+                Detalle
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[#A1A1AA]">Entregas registradas</span>
+                <span className="font-semibold text-white tabular-nums">{completedSubmissionsCount}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[#A1A1AA]">Actividades en plan</span>
+                <span className="font-semibold text-white tabular-nums">{totalActivitiesCount}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[#A1A1AA]">Asignaturas cubiertas</span>
+                <span className="font-semibold text-white tabular-nums">{studentSubjects.length}</span>
+              </div>
+
+              <div className="pt-2 border-t border-[#27272A]">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('progress')}
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#27272A] hover:bg-[#3F3F46] border border-[#3F3F46] text-[#F4F4F5] text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                  <TrendingUp className="w-3.5 h-3.5 text-[#E0A82E]" />
+                  <span>Ver Portafolio de Evaluación</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Devocional y Valores */}
+          <DevocionalCard />
+
+        </div>
+
+      </div>
     </div>
   );
 };

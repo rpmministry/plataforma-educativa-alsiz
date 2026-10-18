@@ -1,0 +1,15 @@
+=== LÍNEA BASE DE GIT - ETAPA 04 ===
+Fecha: 2026-10-17T09:27:34-05:00
+Ubicación: C:\Users\Alsiz\Documents\plataforma educativa ALSIZ
+Top-level: C:/Users/Alsiz/Documents/plataforma educativa ALSIZ
+Rama actual: continuacion-produccion-etapa-04
+Remoto fetch: https://github.com/rpmministry/plataforma-educativa-alsiz.git
+Remoto push: https://github.com/rpmministry/plataforma-educativa-alsiz.git
+Commit HEAD local: 85b7af7 feat(etapa-03): culminacion tecnica de etapa 03 de autenticacion y persistencia de cuentas
+Commit origin/main: 1a7964c feat(infra): adopcion de arquitectura serverless vercel y turso cloud a costo inicial cero
+
+Diferencias documentadas con origin/main:
+- HEAD local contiene 1 commit por encima de origin/main: 85b7af7 (Culminación de Etapa 03).
+- No se ha realizado push a origin en cumplimiento estricto de las directivas de seguridad.
+- Árbol de trabajo limpio a excepción del directorio docs/ejecucion/continuacion-produccion/ETAPA-04/.
+

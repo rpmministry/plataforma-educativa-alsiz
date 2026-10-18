@@ -1,5 +1,5 @@
 {
-  "name": "react-example",
+  "name": "wisdom-academy",
   "private": true,
   "version": "0.0.0",
   "scripts": {
@@ -18,6 +18,8 @@
     "test:etapa08": "tsx scripts/test-etapa-08.ts",
     "test:etapa09": "tsx scripts/test-etapa-09.ts",
     "test:etapa10": "tsx scripts/test-etapa-10.ts",
+    "test:etapa10-acceptance": "tsx scripts/test-etapa-10-acceptance.ts",
+    "test:etapa11-acceptance": "tsx scripts/test-etapa-11-acceptance.ts",
     "test:etapa11": "tsx scripts/test-etapa-11.ts",
     "test:etapa12": "tsx scripts/test-etapa-12.ts",
     "test:etapa13": "tsx scripts/test-etapa-13.ts",
@@ -26,7 +28,10 @@
     "db:bootstrap-admin": "tsx scripts/bootstrap-admin.ts",
     "test:security-scan": "tsx scripts/test-scan-dist-secrets.ts",
     "test:security-p0": "tsx scripts/test-security-p0.ts",
-    "test:etapa02": "tsx scripts/test-etapa-02.ts"
+    "test:etapa02": "tsx scripts/test-etapa-02.ts",
+    "test:etapa03": "tsx scripts/test-etapa-03.ts",
+    "test:etapa04": "tsx scripts/test-etapa-04.ts",
+    "migrate:students": "tsx scripts/migrate-students.ts"
   },
   "engines": {
     "node": ">=22.12.0",

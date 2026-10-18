@@ -19,29 +19,23 @@ interface ConsolidatedGuideOptions {
 }
 
 function getThemeVars(student?: Student) {
-  if (student) return {
-    accent: student.id === 'avril' ? '#6366f1' : student.id === 'gael' ? '#f59e0b' : '#6366f1',
-    accentLight: student.id === 'avril' ? '#818cf8' : student.id === 'gael' ? '#fbbf24' : '#818cf8',
-    accentDark: student.id === 'avril' ? '#4f46e5' : student.id === 'gael' ? '#d97706' : '#4f46e5',
-    bgGrad: student.id === 'avril' ? 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%)' : student.id === 'gael' ? 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%)' : 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%)',
-    cardBg: student.id === 'avril' ? '#faf5ff' : student.id === 'gael' ? '#fffbeb' : '#faf5ff',
-    cardBorder: student.id === 'avril' ? '#c4b5fd' : student.id === 'gael' ? '#fcd34d' : '#c4b5fd',
-    cardTitle: student.id === 'avril' ? '#5b21b6' : student.id === 'gael' ? '#92400e' : '#5b21b6',
-    sectionBg: student.id === 'avril' ? '#eef2ff' : student.id === 'gael' ? '#fffbeb' : '#eef2ff',
-    sectionBorder: student.id === 'avril' ? '#a5b4fc' : student.id === 'gael' ? '#fcd34d' : '#a5b4fc',
-    badgeBg: student.id === 'avril' ? '#ede9fe' : student.id === 'gael' ? '#fef3c7' : '#ede9fe',
-    quoteBg: student.id === 'avril' ? '#f5f3ff' : student.id === 'gael' ? '#fffbeb' : '#f5f3ff',
-    quoteBorder: student.id === 'avril' ? '#c4b5fd' : student.id === 'gael' ? '#fcd34d' : '#c4b5fd',
-    worldEmoji: student.id === 'avril' ? '🐶' : student.id === 'gael' ? '🍄' : '🎓',
-    worldName: student.id === 'avril' ? 'SNOOPY & PEANUTS' : student.id === 'gael' ? 'SUPER MARIO BROS KINGDOM' : 'WISDOM SCHOOL',
-    methodLabel: student.id === 'avril' ? 'Montessori & Charlotte Mason' : student.id === 'gael' ? 'Método Montessori & Charlotte Mason' : 'Montessori & Charlotte Mason',
-  };
+  const accent = student?.colorTheme?.accent || '#E0A82E';
   return {
-    accent: '#6366f1', accentLight: '#818cf8', accentDark: '#4f46e5', bgGrad: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%)',
-    cardBg: '#faf5ff', cardBorder: '#c4b5fd', cardTitle: '#5b21b6',
-    sectionBg: '#eef2ff', sectionBorder: '#a5b4fc', badgeBg: '#ede9fe',
-    quoteBg: '#f5f3ff', quoteBorder: '#c4b5fd',
-    worldEmoji: '🎓', worldName: 'WISDOM SCHOOL', methodLabel: 'Montessori & Charlotte Mason',
+    accent,
+    accentLight: '#fbbf24',
+    accentDark: '#b45309',
+    bgGrad: 'linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%)',
+    cardBg: '#fafafa',
+    cardBorder: '#e4e4e7',
+    cardTitle: '#18181b',
+    sectionBg: '#f4f4f5',
+    sectionBorder: '#d4d4d8',
+    badgeBg: '#e4e4e7',
+    quoteBg: '#fafafa',
+    quoteBorder: '#e4e4e7',
+    worldEmoji: '🎓',
+    worldName: 'WISDOM ACADEMY',
+    methodLabel: 'Metodología Socrática & Rigor Académico',
   };
 }
 
@@ -105,22 +99,15 @@ function buildStageContent(stage: any, theme: string) {
 }
 
 function buildClassChapter(cls: DailyClass, subject?: Subject, student?: Student) {
-  const isAvril = student?.id === 'avril' || cls.studentId === 'avril';
-  const worldBanner = isAvril
-    ? `<div style="background:linear-gradient(135deg,#fef3c7,#fffbe2);border:2px solid #f59e0b;border-radius:10px;padding:10px 14px;margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-weight:bold;color:#b45309;font-size:12px;">🐢 ${getThemeVars(student!).worldName} · GUÍA DIDÁCTICA</span>
-          <span style="font-size:9px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-weight:bold;border:1px solid #fde68a;">${getThemeVars(student!).methodLabel}</span>
-        </div>
-        <p style="font-size:10px;color:#78350f;margin:4px 0 0 0;font-style:italic;">"Como dice Charlie Brown: Cada lección es una historia viva por descubrir y narrar con tus propias palabras."</p>
-       </div>`
-    : `<div style="background:linear-gradient(135deg,#fee2e2,#fef2f2);border:2px solid #ef4444;border-radius:10px;padding:10px 14px;margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-weight:bold;color:#b91c1c;font-size:12px;">🍄 ${getThemeVars(student!).worldName} · MISIÓN DE CLASE</span>
-          <span style="font-size:9px;background:#fef2f2;color:#991b1b;padding:2px 7px;border-radius:10px;font-weight:bold;border:1px solid #fecaca;">🪙 +10 Monedas</span>
-        </div>
-        <p style="font-size:10px;color:#7f1d1d;margin:4px 0 0 0;font-style:italic;">"¡Mamma Mia! Abre las Cajas de Interrogación [?] (Montessori) y narra tu misión a Yoshi (Charlotte Mason) para tocar la bandera de meta 🏁."</p>
-       </div>`;
+  const vars = getThemeVars(student);
+  const worldBanner = `
+    <div style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:1px solid #cbd5e1;border-radius:10px;padding:10px 14px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:bold;color:#0f172a;font-size:12px;">🎓 ${vars.worldName} · GUÍA DIDÁCTICA</span>
+        <span style="font-size:9px;background:#e2e8f0;color:#334155;padding:2px 7px;border-radius:10px;font-weight:bold;border:1px solid #cbd5e1;">${vars.methodLabel}</span>
+      </div>
+      <p style="font-size:10px;color:#475569;margin:4px 0 0 0;font-style:italic;">"El conocimiento riguroso florece cuando el estudiante reflexiona, formula preguntas y aplica con sentido práctico cada concepto."</p>
+    </div>`;
 
   const activitiesHtml = (cls.activities || []).map((act: any, idx: number) => `
     <div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-bottom:8px;background:#fff;">
@@ -296,7 +283,7 @@ export function generateConsolidatedDailyGuideHTML(opts: ConsolidatedGuideOption
     <strong>Código:</strong> WIS-${student.id.toUpperCase()}-2026<br>
     <strong>Estado:</strong> Oficial
   </div>
-  <div class="quote">"Cada lección es una historia viva por descubrir y narrar con tus propias palabras." — Snoopy en su máquina de escribir</div>
+  <div class="quote">"Aprender con profundidad. Avanzar con propósito." — Wisdom Academy</div>
 </div>
 
 <!-- ORIENTATION DASHBOARD -->

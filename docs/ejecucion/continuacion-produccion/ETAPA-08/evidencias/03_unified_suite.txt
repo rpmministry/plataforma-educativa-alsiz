@@ -1,0 +1,33 @@
+﻿Γùç injected env (4) from .env // tip: Γîÿ custom filepath { path: '/custom/path/.env' }
+Γùç injected env (11) from .env.local // tip: Γùê encrypted .env [www.dotenvx.com]
+Γùç injected env (0) from .env // tip: Γùê encrypted .env [www.dotenvx.com]
+Γùç injected env (0) from .env.local // tip: Γîÿ override existing { override: true }
+================================================================
+  SUITE DETERMINISTA UNIFICADA ΓÇö ETAPA 08: PROVEEDORES IA
+  Plataforma Educativa ALSIZ ΓÇö Ekballo Church
+================================================================
+
+[ETAPA-08-CRIT-01] Γ£à PAS├ô: Unificaci├│n en backend y cat├ílogo honesto de proveedores
+                       Γä╣∩╕Å  OpenCode rechazado: true, SIMULATED_LOCAL activo: true, Proveedores registrados: GOOGLE_GEMINI, DEEPSEEK_API, OPENROUTER_API, SIMULATED_LOCAL
+[ETAPA-08-CRIT-02] Γ£à PAS├ô: Cascada, timeouts, l├¡mite de reintentos y fallback honesto a SIMULATED_LOCAL
+                       Γä╣∩╕Å  Fallback honesto: true, Proveedor: SIMULATED_LOCAL, Duraci├│n: 2ms, AIProviderError tipado: true
+[ETAPA-08-CRIT-03] Γ£à PAS├ô: Auditor├¡a segura de configuraci├│n de secretos (solo configurada/no configurada, cero fugas)
+                       Γä╣∩╕Å  Variables auditadas: 5, Cero valores expuestos: true, Estados normalizados: true
+[ETAPA-08-CRIT-04] Γ£à PAS├ô: Separaci├│n de pruebas y marcaje honesto BLOCKED cuando falta secreto
+                       Γä╣∩╕Å  Proveedor sin clave reporta isAvailable=false (BLOCKED): true
+[ETAPA-08-CRIT-05] Γ£à PAS├ô: Control de costos y protecci├│n de menores (rechazo de temporizadores aut├│nomos y l├¡mites por estudiante)
+                       Γä╣∩╕Å  Rechazo de temporizador aut├│nomo: true, L├¡mite por estudiante activo: true
+[ETAPA-08-CRIT-06] Γ£à PAS├ô: Validaci├│n estricta de citas fundamentadas (s├│lo tags en texto devuelto, sin alucinaci├│n de fuentes)
+                       Γä╣∩╕Å  Citas devueltas: [[EKB-VAL-ELEM-4#C1]], Todas presentes en el texto: true, Fuente no usada excluida: true
+[ETAPA-08-CRIT-07] Γ£à PAS├ô: Endpoint de salud sanitizado y seguro (/api/v1/agents/health y /api/ai/health)
+                       Γä╣∩╕Å  Estado global: HEALTHY, Proveedores: 4, Cascada: [GEMINI -> DEEPSEEK -> OPENROUTER], Cero secretos/PII: true
+[ETAPA-08-CRIT-08] Γ£à PAS├ô: Sanitizaci├│n de cliente y verificaci├│n de bundle compilado dist/ (cero variables VITE_ ni URLs directas)
+                       Γä╣∩╕Å  Fugas en src/: 0, Fugas en dist/: 0
+[ETAPA-08-CRIT-09] Γ£à PAS├ô: Sincronizaci├│n de plantilla maestra .env.example (clasificaci├│n obligatoria vs opcional, prioridades y l├¡mites)
+                       Γä╣∩╕Å  Prioridad documentada: true, Timeouts y cuotas documentados: true, Obligatoriedad clara: true
+
+================================================================
+  RESULTADO FINAL ETAPA 08: 9 / 9 CRITERIOS APROBADOS
+  ESTADO: Γ£à SUITE APROBADA EXITOSAMENTE
+================================================================
+

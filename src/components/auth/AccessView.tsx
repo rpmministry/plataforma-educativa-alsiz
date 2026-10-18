@@ -21,7 +21,8 @@ import {
 export const AccessView: React.FC = () => {
   const {
     studentsList,
-    authenticateStudent,
+    currentUser,
+    isAuthenticated,
     loginAsTestStudent,
     setActiveTab,
     setCurrentRole,
@@ -34,9 +35,14 @@ export const AccessView: React.FC = () => {
   const demoStudents = studentsList.filter((s) => s.isDemo);
 
   const handleStudentSelect = (studentId: string) => {
-    authenticateStudent(studentId);
-    setCurrentRole('student');
-    setActiveTab('space');
+    // Si ya existe sesión activa válida para este estudiante, navegar a su espacio
+    if (isAuthenticated && (currentUser?.studentId === studentId || currentUser?.id === studentId)) {
+      setCurrentRole('student');
+      setActiveTab('space');
+    } else {
+      // De lo contrario, exigir autenticación con credenciales o PIN
+      openAuthModal(studentId);
+    }
   };
 
   const handleDemoSelect = (demoId: string) => {
@@ -46,25 +52,30 @@ export const AccessView: React.FC = () => {
   };
 
   const handleRepresentativeAccess = () => {
-    // Para representantes en desarrollo, activamos la sesión con el primer estudiante titular
-    if (mainStudents.length > 0) {
-      authenticateStudent(mainStudents[0].id);
+    if (isAuthenticated && currentUser?.role === 'REPRESENTATIVE') {
+      setCurrentRole('representative');
+      setActiveTab('parent');
+    } else {
+      openAuthModal();
     }
-    setCurrentRole('representative');
-    setActiveTab('parent');
   };
 
   const handleTeacherAccess = () => {
-    if (mainStudents.length > 0) {
-      authenticateStudent(mainStudents[0].id);
+    if (isAuthenticated && (currentUser?.role === 'TEACHER' || currentUser?.role === 'ADMIN')) {
+      setCurrentRole('teacher');
+      setActiveTab('classes');
+    } else {
+      openAuthModal();
     }
-    setCurrentRole('teacher');
-    setActiveTab('classes');
   };
 
   const handleAdminAccess = () => {
-    setCurrentRole('admin');
-    setActiveTab('admin');
+    if (isAuthenticated && currentUser?.role === 'ADMIN') {
+      setCurrentRole('admin');
+      setActiveTab('admin');
+    } else {
+      openAuthModal();
+    }
   };
 
   return (
@@ -86,12 +97,12 @@ export const AccessView: React.FC = () => {
       {/* Tarjeta Central de Identidad Institucional */}
       <div className="text-center space-y-3">
         <div className="flex justify-center">
-          <div className="p-3 rounded-2xl bg-[#121820] border border-[#283545] shadow-xl">
+          <div className="p-3 rounded-2xl bg-[#18181B] border border-[#27272A] shadow-xl">
             <SchoolLogo size="lg" variant="monogram" />
           </div>
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-          Ingreso a la Plataforma ALSIZ
+          Ingreso a Wisdom Academy
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto">
           Selecciona tu perfil educativo para ingresar a tu espacio adaptativo de estudio, supervisión o gestión.
@@ -136,7 +147,7 @@ export const AccessView: React.FC = () => {
                 <span>Acceso de Estudiantes Titulares</span>
               </h2>
               <p className="text-xs text-slate-400">
-                Selecciona tu perfil de estudio para entrar directamente con tu tema asignado (Snoopy / Mario).
+                Selecciona tu perfil de estudio para ingresar a tus cursos, horario y clases interactivas.
               </p>
             </div>
 

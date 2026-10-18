@@ -76,121 +76,43 @@ export const ClassVideoPlayer: React.FC<ClassVideoPlayerProps> = ({
         { label: 'Opción 4: Bully Magnets', q: `Bully Magnets ${currentClass.theme}` },
       ];
 
-  // Student theme detection (Avril = Snoopy & Peanuts, Gael = Super Mario Bros)
-  const isAvril = currentClass.studentId === 'avril' || currentClass.studentId === 'karen';
-  const isGael = currentClass.studentId === 'gael';
-
-  // Slides structure for the interactive multimedia classroom with Montessori, Charlotte Mason & Custom Themes
-  const slides = isAvril
-    ? [
-        {
-          title: '1. Observación Concreta & Cuento Vivo (Snoopy & Peanuts)',
-          badge: '🐶 Máquina de Escribir de Snoopy',
-          content: currentClass.introduction || 'Bienvenida a esta lección. Como dice Charlie Brown: "El aprendizaje es un viaje que se disfruta mejor paso a paso".',
-          highlight: `🎯 Objetivo de Avril: ${currentClass.objective}`,
-          speechText: `¡Hola Avril! Snoopy y Woodstock te acompañan en esta lección de ${subject?.name || 'materia'}. Tema: ${currentClass.theme}. Objetivo: ${currentClass.objective}. ${currentClass.introduction}`,
-        },
-        {
-          title: '2. Desarrollo del Concepto (Lectura Viva Charlotte Mason)',
-          badge: '📚 Manta de Sabiduría de Linus',
-          content: currentClass.reading || 'Lee despacio este texto vivo. Observa cada idea y conéctala con tu vida cotidiana.',
-          highlight: `Unidad: ${currentClass.unit} • Método Charlotte Mason`,
-          speechText: `Paso 2: Desarrollo conceptual de ${currentClass.theme}. ${currentClass.reading?.substring(0, 300) || ''}`,
-        },
-        {
-          title: '3. Puesto de Sabiduría Socrática (Puesto de Lucy 5¢)',
-          badge: '🎪 Narración & Razonamiento',
-          content: currentClass.socraticQuestions?.length
-            ? currentClass.socraticQuestions.map((q, idx) => `💬 Pregunta ${idx + 1}: ${q}`).join('\n\n')
-            : 'Reflexiona sobre lo aprendido y cuéntaselo a Snoopy con tus propias palabras.',
-          highlight: currentClass.reflectionPrompt || '¿Qué aprendiste hoy y cómo lo aplicarías en tu día a día?',
-          speechText: currentClass.socraticQuestions?.length
-            ? `Preguntas de la consejera Lucy: ${currentClass.socraticQuestions.join('. ')}`
-            : currentClass.reflectionPrompt || 'Reflexiona sobre esta lección.',
-        },
-        {
-          title: '4. Misión Práctica Montessori & Evidencias',
-          badge: '🏆 Taller de la Libreta de Avril',
-          content: currentClass.activities?.length
-            ? currentClass.activities.map((a, idx) => `• Actividad ${idx + 1}: ${a.title} - ${a.description}`).join('\n\n')
-            : 'Desarrolla tus ejercicios guiados en la libreta de evidencias.',
-          highlight: currentClass.homeworkTask || 'Completa la consigna en tu libreta.',
-          speechText: `Paso 4: Misión práctica de la lección. Tarea: ${currentClass.homeworkTask || 'Completa los ejercicios en tu libreta.'}`,
-        },
-      ]
-    : isGael
-    ? [
-        {
-          title: '1. Super Champiñón de la Curiosity (World 1-1)',
-          badge: '🍄 Super Mario Bros Quest',
-          content: currentClass.introduction || '¡Mamma Mia Gael! Mario, Luigi y Yoshi activaron este nivel de aprendizaje. ¡Vamos por el conocimiento!',
-          highlight: `🎯 Misión de Gael: ${currentClass.objective}`,
-          speechText: `¡Mamma Mia Gael! Mario y Yoshi desbloquean este nuevo nivel de ${subject?.name || 'materia'}. Tema: ${currentClass.theme}. Tu misión de hoy: ${currentClass.objective}. ${currentClass.introduction}`,
-        },
-        {
-          title: '2. Caja de Interrogación [?] (Exploración Montessori)',
-          badge: '❓ Bloque de Conocimiento [?]',
-          content: currentClass.reading || 'Abre la caja de interrogación y descubre los secretos de este concepto paso a paso.',
-          highlight: `Nivel: ${currentClass.unit} • Aprendizaje Sensorial`,
-          speechText: `Paso 2: Descubrimiento del concepto ${currentClass.theme}. ${currentClass.reading?.substring(0, 300) || ''}`,
-        },
-        {
-          title: '3. Círculo de Narración con Yoshi (Charlotte Mason)',
-          badge: '🦖 Narración del Reino 🪙 +10 Coins',
-          content: currentClass.socraticQuestions?.length
-            ? currentClass.socraticQuestions.map((q, idx) => `⭐ Desafío ${idx + 1}: ${q}`).join('\n\n')
-            : '¡Cuéntale a Yoshi lo que descubriste en esta lección!',
-          highlight: currentClass.reflectionPrompt || '¿Qué super poder o conocimiento ganaste hoy?',
-          speechText: currentClass.socraticQuestions?.length
-            ? `Preguntas de Yoshi y Mario: ${currentClass.socraticQuestions.join('. ')}`
-            : currentClass.reflectionPrompt || 'Reflexiona sobre lo aprendido.',
-        },
-        {
-          title: '4. Bandera de Nivel Superado 🏁 & Tarea Final',
-          badge: '⭐️ Super Star Level Clear',
-          content: currentClass.activities?.length
-            ? currentClass.activities.map((a, idx) => `🪙 Misión ${idx + 1}: ${a.title} (+${a.points} pts)`).join('\n\n')
-            : 'Completa las actividades prácticas para tocar la bandera de meta.',
-          highlight: currentClass.homeworkTask || 'Sube la foto de tu libreta al Reino Champiñón.',
-          speechText: `Paso 4: Toca la bandera de meta. Tarea del día: ${currentClass.homeworkTask || 'Haz tus ejercicios en la libreta.'}`,
-        },
-      ]
-    : [
-        {
-          title: '1. Introducción y Objetivo de Aprendizaje',
-          badge: 'Objetivo Principal',
-          content: currentClass.introduction || 'Bienvenido a esta lección interactiva. Explora los conceptos fundamentales a tu propio ritmo.',
-          highlight: currentClass.objective,
-          speechText: `Lección de ${subject?.name || 'la materia'}: ${currentClass.theme}. Objetivo: ${currentClass.objective}. Introducción: ${currentClass.introduction}`,
-        },
-        {
-          title: '2. Contenido Teórico y Conceptos Clave',
-          badge: 'Guía y Fórmulas',
-          content: currentClass.reading || 'Revisa la lectura detallada de la clase en tu cuaderno o guía descargable.',
-          highlight: `Unidad: ${currentClass.unit}`,
-          speechText: `Contenido de la clase: ${currentClass.reading?.substring(0, 300) || currentClass.theme}`,
-        },
-        {
-          title: '3. Preguntas de Pensamiento y Reflexión',
-          badge: 'Método Socrático',
-          content: currentClass.socraticQuestions?.length
-            ? currentClass.socraticQuestions.map((q, idx) => `${idx + 1}. ${q}`).join('\n\n')
-            : 'Reflexiona sobre cómo aplicar lo aprendido hoy en situaciones reales.',
-          highlight: currentClass.reflectionPrompt || '¿Qué fue lo más significativo que aprendiste hoy?',
-          speechText: currentClass.socraticQuestions?.length
-            ? `Preguntas de reflexión: ${currentClass.socraticQuestions.join('. ')}`
-            : currentClass.reflectionPrompt || 'Reflexiona sobre lo aprendido.',
-        },
-        {
-          title: '4. Taller Práctico y Tarea del Día',
-          badge: 'Actividad Guiada',
-          content: currentClass.activities?.length
-            ? currentClass.activities.map((a, idx) => `• ${a.title}: ${a.description}`).join('\n\n')
-            : 'Realiza los ejercicios prácticos de tu cuaderno.',
-          highlight: currentClass.homeworkTask || 'Completa tu tarea diaria en la libreta.',
-          speechText: `Actividades del día: ${currentClass.homeworkTask || 'Completa tus ejercicios en la libreta.'}`,
-        },
-      ];
+  // Slides structure for the interactive multimedia classroom with Socratic method and practical evidence
+  const slides = [
+    {
+      title: '1. Introducción y Objetivo de Aprendizaje',
+      badge: 'Objetivo Principal',
+      content: currentClass.introduction || 'Bienvenido a esta lección interactiva. Explora los conceptos fundamentales a tu propio ritmo.',
+      highlight: currentClass.objective ? `🎯 Objetivo de la clase: ${currentClass.objective}` : 'Aprender con profundidad. Avanzar con propósito.',
+      speechText: `Lección de ${subject?.name || 'la materia'}: ${currentClass.theme}. Objetivo: ${currentClass.objective}. ${currentClass.introduction || ''}`,
+    },
+    {
+      title: '2. Contenido Teórico y Conceptos Clave',
+      badge: 'Guía Pedagógica',
+      content: currentClass.reading || 'Revisa la lectura detallada de la clase en tu cuaderno o guía descargable.',
+      highlight: currentClass.unit ? `Unidad: ${currentClass.unit} • Desarrollo conceptual` : 'Desarrollo conceptual',
+      speechText: `Paso 2: Desarrollo conceptual de ${currentClass.theme}. ${currentClass.reading?.substring(0, 300) || currentClass.theme}`,
+    },
+    {
+      title: '3. Preguntas de Pensamiento y Reflexión',
+      badge: 'Método Socrático',
+      content: currentClass.socraticQuestions?.length
+        ? currentClass.socraticQuestions.map((q, idx) => `💬 Pregunta ${idx + 1}: ${q}`).join('\n\n')
+        : 'Reflexiona sobre cómo aplicar lo aprendido hoy en situaciones reales.',
+      highlight: currentClass.reflectionPrompt || '¿Qué fue lo más significativo que aprendiste hoy y cómo lo aplicarías en tu día a día?',
+      speechText: currentClass.socraticQuestions?.length
+        ? `Preguntas de reflexión socrática: ${currentClass.socraticQuestions.join('. ')}`
+        : currentClass.reflectionPrompt || 'Reflexiona sobre lo aprendido.',
+    },
+    {
+      title: '4. Taller Práctico y Tarea del Día',
+      badge: 'Actividad Guiada',
+      content: currentClass.activities?.length
+        ? currentClass.activities.map((a, idx) => `• Actividad ${idx + 1}: ${a.title} - ${a.description}`).join('\n\n')
+        : 'Realiza los ejercicios prácticos en tu libreta de evidencias.',
+      highlight: currentClass.homeworkTask || 'Completa tu tarea diaria en la libreta.',
+      speechText: `Paso 4: Taller práctico de la lección. Consigna: ${currentClass.homeworkTask || 'Completa tus ejercicios en la libreta de evidencias.'}`,
+    },
+  ];
 
   // Cleanup speech when unmounting or changing slide/class
   useEffect(() => {
@@ -230,30 +152,30 @@ export const ClassVideoPlayer: React.FC<ClassVideoPlayerProps> = ({
   };
 
   return (
-    <div className="rounded-2xl bg-slate-800/70 border border-slate-700/70 overflow-hidden shadow-xl space-y-0">
+    <div className="rounded-3xl bg-[#18181B] border border-[#27272A] overflow-hidden shadow-xl space-y-0">
       {/* Top Header & Mode Navigation Tabs */}
-      <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border-b border-slate-700/70 flex flex-wrap items-center justify-between gap-3">
+      <div className="p-4 sm:p-5 bg-[#141417] border-b border-[#27272A] flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
             <Tv className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">
-                Centro Multimedia & Video de la Clase
+                Centro Multimedia & Video Pedagógico
               </h3>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
-                100% Disponible
+                Verificado
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              Tema: <span className="text-slate-200 font-medium">{currentClass.theme}</span>
+            <p className="text-xs text-[#A1A1AA]">
+              Tema: <span className="text-zinc-200 font-medium">{currentClass.theme}</span>
             </p>
           </div>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-1 bg-slate-950/70 p-1 rounded-xl border border-slate-800 text-xs max-w-full overflow-x-auto overscroll-x-contain touch-scroll-x scrollbar-none">
+        <div className="flex items-center gap-1 bg-[#0D0D10] p-1 rounded-xl border border-[#27272A] text-xs max-w-full overflow-x-auto overscroll-x-contain touch-scroll-x scrollbar-none">
           <button
             onClick={() => {
               handleStopSpeech();
@@ -261,8 +183,8 @@ export const ClassVideoPlayer: React.FC<ClassVideoPlayerProps> = ({
             }}
             className={`px-3 py-1.5 min-h-[40px] shrink-0 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
               playerTab === 'video'
-                ? 'bg-rose-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-rose-600/90 text-white shadow-md'
+                : 'text-[#A1A1AA] hover:text-white hover:bg-[#27272A]'
             }`}
           >
             <Play className="w-3.5 h-3.5" />
@@ -275,11 +197,11 @@ export const ClassVideoPlayer: React.FC<ClassVideoPlayerProps> = ({
             }}
             className={`px-3 py-1.5 min-h-[40px] shrink-0 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
               playerTab === 'interactive'
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-amber-500 text-zinc-950 font-bold shadow-md'
+                : 'text-[#A1A1AA] hover:text-white hover:bg-[#27272A]'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <Sparkles className="w-3.5 h-3.5" />
             <span>Clase con Voz</span>
           </button>
 
@@ -290,8 +212,8 @@ export const ClassVideoPlayer: React.FC<ClassVideoPlayerProps> = ({
             }}
             className={`px-3 py-1.5 min-h-[40px] shrink-0 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
               playerTab === 'channels'
-                ? 'bg-amber-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-[#27272A] text-white shadow-md'
+                : 'text-[#A1A1AA] hover:text-white hover:bg-[#27272A]'
             }`}
           >
             <ListVideo className="w-3.5 h-3.5" />

@@ -242,8 +242,11 @@ async function getGeminiClient(): Promise<any> {
 // Paso 10: el health check sirve como verificación de que el backend y la BD están vivos
 app.get(['/api/health', '/api/v1/health'], async (req: Request, res: Response) => {
   let hierarchySummary: string[] = [];
+  let aiHealthReport = ProviderManager.getHealthReport();
   try {
-    hierarchySummary = (await getAIHierarchy()).map((layer) => `${layer.label}: ${layer.models.slice(0, 3).join(' | ')}${layer.models.length > 3 ? ` (+${layer.models.length - 3} free más)` : ''}`);
+    hierarchySummary = aiHealthReport.providers.map(
+      (p) => `${p.name} (${p.status}): ${p.model}`
+    );
   } catch { /* no debe tumbar el health */ }
 
   const dbConnected = await isDatabaseConnectedAsync();
@@ -273,6 +276,7 @@ app.get(['/api/health', '/api/v1/health'], async (req: Request, res: Response) =
       freeFirst: !ProviderManager.isProviderAvailable('DEEPSEEK'),
       availableProviders: ProviderManager.getAvailableProviders(),
       hierarchy: hierarchySummary,
+      activeProvider: aiHealthReport.activeProvider,
     },
     uptime: Math.floor(process.uptime()),
     environment: process.env.NODE_ENV || 'development',
@@ -283,7 +287,17 @@ app.get(['/api/health', '/api/v1/health'], async (req: Request, res: Response) =
     return res.status(503).json(payload);
   }
 
-  res.json(payload);
+  return res.json(payload);
+});
+
+// Endpoint seguro de salud e inventario de IA (sin credenciales ni PII)
+app.get('/api/ai/health', (_req: Request, res: Response) => {
+  try {
+    const report = ProviderManager.getHealthReport();
+    return res.status(200).json({ success: true, ...report });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // --- TTS: voz Neuronal2 de Google (la clave vive SOLO en el servidor) ---
@@ -347,81 +361,6 @@ app.post('/api/tts', async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'tts_error', message: err?.message || String(err) });
   }
 });
-
-function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Paso 11: esta función intenta varios modelos de Gemini en orden de prioridad y reintenta ante caídas temporales o alta demanda.
-async function callGeminiWithModelFallback(
-  ai: any,
-  requestParams: {
-    contents: any;
-    config?: any;
-  }
-) {
-  // Valid modern Gemini models in prioritized order (Gemini 3.7 / 3.6 / 3.5 fallback)
-  const modelsToTry = ['gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash'];
-
-  let lastError: any = null;
-
-  for (const model of modelsToTry) {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const response = await ai.models.generateContent({
-          model,
-          contents: requestParams.contents,
-          config: requestParams.config,
-        });
-        if (response) {
-          return { response, modelUsed: model };
-        }
-      } catch (err: any) {
-        lastError = err;
-        const statusCode = err?.status || err?.code || '';
-        const isTemporary = statusCode === 503 || statusCode === 429 || `${err?.message || ''}`.includes('high demand');
-
-        if (isTemporary && attempt === 0) {
-          await wait(600);
-          continue;
-        }
-        break;
-      }
-    }
-  }
-
-  throw lastError;
-}
-
-// Paso 12: construimos el historial de mensajes en formato alternado para que Gemini reciba conversaciones válidas y coherentes.
-function buildGeminiContents(
-  history: Array<{ role: 'user' | 'model'; content: string }>,
-  currentMessage: string
-) {
-  const contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
-
-  for (const msg of history || []) {
-    if (!msg || typeof msg.content !== 'string' || !msg.content.trim()) continue;
-    const role: 'user' | 'model' = msg.role === 'user' ? 'user' : 'model';
-
-    // Must start with user
-    if (contents.length === 0 && role === 'model') continue;
-
-    if (contents.length > 0 && contents[contents.length - 1].role === role) {
-      contents[contents.length - 1].parts[0].text += `\n${msg.content.trim()}`;
-    } else {
-      contents.push({ role, parts: [{ text: msg.content.trim() }] });
-    }
-  }
-
-  // Ensure alternating turns before pushing final user question
-  if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
-    contents.push({ role: 'model', parts: [{ text: 'Entendido.' }] });
-  }
-
-  contents.push({ role: 'user', parts: [{ text: currentMessage.trim() }] });
-  return contents;
-}
 
 // Extrae el primer objeto JSON balanceado de una respuesta que puede traer prosa o fences de markdown.
 function extractJsonObject(raw: string | null | undefined): string | null {
@@ -507,342 +446,46 @@ function cleanReasoningLeak(rawText: string | null | undefined): string | null {
   return null;
 }
 
-/**
- * Paso 13: Motor de Jerarquía de IA con Respaldo Secuencial.
- *
- * Prioridades:
- *   1) DeepSeek (PRINCIPAL · plan de pago)  ← se activa con DEEPSEEK_API_KEY
- *   2) OpenRouter: caza modelos ":free" (gratis) hasta que uno conteste.
- *   3) OpenCode Zen: catálogo "-free" (gratuito; requiere OPENCODE_API_KEY).
- *   4) Gemini Flash: último recurso (free tier de Google AI Studio).
- * Cada intento de modelo tiene su presupuesto (AI_MODEL_TIMEOUT_MS, defecto 6 s). Si un modelo falla o
- * calla, se prueba el siguiente modelo/capa según el alcance del error (credencial → salta capa,
- * modelo roto → siguiente modelo, transitorio → reintento dentro del presupuesto).
- * Si TODAS las capas fallan, se lanza el mensaje pedagógico de contingencia (503) y el cliente
- * cae a su cascada local. Opcional: AI_PAID_MODEL añade una capa premium de OpenRouter al final.
- */
-
-type AIErrorKind = 'timeout' | 'http' | 'empty' | 'network' | 'auth' | 'model';
-
-class AIError extends Error {
-  kind: AIErrorKind;
-  retryable: boolean;
-  status?: number;
-  constructor(kind: AIErrorKind, message: string, retryable: boolean, status?: number) {
-    super(message);
-    this.name = 'AIError';
-    this.kind = kind;
-    this.retryable = retryable;
-    this.status = status;
-  }
-}
-
-interface AIChatLayer {
-  id: string;
-  label: string;
-  provider: 'openai-compatible' | 'gemini';
-  baseUrl?: string;
-  apiKey?: string;
-  models: string[];
-  extraHeaders?: Record<string, string>;
-}
-
-// Formatos: una API key válida de Google empieza con 'AIza' o es del estilo nuevo 'AQ.xxx' de AI Studio.
-// Un OAuth Client ID ('…apps.googleusercontent.com') NO es API key: estas capa se omite en vez de agonizar en reintentos.
-function isUsableGeminiKey(value?: string): boolean {
-  const v = (value || '').trim();
-  if (!v) return false;
-  if (/\.apps\.googleusercontent\.com$/i.test(v)) return false;
-  return /^AIza[0-9A-Za-z_-]{10,}$/.test(v) || /^AQ\.[0-9A-Za-z_-]{10,}$/.test(v) || v.length > 30;
-}
-
-// Descatalogo dinámico de modelos gratuitos de OpenRouter (cacheado 10 min).
-let freeModelsCache: { list: string[]; fetchedAt: number } = { list: [], fetchedAt: 0 };
-const FREE_FALLBACKstaticHint = ['meta-llama/llama-3.3-70b-instruct:free', 'deepseek/deepseek-chat-v3-0324:free'];
-const FREE_FAMILY_PRIORITY = ['qwen', 'google/gemini', 'deepseek', 'meta-llama', 'mistral', 'gemma', 'glm', 'kimi', 'nemotron'];
-
-async function getOpenRouterFreeModels(preferredRaw?: string): Promise<string[]> {
-  const explicit = (preferredRaw || '').split(',').map((s) => s.trim()).filter(Boolean);
-  if (explicit.length > 0) return explicit;
-
-  const fresh = Date.now() - freeModelsCache.fetchedAt < 10 * 60 * 1000;
-  if (fresh && freeModelsCache.list.length > 0) return freeModelsCache.list;
-
-  try {
-    const res = await fetch('https://openrouter.ai/api/v1/models', { signal: AbortSignal.timeout(5000) });
-    const data: any = await res.json();
-    const free = (data?.data || [])
-      .filter((m: any) => typeof m.id === 'string' && m.id.endsWith(':free'))
-      .map((m: any) => m.id as string);
-    if (free.length > 0) {
-      const rank = (id: string) => {
-        const i = FREE_FAMILY_PRIORITY.findIndex((fam) => id.startsWith(fam));
-        return i === -1 ? FREE_FAMILY_PRIORITY.length : i;
-      };
-      free.sort((a: string, b: string) => rank(a) - rank(b));
-      freeModelsCache = { list: free.slice(0, Number(process.env.AI_FREE_MODEL_MAX || 8)), fetchedAt: Date.now() };
-      console.log(`[AI Hierarchy] Caza de modelos free OpenRouter: ${freeModelsCache.list.slice(0, 3).join(', ')}… (${freeModelsCache.list.length} en cola)`);
-      return freeModelsCache.list;
-    }
-  } catch (err: any) {
-    console.warn('[AI Hierarchy] No se pudo listar modelos free de OpenRouter, uso fallback estático:', err?.message || err);
-  }
-  return freeModelsCache.list.length > 0 ? freeModelsCache.list : FREE_FALLBACKstaticHint;
-}
-
-async function getAIHierarchy(): Promise<AIChatLayer[]> {
-  const deepSeekKey = process.env.DEEPSEEK_API_KEY?.trim();
-  const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
-  const geminiKey = process.env.GEMINI_API_KEY?.trim();
-
-  const layers: AIChatLayer[] = [];
-
-  // CAPA 0 (PRINCIPAL, plan de pago): DeepSeek. API compatible con OpenAI.
-  // Base oficial: https://api.deepseek.com  ·  endpoint compatible: /v1/chat/completions
-  // Modelos: 'deepseek-chat' (V3, rápido, ideal para el profesor IA) o 'deepseek-reasoner' (razonamiento).
-  if (deepSeekKey) {
-    layers.push({
-      id: 'deepseek',
-      label: 'DeepSeek (principal · plan de pago)',
-      provider: 'openai-compatible',
-      baseUrl: (process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1').replace(/\/+$/, ''),
-      apiKey: deepSeekKey,
-      models: (process.env.DEEPSEEK_MODEL || 'deepseek-chat').split(',').map((s) => s.trim()).filter(Boolean),
-    });
-  }
-
-  if (openRouterKey) {
-    layers.push({
-      id: 'openrouter-free',
-      label: 'OpenRouter (caza de modelos FREE)',
-      provider: 'openai-compatible',
-      baseUrl: 'https://openrouter.ai/api/v1',
-      apiKey: openRouterKey,
-      models: await getOpenRouterFreeModels(process.env.AI_TIER1_MODEL),
-      extraHeaders: {
-        'HTTP-Referer': process.env.APP_URL || 'https://wisdomschool.edu',
-        'X-Title': 'Wisdom School AI Teacher',
-      },
-    });
-  }
-
-  if (isUsableGeminiKey(geminiKey)) {
-    layers.push({
-      id: 'gemini',
-      label: 'Google Gemini (free tier AI Studio)',
-      provider: 'gemini',
-      apiKey: geminiKey,
-      models: (process.env.AI_TIER3_MODEL || 'gemini-3.7-flash').split(',').map((s) => s.trim()).filter(Boolean),
-    });
-  } else if (geminiKey) {
-    console.warn('[AI Hierarchy] GEMINI_API_KEY parece un OAuth Client ID u otro valor no-válido: capa Gemini omitida. Necesitas una API key de https://aistudio.google.com/apikey');
-  }
-
-  // Capa PREMIUM opcional (por defecto NO existe: el proyecto es 100% gratuito).
-  const premiumModel = (process.env.AI_PAID_MODEL || '').trim();
-  if (premiumModel && openRouterKey) {
-    layers.push({
-      id: 'premium',
-      label: 'OpenRouter (premium opcional)',
-      provider: 'openai-compatible',
-      baseUrl: 'https://openrouter.ai/api/v1',
-      apiKey: openRouterKey,
-      models: [premiumModel],
-      extraHeaders: {
-        'HTTP-Referer': process.env.APP_URL || 'https://wisdomschool.edu',
-        'X-Title': 'Wisdom School AI Teacher',
-      },
-    });
-  }
-
-  return layers;
-}
-
-function buildOpenAIMessages(
-  systemPrompt: string,
-  userMessage: string,
-  conversationHistory: Array<{ role: 'user' | 'model'; content: string }>
-) {
-  return [
-    { role: 'system', content: systemPrompt },
-    ...(conversationHistory || [])
-      .filter((msg) => msg && typeof msg.content === 'string' && msg.content.trim())
-      .map((msg) => ({ role: msg.role === 'model' ? 'assistant' : 'user', content: msg.content.trim() })),
-    { role: 'user', content: userMessage },
-  ];
-}
-
-function classifyHttpStatus(status: number): { kind: AIErrorKind; retryable: boolean } {
-  if (status === 401 || status === 403) return { kind: 'auth', retryable: false };
-  if (status === 402) return { kind: 'http', retryable: false }; // sin crédito: reintentar no ayuda
-  if (status === 404) return { kind: 'model', retryable: false }; // modelo inexistente para esta cuenta
-  if (status === 408 || status === 429 || status >= 500) return { kind: 'http', retryable: true };
-  return { kind: 'http', retryable: false }; // 4xx de petición: no reintentar
-}
-
-// Cuál es la "culpa" de un error determina la transición: si es de CREDENCIALES se abandona la capa entera;
-// si es solo de ESTE MODELO (404/400/503-unavailable) se pasa al siguiente modelo de la misma capa;
-// si es TRANSITORIO (timeout/5xx/congestión) gasta presupuesto de reintento antes de pasar.
-type AIErrorScope = 'layer' | 'model' | 'transient';
-function scopeOfError(kind: AIErrorKind, status?: number): AIErrorScope {
-  if (kind === 'auth') return 'layer';
-  if (kind === 'model') return 'model';
-  if (kind === 'http' && (status === 401 || status === 402 || status === 403)) return 'layer';
-  if (kind === 'timeout' || kind === 'empty' || kind === 'network') return 'transient';
-  if (kind === 'http' && status === 503) return 'transient'; // alta demanda: breve espera y otro intento
-  if (kind === 'http' && status !== undefined && status >= 300 && status < 500) return 'model'; // 400/404/422: este modelo rechaza la petición
-  return 'transient';
-}
-
-async function callOpenAICompatibleLayer(
-  layer: AIChatLayer,
-  model: string,
-  messages: Array<{ role: string; content: string }>,
-  timeoutMs: number,
-  gen?: { maxTokens?: number; temperature?: number }
-): Promise<string> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(`${layer.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${layer.apiKey}`,
-        'Content-Type': 'application/json',
-        ...(layer.extraHeaders || {}),
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: gen?.temperature ?? 0.7,
-        ...(gen?.maxTokens ? { max_tokens: gen.maxTokens } : {}),
-      }),
-    });
-
-    if (!res.ok) {
-      const bodyText = await res.text().catch(() => '');
-      const { kind, retryable } = classifyHttpStatus(res.status);
-      throw new AIError(kind, `${layer.id} respondió ${res.status}: ${bodyText.slice(0, 160)}`, retryable, res.status);
-    }
-
-    const data = await res.json();
-    // Ciertos modelos ":free" de razonamiento devuelven content vacío y dejan el texto en message.reasoning:
-    // si content viene hueco, probamos con reasoning antes de descartar el modelo.
-    const msg = data?.choices?.[0]?.message;
-    const text = (msg?.content && String(msg.content).trim()) || (msg?.reasoning && String(msg.reasoning).trim());
-    if (text && typeof text === 'string' && text.trim()) return text.trim();
-    throw new AIError('empty', `${layer.id} respondió sin contenido útil (finish=${data?.choices?.[0]?.finish_reason || 'n/d'})`, true);
-  } catch (err: any) {
-    if (err instanceof AIError) throw err;
-    if (err?.name === 'AbortError' || err?.code === 20) throw new AIError('timeout', `${layer.id} superó su presupuesto de ${timeoutMs} ms`, true, 408);
-    throw new AIError('network', `${layer.id} fallo de red: ${err?.message || err}`, true);
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-async function callGeminiLayer(
-  layer: AIChatLayer,
-  model: string,
-  systemPrompt: string,
-  userMessage: string,
-  conversationHistory: Array<{ role: 'user' | 'model'; content: string }>,
-  timeoutMs: number,
-  gen?: { maxTokens?: number; temperature?: number }
-): Promise<string> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(layer.apiKey || '')}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({
-        contents: buildGeminiContents(conversationHistory, userMessage),
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        generationConfig: { temperature: gen?.temperature ?? 0.7, ...(gen?.maxTokens ? { maxOutputTokens: gen.maxTokens } : {}) },
-      }),
-    });
-
-    if (!res.ok) {
-      const bodyText = await res.text().catch(() => '');
-      const { kind, retryable } = classifyHttpStatus(res.status);
-      throw new AIError(kind, `${layer.id} respondió ${res.status}: ${bodyText.slice(0, 160)}`, retryable, res.status);
-    }
-
-    const data = await res.json();
-    const parts = data?.candidates?.[0]?.content?.parts;
-    const text = Array.isArray(parts) ? parts.map((p: any) => p?.text || '').filter(Boolean).join('\n') : '';
-    if (text && text.trim()) return text.trim();
-    throw new AIError('empty', `${layer.id} respondió sin contenido útil (finishReason=${data?.candidates?.[0]?.finishReason || 'n/d'})`, true);
-  } catch (err: any) {
-    if (err instanceof AIError) throw err;
-    if (err?.name === 'AbortError' || err?.code === 20) throw new AIError('timeout', `${layer.id} superó su presupuesto de ${timeoutMs} ms`, true, 408);
-    throw new AIError('network', `${layer.id} fallo de red: ${err?.message || err}`, true);
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
+// ==========================================
+// Paso 13: Enrutador de IA Unificado (ProviderManager)
+// ==========================================
 async function executeResilientAIPipeline(params: {
   systemPrompt: string;
   userMessage: string;
   conversationHistory: Array<{ role: 'user' | 'model'; content: string }>;
-}, opts?: { modelTryMs?: number; tierBudgetMs?: number; lastTierBudgetMs?: number; gen?: { maxTokens?: number; temperature?: number } }): Promise<{ reply: string; providerUsed: string }> {
+}, opts?: { modelTryMs?: number; tierBudgetMs?: number; lastTierBudgetMs?: number; gen?: { maxTokens?: number; temperature?: number } }): Promise<{ reply: string; providerUsed: string; isFallback: boolean }> {
   const { systemPrompt, userMessage, conversationHistory } = params;
-  const hierarchy = await getAIHierarchy();
 
-  if (hierarchy.length === 0) {
-    console.error('[AI Hierarchy] Ninguna capa tiene API key configurada (OPENROUTER_API_KEY / OPENCODE_API_KEY / GEMINI_API_KEY).');
+  const history = (conversationHistory || [])
+    .filter((msg) => msg && typeof msg.content === 'string' && msg.content.trim())
+    .map((msg) => ({
+      role: (msg.role === 'model' ? 'model' : 'user') as 'model' | 'user',
+      content: msg.content.trim(),
+    }));
+
+  const timeoutMs = opts?.modelTryMs || Number(process.env.AI_PROVIDER_TIMEOUT_MS) || 8000;
+
+  try {
+    const res = await ProviderManager.generateResponse({
+      agentCode: 'legacy_server_teacher',
+      systemPrompt,
+      userPrompt: userMessage,
+      history,
+      temperature: opts?.gen?.temperature ?? 0.3,
+      maxTokens: opts?.gen?.maxTokens ?? 1024,
+      timeoutMs,
+      isManualUserAction: true,
+    });
+
+    return {
+      reply: res.content,
+      providerUsed: `${res.providerName} · ${res.modelName}`,
+      isFallback: res.isFallback,
+    };
+  } catch (err: any) {
+    console.warn('[executeResilientAIPipeline] Falló generación con ProviderManager:', err?.message || err);
     throw new Error('Disculpa, estoy organizando mis apuntes. ¿Podrías repetirme tu pregunta en unos segundos?');
   }
-
-  const modelTryMs = Number(opts?.modelTryMs || process.env.AI_MODEL_TIMEOUT_MS || 6000);
-  const tierBudgetMs = Number(opts?.tierBudgetMs || process.env.AI_TIER_BUDGET_MS || 20000);
-  const lastTierBudgetMs = Number(opts?.lastTierBudgetMs || process.env.AI_LAST_TIER_BUDGET_MS || 12000);
-
-  for (let i = 0; i < hierarchy.length; i++) {
-    const layer = hierarchy[i];
-    const isLast = i === hierarchy.length - 1;
-    const budgetMs = isLast ? lastTierBudgetMs : tierBudgetMs;
-    const deadline = Date.now() + budgetMs;
-    const messages = buildOpenAIMessages(systemPrompt, userMessage, conversationHistory);
-
-    console.log(`[AI Hierarchy] Capa ${i + 1}/${hierarchy.length} → ${layer.label} · ${layer.models.length} modelo(s) [${layer.models.slice(0, 3).join(', ')}${layer.models.length > 3 ? '…' : ''}] (presupuesto ${budgetMs} ms, máx ${modelTryMs} ms/modelo)`);
-
-    let abandonLayer = false; // una credencial muerta no debe castigar a los modelos hermanos
-    for (let mi = 0; mi < layer.models.length; mi++) {
-      if (abandonLayer || deadline - Date.now() < 700) break;
-      const model = layer.models[mi];
-      const maxTries = isLast || i === 0 ? 2 : 1; // la capa principal (DeepSeek) y la última merecen un reintento propio
-
-      for (let t = 0; t < maxTries; t++) {
-        const callTimeout = Math.min(deadline - Date.now(), modelTryMs);
-        if (callTimeout < 600) break;
-        try {
-          const reply = layer.provider === 'gemini'
-            ? await callGeminiLayer(layer, model, systemPrompt, userMessage, conversationHistory, callTimeout, opts?.gen)
-            : await callOpenAICompatibleLayer(layer, model, messages, callTimeout, opts?.gen);
-          console.log(`[AI Hierarchy] ✔ ${layer.label} respondió con "${model}"${t > 0 ? ' (tras reintento)' : ''} (${budgetMs - (deadline - Date.now())} ms usados).`);
-          return { reply, providerUsed: `${layer.label} · ${model}` };
-        } catch (err: any) {
-          const aiErr: AIError = err instanceof AIError ? err : new AIError('network', err?.message || String(err), true);
-          const scope = scopeOfError(aiErr.kind, aiErr.status);
-          console.warn(`[AI Hierarchy] ✖ ${layer.label} · ${model} — intento ${t + 1} (${aiErr.kind}${aiErr.status ? ' ' + aiErr.status : ''} → ${scope}): ${aiErr.message}`);
-          if (scope === 'layer') { abandonLayer = true; break; }
-          if (scope === 'model') break; // solo este modelo está roto: pasar al siguiente de la misma capa sin gastar espera
-          if (t + 1 < maxTries && deadline - Date.now() > Math.min(modelTryMs, 3000) + 800) { await wait(800); continue; }
-          break; // transitorio agotado para este modelo → siguiente modelo/capa
-        }
-      }
-    }
-    console.warn(`[AI Hierarchy] Capa ${layer.label} agotada${isLast ? ' — no quedan capas.' : ', activando siguiente capa.'}`);
-  }
-
-  // Manejo de errores final: el endpoint responde 503 con mensaje pedagógico amigable.
-  throw new Error('Disculpa, estoy organizando mis apuntes. ¿Podrías repetirme tu pregunta en unos segundos?');
 }
 
 // Paso 14: este endpoint recibe preguntas del estudiante y responde como un profesor socrático con contexto académico y metódico.
@@ -951,7 +594,7 @@ REGLAS PEDAGÓGICAS ESTRICTAS (MÉTODO SOCRÁTICO):
         userMessage: message,
         conversationHistory: Array.isArray(conversationHistory) ? conversationHistory : [],
       });
-      return res.json({ reply: result.reply, providerUsed: result.providerUsed, isOfflineSimulation: false });
+      return res.json({ reply: result.reply, providerUsed: result.providerUsed, isOfflineSimulation: result.isFallback });
     } catch (resilienceErr: any) {
       const fallbackMsg = resilienceErr?.message || 'Disculpa, estoy organizando mis apuntes. ¿Podrías repetirme tu pregunta en unos segundos?';
       return res.status(503).json({
@@ -1311,14 +954,16 @@ IMPORTANTE: Responde ÚNICAMENTE en formato JSON válido.
 
     parts.push({ text: promptText });
 
-    const { response } = await callGeminiWithModelFallback(ai, {
-      contents: [{ role: 'user', parts }],
-      config: {
-        responseMimeType: 'application/json',
-      },
+    const llmRes = await ProviderManager.generateResponse({
+      agentCode: 'work_evaluator',
+      systemPrompt: 'Eres un evaluador pedagógico experto. Analiza el trabajo escolar y devuelve un objeto JSON válido con campos: strengths, errors, explanation, correction, recommendations, comprehensionLevel, feedbackSummary.',
+      userPrompt: promptText,
+      temperature: 0.2,
+      maxTokens: 1024,
+      isManualUserAction: true,
     });
 
-    const responseText = response?.text || '{}';
+    const responseText = llmRes.content || '{}';
     let analysis;
     try {
       analysis = JSON.parse(responseText);
@@ -1334,7 +979,7 @@ IMPORTANTE: Responde ÚNICAMENTE en formato JSON válido.
       };
     }
 
-    res.json({ analysis, isOfflineSimulation: false });
+    res.json({ analysis, isOfflineSimulation: llmRes.isFallback });
   } catch (error: any) {
     console.error('Error en /api/ai/analyze-work:', error?.message || error);
     const studentName = req.body?.student?.name || 'el estudiante';

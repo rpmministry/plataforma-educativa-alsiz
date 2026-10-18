@@ -1,0 +1,47 @@
+================================================================
+  AUDITORÍA DE CONFIGURACIÓN DE PROVEEDORES IA (ETAPA 08)
+  POLÍTICA DE SEGURIDAD P0: CERO EXPOSICIÓN DE VALORES
+================================================================
+
+ESTADO DE VARIABLES SECRETAS (Solo presencia / NUNCA valores):
+----------------------------------------------------------------
+🟢 [OBLIGATORIA] GEMINI_API_KEY      : CONFIGURADA
+     Propósito: Proveedor Primario LLM (Google AI Studio Free Tier / gemini-3.8-flash)
+     Gestión:   Google AI Studio (https://aistudio.google.com/apikey)
+🟢 [OPCIONAL]    DEEPSEEK_API_KEY    : CONFIGURADA
+     Propósito: Proveedor Secundario LLM (DeepSeek Platform API / deepseek-chat)
+     Gestión:   DeepSeek Platform (https://platform.deepseek.com/api_keys)
+🟢 [OPCIONAL]    OPENROUTER_API_KEY  : CONFIGURADA
+     Propósito: Proveedor Terciario / Respaldo Multimodelo (OpenRouter Free Models)
+     Gestión:   OpenRouter (https://openrouter.ai/settings/keys)
+🟢 [OPCIONAL]    GOOGLE_TTS_API_KEY  : CONFIGURADA
+     Propósito: Voz Neuronal Docente (Google Cloud Text-to-Speech Neural2)
+     Gestión:   Google Cloud Console (Cloud Text-to-Speech API)
+🟢 [OPCIONAL]    OPENCODE_API_KEY    : CONFIGURADA
+     Propósito: No consumido en runtime por la plataforma ALSIZ (Catálogo honesto)
+     Gestión:   N/A (Desactivado en runtime)
+
+----------------------------------------------------------------
+MODELOS CONFIGURADOS (Valores públicos de modelo):
+----------------------------------------------------------------
+ - GEMINI_MODEL:     gemini-3.8-flash (predeterminado)
+ - DEEPSEEK_MODEL:   deepseek-chat (predeterminado)
+ - OPENROUTER_MODEL: nex-agi/nex-n2.5-mini:free,nex-agi/nex-n2.5-pro:free,nvidia/nemotron-3.5-lightning:free,poolside/laguna-s-2.1:free,nvidia/nemotron-3-ultra-550b-a55b:free
+ - SIMULATED_MODEL:  alsiz-socratic-local-v1 (fallback offline)
+
+----------------------------------------------------------------
+REPORTE SANITIZADO DEL GESTOR (ProviderManager.getHealthReport):
+----------------------------------------------------------------
+Estado General:    HEALTHY
+Proveedor Activo:  GOOGLE_GEMINI
+Política de Cuota: 15 req/min | 100 req/día
+Modo de Operación: ON_DEMAND_STUDENT_ACTIVITY
+
+Proveedores Registrados:
+ - GOOGLE_GEMINI    | Modelo: gemini-3.8-flash         | Estado: CONFIGURED             | Prioridad: 1 | Fallback: NO
+ - DEEPSEEK_API     | Modelo: deepseek-chat            | Estado: CONFIGURED             | Prioridad: 2 | Fallback: NO
+ - OPENROUTER_API   | Modelo: nvidia/nemotron-3.5-lightning:free | Estado: CONFIGURED             | Prioridad: 3 | Fallback: NO
+ - SIMULATED_LOCAL  | Modelo: alsiz-socratic-local-v1  | Estado: AVAILABLE              | Prioridad: 99 | Fallback: SÍ
+
+✅ AUDITORÍA DE CONFIGURACIÓN COMPLETADA CON ÉXITO (0 SECRETOS EXPUESTOS)
+

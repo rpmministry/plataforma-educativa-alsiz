@@ -1,0 +1,60 @@
+Fecha y hora de validación: 2026-10-17T15:56:52.357Z
+Total de lotes a validar: 11
+Total de clases consolidables: 23
+
+--- VALIDANDO LOTE-AVRIL-01-LEN (Lengua y Literatura - LEN-801) ---
+Sesiones declaradas: 4 | Clases en array: 4
+✅ Lote LOTE-AVRIL-01-LEN: APROBADO (0 errores en sus 4 clases).
+
+--- VALIDANDO LOTE-AVRIL-02-MAT (Matemáticas - MAT-801) ---
+Sesiones declaradas: 3 | Clases en array: 3
+✅ Lote LOTE-AVRIL-02-MAT: APROBADO (0 errores en sus 3 clases).
+
+--- VALIDANDO LOTE-AVRIL-03-CNI (Ciencias Naturales - CNI-801) ---
+Sesiones declaradas: 2 | Clases en array: 2
+✅ Lote LOTE-AVRIL-03-CNI: APROBADO (0 errores en sus 2 clases).
+
+--- VALIDANDO LOTE-AVRIL-04-SOC (Estudios Sociales - SOC-801) ---
+Sesiones declaradas: 2 | Clases en array: 2
+✅ Lote LOTE-AVRIL-04-SOC: APROBADO (0 errores en sus 2 clases).
+
+--- VALIDANDO LOTE-AVRIL-05-ING (Inglés - ING-801) ---
+Sesiones declaradas: 2 | Clases en array: 2
+✅ Lote LOTE-AVRIL-05-ING: APROBADO (0 errores en sus 2 clases).
+
+--- VALIDANDO LOTE-AVRIL-06-ADM (Administración y Marketing - ADM-801) ---
+Sesiones declaradas: 3 | Clases en array: 3
+✅ Lote LOTE-AVRIL-06-ADM: APROBADO (0 errores en sus 3 clases).
+
+--- VALIDANDO LOTE-AVRIL-07-POL (Ciencias Políticas - POL-801) ---
+Sesiones declaradas: 2 | Clases en array: 2
+✅ Lote LOTE-AVRIL-07-POL: APROBADO (0 errores en sus 2 clases).
+
+--- VALIDANDO LOTE-AVRIL-08-SOFT (Software y Programación - SOFT-801) ---
+Sesiones declaradas: 2 | Clases en array: 2
+✅ Lote LOTE-AVRIL-08-SOFT: APROBADO (0 errores en sus 2 clases).
+
+--- VALIDANDO LOTE-AVRIL-09-REL (Relación con Dios - REL-801) ---
+Sesiones declaradas: 1 | Clases en array: 1
+✅ Lote LOTE-AVRIL-09-REL: APROBADO (0 errores en sus 1 clases).
+
+--- VALIDANDO LOTE-AVRIL-10-ART (Arte (ECA) - ART-801) ---
+Sesiones declaradas: 1 | Clases en array: 1
+✅ Lote LOTE-AVRIL-10-ART: APROBADO (0 errores en sus 1 clases).
+
+--- VALIDANDO LOTE-AVRIL-11-EFI (Educación Física - EFI-801) ---
+Sesiones declaradas: 1 | Clases en array: 1
+✅ Lote LOTE-AVRIL-11-EFI: APROBADO (0 errores en sus 1 clases).
+
+==============================================================================
+RESUMEN GLOBAL DE LA VALIDACIÓN (AVRIL):
+- Lotes analizados: 11 / 11
+- Lotes aprobados: 11 / 11
+- Total clases consolidadas: 23 / 23
+- Total IDs de clases únicos: 23 / 23
+- Total recursos seguros únicos: 46 / 46
+- Total errores detectados: 0
+==============================================================================
+
+Exportando 23 clases consolidadas a: C:\Users\Alsiz\Documents\plataforma educativa ALSIZ\src\data\dailyClassesAvril.ts
+✅ Archivo src/data/dailyClassesAvril.ts actualizado con éxito (263902 bytes).

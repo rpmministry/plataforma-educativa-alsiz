@@ -6,10 +6,8 @@ export default function GaelPage() {
   useEffect(() => {
     try {
       const savedCurrent = localStorage.getItem('wisdom_current_v2026');
-      const savedAuth = localStorage.getItem('wisdom_auth_v2026');
-      if (savedCurrent !== 'gael' || savedAuth !== 'gael') {
+      if (savedCurrent !== 'gael') {
         localStorage.setItem('wisdom_current_v2026', 'gael');
-        localStorage.setItem('wisdom_auth_v2026', 'gael');
       }
     } catch { }
   }, []);

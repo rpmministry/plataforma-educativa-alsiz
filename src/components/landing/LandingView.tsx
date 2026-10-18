@@ -7,6 +7,7 @@ import { NewStudentModal } from './NewStudentModal';
 import { AccessRestrictedModal } from '../auth/AccessRestrictedModal';
 import { CurriculumLevelsSection } from './CurriculumLevelsSection';
 import { AITeacherTryoutWidget } from './AITeacherTryoutWidget';
+import { authApi } from '../../services/apiClient';
 import {
   Sparkles,
   Bot,
@@ -39,6 +40,7 @@ export const LandingView: React.FC = () => {
     authenticatedStudentId,
     isAuthenticated,
     authenticateStudent,
+    refreshSession,
     openAuthModal,
     setActiveTab,
     loginAsTestStudent,
@@ -56,44 +58,26 @@ export const LandingView: React.FC = () => {
   const [googleReady, setGoogleReady] = useState(false);
 
   const handleGoogleResponse = async (response: any) => {
-    const idToken = response.credential;
+    const idToken = response?.credential;
     if (!idToken) {
       console.error('No se recibió token de Google');
       return;
     }
 
     try {
-      const googleRes = await fetch(
-        `https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${idToken}`
-      );
-
-      if (!googleRes.ok) {
-        console.error('Error verificando el token de Google');
+      const res = await authApi.googleLogin(idToken);
+      if (res.success && res.data?.user) {
+        await refreshSession();
         return;
       }
 
-      const googleData = await googleRes.json();
-      const email = googleData.email?.toLowerCase();
-
-      if (!email) {
-        console.error('No se pudo obtener el correo de Google');
-        return;
-      }
-
-      // Lista blanca: solo alumnos inscritos (los perfiles demo entran por su propia vía, sin Google).
-      const found = studentsList.find((s) => !s.isDemo && s.email?.toLowerCase() === email);
-
-      if (!found) {
-        // Auth Guard: se detiene el acceso y se muestra la cápsula de información en vez de un error.
-        console.warn(`[AuthGuard] Cuenta de Google no registrada en Wisdom School: ${email}`);
+      if (res.error?.code === 'USER_NOT_FOUND' || res.error?.code === 'UNAUTHORIZED' || res.error?.code === 'AUTH_UNAUTHORIZED') {
+        console.warn(`[AuthGuard] Cuenta no inscrita en la base de datos institucional`);
         try { window.google?.accounts?.id?.disableAutoSelect?.(); } catch { /* no-op */ }
-        setRestrictedEmail(email);
-        return;
+        setRestrictedEmail(res.error?.details?.email || 'cuenta no inscrita');
       }
-
-      authenticateStudent(found.id);
     } catch (e) {
-      console.error('Error en Google Sign-In:', e);
+      console.error('Error al verificar Google Sign-In con servidor:', e);
     }
   };
 
@@ -209,8 +193,8 @@ export const LandingView: React.FC = () => {
       <div className="space-y-3 w-full pt-4 border-t border-amber-500/20">
         <div ref={googleButtonRef} className="w-full" id="landing-google-signin-button" />
         {!googleReady && (
-          <p className="text-center text-xs text-slate-500">
-            Configura <code className="text-amber-400">VITE_GOOGLE_CLIENT_ID</code> en <code className="text-amber-400">.env</code> para activar el ingreso con Google
+          <p className="text-center text-xs text-slate-400">
+            Ingreso con Google sujeto a validación institucional en servidor. Usa tus credenciales o PIN.
           </p>
         )}
         <button
@@ -231,13 +215,13 @@ export const LandingView: React.FC = () => {
 
         <div className="relative z-10 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-[#121820] border border-amber-500/40 shadow-lg shadow-black/40 flex items-center justify-center">
+            <div className="p-3 rounded-2xl bg-[#18181B] border border-[#27272A] shadow-lg shadow-black/40 flex items-center justify-center">
               <SchoolLogo size="md" variant="monogram" className="w-10 h-10 object-contain" />
             </div>
             <div>
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
                 <Globe className="w-3.5 h-3.5 text-amber-400" />
-                <span>Plataforma Educativa ALSIZ • Ekballo Church</span>
+                <span>Wisdom Academy • Entorno Educativo Digital</span>
               </div>
               <h2 className="text-xs text-slate-400 font-mono mt-0.5">Año Lectivo 2026 - 2027</h2>
             </div>
@@ -246,20 +230,27 @@ export const LandingView: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div className="max-w-5xl space-y-4 lg:max-w-2xl">
               <div className="inline-flex items-center gap-3 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-2 shadow-[0_0_25px_rgba(229,144,0,0.12)] backdrop-blur-sm">
-                <SchoolLogo size="sm" variant="monogram" className="w-6 h-6 object-contain" />
-                <span className="text-sm sm:text-base font-black uppercase tracking-[0.28em] text-amber-200">ALSIZ • EKBALLO</span>
+                <SchoolLogo size="sm" variant="monogram" className="w-5 h-5 object-contain" />
+                <span className="text-xs sm:text-sm font-bold tracking-wider text-amber-200">
+                  Aprender con profundidad · Avanzar con propósito
+                </span>
               </div>
 
               <div className="space-y-2">
-                <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.32em] text-amber-300/80">Homeschooling K-12 • Formación Cristiana & Discipulado</p>
-                <h1 className="max-w-4xl text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-0.06em] text-white leading-[0.9]">
-                  Educación personalizada, <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500">rigor pedagógico y fe</span>
+                <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.24em] text-amber-300/80">Educación integral • Innovación pedagógica</p>
+                <h1 className="max-w-4xl text-3xl sm:text-4xl lg:text-5xl font-black tracking-[-0.04em] text-white leading-[1.05]">
+                  Una educación rigurosa, <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500">con tecnología al servicio del aprendizaje</span>
                 </h1>
               </div>
 
-              <p className="max-w-3xl text-base sm:text-xl text-slate-300 leading-relaxed font-normal">
-                Diseñada para la formación integral de los estudiantes de Ekballo Church y familias en homeschooling. Acompaña desde la educación elemental hasta el bachillerato con microcurrículo estructurado día a día, profesores virtuales socráticos, devocionales diarios y evaluación formativa por evidencias sin exámenes memorísticos.
-              </p>
+              <div className="space-y-3">
+                <p className="max-w-3xl text-base sm:text-lg text-slate-200 leading-relaxed font-normal">
+                  Wisdom Academy es un entorno educativo digital diseñado para organizar experiencias académicas, acompañar el proceso de aprendizaje y facilitar el desarrollo del pensamiento crítico, la autonomía y el dominio progresivo de los conocimientos.
+                </p>
+                <p className="max-w-3xl text-xs sm:text-sm text-slate-400 leading-relaxed">
+                  Un espacio para aprender, practicar y avanzar con claridad, mediante herramientas educativas que conectan los contenidos, las actividades y el progreso académico.
+                </p>
+              </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
                 <button
@@ -268,7 +259,7 @@ export const LandingView: React.FC = () => {
                   className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 px-6 py-3.5 text-sm font-extrabold text-slate-950 shadow-xl shadow-amber-950/50 transition-all hover:scale-[1.02]"
                 >
                   <ShieldCheck className="w-4.5 h-4.5" />
-                  <span>Ingresar a la Plataforma (Portal Roles)</span>
+                  <span>Explorar mis cursos / Acceso</span>
                 </button>
 
                 <button
@@ -326,7 +317,7 @@ export const LandingView: React.FC = () => {
               Explora el Modo Demo
             </h2>
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              Prueba la experiencia interactiva de Wisdom School con dos perfiles de muestra. Interactúa con el
+              Prueba la experiencia interactiva de Wisdom Academy con dos perfiles de muestra. Interactúa con el
               profesor IA, escucha la voz guía y recorre una clase completa antes de registrarte.
             </p>
           </div>
@@ -335,19 +326,19 @@ export const LandingView: React.FC = () => {
             {([
               {
                 id: 'karen' as const,
-                world: '🐶 Mundo Snoopy',
-                blurb: 'Álgebra, literatura y pensamiento crítico de 8.º EGB.',
-                cardClass: 'from-amber-950/50 via-slate-900 to-amber-900/20 border-amber-500/40 hover:border-amber-400/70',
-                badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-                buttonClass: 'bg-amber-500 hover:bg-amber-400 text-slate-950',
+                world: 'Básica Superior • 8.º EGB',
+                blurb: 'Álgebra, literatura viva y pensamiento socrático riguroso.',
+                cardClass: 'from-[#18181B] via-[#121215] to-[#0D0D10] border-[#27272A] hover:border-amber-500/50',
+                badgeClass: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
+                buttonClass: 'bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold',
               },
               {
                 id: 'mauricio' as const,
-                world: '🍄 Mundo Mario',
-                blurb: 'Cuentos, matemáticas lúdicas y ciencia para 4.º EGB.',
-                cardClass: 'from-red-950/50 via-slate-900 to-red-900/20 border-red-500/40 hover:border-red-400/70',
-                badgeClass: 'bg-red-500/20 text-red-300 border-red-500/40',
-                buttonClass: 'bg-red-600 hover:bg-red-500 text-white',
+                world: 'Básica Media • 4.º EGB',
+                blurb: 'Fundamentos de aritmética, ciencias vivas y narración estructurada.',
+                cardClass: 'from-[#18181B] via-[#121215] to-[#0D0D10] border-[#27272A] hover:border-indigo-500/50',
+                badgeClass: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30',
+                buttonClass: 'bg-indigo-600 hover:bg-indigo-500 text-white font-bold',
               },
             ]).map((profile) => {
               const student = studentsList.find((s) => s.id === profile.id);
@@ -412,7 +403,7 @@ export const LandingView: React.FC = () => {
             Interacción Socrática en Tiempo Real
           </h2>
           <p className="text-sm text-slate-300">
-            Los profesores virtuales de Wisdom School utilizan el Método Socrático para formular preguntas guiadas y pistas progresivas en lugar de regalar respuestas mecánicas.
+            Los profesores virtuales de Wisdom Academy utilizan el Método Socrático para formular preguntas guiadas y pistas progresivas en lugar de regalar respuestas mecánicas.
           </p>
         </div>
 
@@ -421,9 +412,9 @@ export const LandingView: React.FC = () => {
 
       <section className="space-y-6">
         <div className="text-center max-w-2xl mx-auto space-y-2">
-          <h2 className="text-2xl font-extrabold text-white tracking-tight">Pilares de la Plataforma Educativa ALSIZ • Ekballo Church</h2>
+          <h2 className="text-2xl font-extrabold text-white tracking-tight">Pilares de Wisdom Academy</h2>
           <p className="text-sm text-slate-400">
-            Un ecosistema integral diseñado para cultivar el pensamiento autónomo, la cosmovisión bíblica, la disciplina de estudio y el amor por el aprendizaje.
+            Un ecosistema integral diseñado para cultivar el pensamiento autónomo, el rigor conceptual, la disciplina de estudio y el amor por el aprendizaje.
           </p>
         </div>
 

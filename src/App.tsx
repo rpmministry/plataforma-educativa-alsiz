@@ -76,7 +76,7 @@ const MainContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col bg-[#0A0D11] text-slate-100 selection:bg-amber-500 selection:text-slate-950 font-sans">
+    <div className="min-h-dvh flex flex-col bg-[#0A0A0A] text-[#F4F4F5] selection:bg-[#E0A82E] selection:text-[#0A0A0A]">
       <Navbar />
 
       <div className="flex-1 flex w-full max-w-[100vw] overflow-x-hidden">

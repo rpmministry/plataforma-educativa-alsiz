@@ -1,5 +1,6 @@
-# Plataforma Educativa ALSIZ para Ekballo Church
-### Sistema Integral de Gestión del Aprendizaje (LMS), Tutoría Socrática con IA y Educación Continua
+# Wisdom Academy
+### Una educación rigurosa, con tecnología al servicio del aprendizaje.
+**Lema:** *Aprender con profundidad. Avanzar con propósito.*
 
 [![Estado del Proyecto](https://img.shields.io/badge/Estado-Producci%C3%B3n%20Preparada%20(v1.0.0)-success?style=for-the-badge&logo=shield)](https://github.com/rpmministry/plataforma-educativa-alsiz)
 [![Licencia](https://img.shields.io/badge/Licencia-Privada%20Institucional-blue?style=for-the-badge)](https://github.com/rpmministry/plataforma-educativa-alsiz)
@@ -7,256 +8,262 @@
 [![React](https://img.shields.io/badge/React-v19-61dafb?style=for-the-badge&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-v5.8-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![SQLite](https://img.shields.io/badge/SQLite-WAL%20Transaccional-003B57?style=for-the-badge&logo=sqlite)](https://www.sqlite.org/)
+[![Turso](https://img.shields.io/badge/Turso-libSQL%20Cloud-00E599?style=for-the-badge&logo=sqlite)](https://turso.tech/)
 
 ---
 
-## 1. Visión General del Proyecto
+## 1. Presentación institucional y propuesta de valor
 
-La **Plataforma Educativa ALSIZ** es un ecosistema educativo digital concebido e implementado para **Ekballo Church**, orientado al acompañamiento integral de familias en modalidad de educación en casa (*Homeschool*), tutoría socrática escolar y formación profesional no formal en artes y oficios.
+**Wisdom Academy** es un entorno educativo digital diseñado para organizar experiencias académicas, acompañar el proceso de aprendizaje y facilitar el desarrollo del pensamiento crítico, la autonomía y el dominio progresivo de los conocimientos.
 
-El sistema fusiona el rigor curricular del **Ministerio de Educación del Ecuador (MINEDUC)** y el marco bilingüe del **MCER (Marco Común Europeo de Referencia)** con una cosmovisión bíblica fundamentada en los **7 módulos doctrinales fundacionales de Ekballo Church**. La interacción pedagógica está potenciada por un claustro de profesores de Inteligencia Artificial que aplican un método socrático estricto para fomentar el pensamiento crítico, la autonomía y los valores cristianos.
-
----
-
-## 2. Arquitectura Tecnológica del Sistema
-
-La solución adopta una **arquitectura desacoplada, híbrida y de alto rendimiento**:
-
-```
-+-----------------------------------------------------------------------------------+
-|                           CLIENTE WEB (SPA)                                       |
-|  React 19 + TypeScript 5.8 + Vite 6 + Tailwind CSS 4 + Lucide Icons + Motion      |
-|  - Portal del Estudiante (Aula Interactiva, Retos Diarios, Pistas Socráticas)     |
-|  - Portal de Familias (Seguimiento Académico, Asistencia, Aislamiento Anti-IDOR)  |
-|  - Consola Administrativa Unificada (Gestión Escolar, RAG, IA, Auditoría LOPDP)   |
-|  - Catálogo y Verificador Público de Certificados de Oficios (Artes & Oficios)    |
-+-----------------------------------------------------------------------------------+
-                                         |
-                       (API RESTful / Cookies HttpOnly)
-                                         v
-+-----------------------------------------------------------------------------------+
-|                        BACKEND MODULAR (Node.js / Express 4)                      |
-|  - Enrutamiento modular (/api/v1/auth, /academic, /knowledge, /agents, /pilot)    |
-|  - Middleware de Seguridad (Autenticación scrypt, Sesiones HttpOnly, RBAC)        |
-|  - Middleware de Privacidad LOPDP (Anonimización HMAC-SHA256, Sin PII en Logs)    |
-|  - Orquestador de IA en Cascada (DeepSeek V3 -> Gemini 2.0 -> OpenRouter -> Local)|
-|  - Motor de RAG con Citas Estructuradas [S#] (Centro de Conocimiento Institucional)|
-|  - Servicio de Síntesis de Voz Neuronal (Google Cloud Text-to-Speech Neuronal2)   |
-+-----------------------------------------------------------------------------------+
-                                         |
-                                         v
-+-----------------------------------------------------------------------------------+
-|                   PERSISTENCIA RELACIONAL (SQLite3 Nativo WAL)                    |
-|  - Motor: node:sqlite (Node.js 22 LTS) con PRAGMA foreign_keys = ON               |
-|  - Modo Transaccional: Write-Ahead Logging (WAL) + synchronous = NORMAL           |
-|  - Migrador Secuencial Versionado con Checksums SHA-256 (12 migraciones)          |
-|  - Hot Backup Atómico en Caliente: VACUUM INTO con validación integrity_check     |
-+-----------------------------------------------------------------------------------+
-```
+La plataforma ofrece una experiencia educativa moderna, sobria, elegante y centrada en el estudiante, donde la tecnología sirve como puente para una interacción pedagógica rigurosa y constructiva. Su arquitectura integra un microcurrículo organizado día a día, un claustro de profesores de Inteligencia Artificial guiados por el método socrático, recursos educativos abiertos de alta calidad y un sistema de evaluación formativa basado en evidencias y proyectos.
 
 ---
 
-## 3. Características y Módulos Principales
+## 2. Público y finalidad educativa
 
-### 3.1. Núcleo Académico Escolar (K-12 Homeschool)
-- Estructuración curricular por niveles: **Educación General Básica (EGB Elemental, Media, Superior)** y **Bachillerato General Unificado (BGU)**.
-- Alineación formal con las Destrezas con Criterios de Desempeño (DCD) del Currículo Nacional de Ecuador y estándares internacionales complementarios (Virginia SOL / NGSS).
-- Marco de Bilingüismo Aditivo progresivo (Pre-A1 a B2) con actividades duales en español e inglés.
-- Transversalización de las **7 Clases Doctrinales Fundacionales de Ekballo Church** en la asignatura troncal *Relación con Dios*.
+Wisdom Academy está diseñada para:
+- **Estudiantes de Educación General Básica (EGB) y Bachillerato (K-12):** Que cursan su formación en modalidades de educación en casa (*homeschooling*), programas flexibles o aprendizaje personalizado guiado.
+- **Familias y Representantes Legales:** Que requieren un seguimiento cercano, transparente y seguro del avance académico, horas de dedicación pedagógica y evidencias de aprendizaje de sus hijos.
+- **Docentes y Tutores Académicos:** Que supervisan el progreso, revisan entregas, orientan las dudas complejas y ajustan las rutas de aprendizaje.
+- **Comunidad y Jóvenes en Formación Continua:** Que participan en cursos complementarios de artes, oficios y competencias tecnológicas.
 
-### 3.2. Claustro de Profesores IA Socráticos
-- **Dra. Sofía**: Ciencias Naturales, Biología y Creación.
-- **Profe Sarah**: Inglés comunicativo e inmersión bilingüe (MCER).
-- **Profe Valentina**: Matemáticas, Geometría y Pensamiento Lógico.
-- **Profe Carla**: Historia, Ciencias Sociales y Providencia.
-- **Maestra Lucía**: Lengua, Literatura y Redacción Creativa.
-- **Pastor Mateo / Hno. David**: Relación con Dios y Formación Bíblica.
-- **Método Socrático Puro**: Los agentes nunca entregan respuestas automáticas; guían mediante preguntas reflexivas, analogías y pistas graduales.
-- **Resiliencia Total**: Cascada con conmutación automática ante fallos externos (*circuit-breaker*) y degradación transparente al simulador local sin interrupciones para el alumno.
+---
+
+## 3. Funcionalidades existentes
+
+### 3.1. Núcleo Académico y Microcurrículo Adaptativo
+- **Estructura por Trimestres y 200 Días Lectivos:** Malla curricular alineada a estándares educativos oficiales dividida en 3 trimestres, con proyectos interdisciplinarios integradores.
+- **Planificación de Clases Socráticas Diarias:** 48 clases completas de Unidad 1 (25 para 4.° EGB y 23 para 8.° EGB) estructuradas en 4 fases pedagógicas:
+  1. **Masterclass:** Micro-lecciones conceptuales con retos interactivos de asimilación.
+  2. **Laboratorio:** Refuerzo audiovisual y simuladores interactivos abiertos (PhET Colorado bajo licencia CC-BY, GeoGebra y Scratch MIT).
+  3. **Taller:** Actividades prácticas de aplicación y libreta de apuntes.
+  4. **Evidencias:** Generación y descarga de diarios de clase combinados para registro en portafolio de evidencias.
+- **Generador de Diarios y Guías Didácticas:** Compilador automatizado que compone las materias del día en un documento unificado listo para imprimir o guardar como PDF.
+
+### 3.2. Claustro de Profesores Virtuales Socráticos
+- **20 Asignaturas con Docente IA Especializado:** Profesores virtuales entrenados para cada materia (Ciencias Naturales, Matemáticas, Lengua y Literatura, Estudios Sociales, Inglés, etc.).
+- **Método Socrático Puro:** Los tutores no entregan respuestas directas ni resuelven tareas automáticamente; formulan preguntas reflexivas, ofrecen pistas graduales y alientan al alumno a llegar a sus propias conclusiones.
+- **Síntesis de Voz Asistida (TTS):** Integración con Google Cloud Text-to-Speech para lectura guiada y accesibilidad auditiva.
+- **Resiliencia Multi-Proveedor:** Orquestador inteligente `ProviderManager` que gestiona en cascada:
+  1. Google Gemini API (`@google/genai`)
+  2. DeepSeek API (`deepseek-chat`)
+  3. OpenRouter API
+  4. Simulador Local Socrático en memoria (`SIMULATED_LOCAL`) como contingencia ante caídas de red o falta de saldo, garantizando cero errores 500 en clase.
 
 ### 3.3. Centro de Conocimiento Institucional (RAG)
-- Ingestión, indexación y segmentación de documentos oficiales y bíblicos.
-- Citas obligatorias `[S#]` en las respuestas de los profesores IA para garantizar fundamentación doctrinal y académica verificable.
-- Exclusión instantánea de fuentes desactivadas o revocadas.
+- **Indexación y Fragmentación Semántica:** 22 fuentes curriculares aprobadas y 23 fragmentos indexados en SQLite RAG.
+- **Citas Verificables:** Respuestas de los tutores fundamentadas con identificadores de fuente formal `[TAG#C1]`.
+- **20 Matrices Temáticas Curriculares:** Versionadas en formato Markdown en `docs/ai-agents/matrices-tematicas/`.
 
-### 3.4. Formación No Formal: Artes, Oficios y Educación Continua
-- Catálogo de cursos prácticos para la comunidad: Electricidad Residencial, Python con IA, Composición Visual y Homilética Ministerial.
-- Control estricto de aforo y cupos máximos (`max_capacity`).
-- Emisión de constancias de aprobación con **código único** y **firma digital SHA-256**.
-- Inclusión obligatoria del descargo legal normativo conforme al **Art. 32 del Acuerdo Ministerial MINEDUC-2023-00069-A** (Servicio Educativo Complementario No Formal).
-- **Verificador público universal** sin autenticación en `/api/v1/continuing-ed/certificates/verify/:codeOrHash`.
+### 3.4. Consola Administrativa Unificada
+- **Gestión Escolar:** Administración de programas académicos, asignaturas, unidades y cronogramas.
+- **Directorio de Usuarios y Roles:** Control de acceso basado en roles (RBAC: Estudiante, Representante, Docente, Administrador).
+- **Supervisión de IA y Auditoría:** Tablero de disponibilidad de modelos, telemetría y registros de actividad sin exposición de datos confidenciales.
 
-### 3.5. Portal de Familias y Privacidad LOPDP
-- Aislamiento estricto de expedientes (**Anti-IDOR**): ningún tutor puede visualizar a estudiantes ajenos a su núcleo familiar.
-- Cumplimiento de la **Ley Orgánica de Protección de Datos Personales del Ecuador (LOPDP)**:
-  - Anonimización irreversible de direcciones IP mediante HMAC/SHA-256.
-  - Cero contraseñas, PINs o datos personales sensibles en logs o respuestas públicas.
-  - Almacenamiento seguro de credenciales con algoritmo criptográfico `scrypt`.
+### 3.5. Formación Continua: Artes y Oficios
+- Catálogo de cursos prácticos (Programación, Habilidades Manuales, Competencias Digitales).
+- Control de aforo y cupos máximos por taller.
+- Verificador público universal de constancias con firma criptográfica SHA-256.
 
 ---
 
-## 4. Requisitos del Sistema e Instalación
+## 4. Perfiles y experiencias de usuario
 
-### 4.1. Requisitos Previos
-- **Node.js**: v22.12.0 LTS o superior (requerido por `node:sqlite`).
-- **npm**: v10.x o superior.
-- **Memoria RAM**: Mínimo 1 GB (Recomendado: 2 GB a 4 GB para producción).
-- **Almacenamiento**: Mínimo 2 GB libres en disco SSD.
+1. **Estudiante:**
+   - Panel de estudio diario (*Mi Espacio*), horario escolar semanal interactivo, aula de clase con micro-lecciones, chat socrático continuo y libreta de evidencias.
+2. **Representante / Familia:**
+   - Visualización de materias, avance por proyectos, bitácora de dedicación semanal y consulta del boletín de calificaciones oficial.
+3. **Docente / Tutor:**
+   - Seguimiento del progreso de micro-lecciones, historial de preguntas a los tutores IA y validación de evidencias presentadas.
+4. **Administrador:**
+   - Gestión integral del sistema en `AdminShell`, monitoreo del motor de base de datos, diagnóstico de salud de proveedores de IA y herramientas de respaldo.
 
-### 4.2. Instalación Paso a Paso
-```bash
-# 1. Clonar el repositorio
-git clone https://github.com/rpmministry/plataforma-educativa-alsiz.git
-cd plataforma-educativa-alsiz
+---
 
-# 2. Instalar dependencias exactas
-npm ci
+## 5. Arquitectura técnica del sistema
 
-# 3. Configurar variables de entorno
-cp .env.example .env
-# Configurar secretos y llaves en .env (ver Guía de Configuración)
+La plataforma cuenta con una arquitectura moderna, desacoplada y preparada tanto para ejecución local persistente como para despliegue en la nube:
 
-# 4. Ejecutar migraciones de base de datos
-npm run db:migrate
-
-# 5. Compilar la aplicación para producción
-npm run build
-
-# 6. Ejecutar diagnóstico de salud
-npm run health
+```
++-----------------------------------------------------------------------------------+
+|                        FRONTEND WEB — CLIENTE (SPA)                               |
+|  React 19 • TypeScript 5.8 • Vite 6 • Tailwind CSS v4 • Lucide Icons • Motion     |
+|  - Identidad visual oficial Wisdom Academy (paleta neutra con acentos Luz #E0A82E)|
+|  - Tipografías oficiales: Poppins (Títulos), Figtree (Lectura), Lora (Citas)       |
+|  - Ergonomía táctil para tabletas y diseño responsive para móviles y escritorio   |
++-----------------------------------------------------------------------------------+
+                                         │
+                       (API RESTful / Cookies HttpOnly Seguras)
+                                         ▼
++-----------------------------------------------------------------------------------+
+|                        BACKEND MODULAR — SERVIDOR API                             |
+|  Node.js (>=22.12.0) • Express 4 • TypeScript • esbuild                           |
+|  - Enrutamiento modular en /api/v1 (auth, students, representatives, admin, etc.) |
+|  - Middleware de Seguridad (scryptSync con sal, cookies Lax/HttpOnly, RBAC)       |
+|  - ProviderManager IA (Gemini, DeepSeek, OpenRouter, Simulador Local)             |
+|  - Centro de Conocimiento RAG sobre SQLite FTS                                    |
++-----------------------------------------------------------------------------------+
+                                         │
+                                         ▼
++-----------------------------------------------------------------------------------+
+|                        CAPA DE PERSISTENCIA RELACIONAL                            |
+|  - Modo A (Local/VPS/Docker): node:sqlite nativo con WAL y PRAGMA foreign_keys    |
+|  - Modo B (Cloud/Serverless): Turso Cloud / libSQL (via @libsql/client)           |
+|  - 13 Migraciones versionadas con control de esquema (schema_migrations)          |
+|  - Hot Backup atómico en caliente: VACUUM INTO con validación integrity_check     |
++-----------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 5. Scripts y Comandos Operacionales
+## 6. Tecnologías y dependencias principales
 
-| Comando | Acción y Propósito |
-|---|---|
-| `npm run dev` | Inicia el entorno de desarrollo local interactivo con Vite HMR y Express. |
-| `npm run build` | Compila la SPA de React y genera los bundles de producción del servidor. |
-| `npm start` | Inicia el servidor de producción compilado en `dist/server.cjs`. |
-| `npm run lint` | Ejecuta verificación de tipos estricta con TypeScript (`tsc --noEmit`). |
-| `npm run health` | Diagnóstico en vivo de base de datos, 12 migraciones, tablas y salud operativa. |
-| `npm run db:migrate` | Ejecuta de forma transaccional las migraciones SQL pendientes. |
-| `npm run db:backup` | Genera un respaldo en caliente (Hot Backup) atómico con hash SHA-256. |
-| `npm run db:restore` | Restaura una copia de seguridad con verificación obligatoria de integridad. |
-| `npm run test:etapa14` | Ejecuta la suite de aseguramiento de calidad y despliegue (12 pruebas). |
+- **Frontend:**
+  - `react` / `react-dom`: `^19.0.1`
+  - `vite`: `^6.2.3`
+  - `tailwindcss` / `@tailwindcss/vite`: `^4.1.14`
+  - `lucide-react`: `^0.546.0`
+  - `motion`: `^12.23.24`
+- **Backend y Persistencia:**
+  - `express`: `^4.21.2`
+  - `node:sqlite`: Integrado nativamente en Node.js 22 LTS
+  - `@libsql/client`: `^0.18.0` (Turso Cloud)
+  - `zod`: `^4.6.7`
+  - `esbuild`: `^0.25.0`
+  - `tsx`: `^4.21.0`
+- **Servicios Externos e IA:**
+  - `@google/genai`: `^2.4.0` (Gemini API)
+  - `resend`: `^6.34.1` / `nodemailer`: `^9.1.0`
 
 ---
 
-## 6. Variables de Entorno
+## 7. Requisitos de instalación y puesta en marcha
 
-Copie `.env.example` para su configuración local. **Nunca comprometa claves reales en Git**.
+### 7.1. Requisitos Previos
+- **Node.js:** Versión `>= 22.12.0 LTS` (indispensable para el módulo nativo `node:sqlite`).
+- **npm:** Versión `>= 10.0.0`.
+- **Sistema Operativo:** Compatible con Windows, Linux y macOS.
+
+### 7.2. Puesta en marcha paso a paso
+
+```bash
+# 1. Instalar dependencias exactas
+npm install
+
+# 2. Configurar variables de entorno
+cp .env.example .env.local
+
+# 3. Aplicar migraciones a la base de datos
+npm run db:migrate
+
+# 4. Iniciar el servidor en modo desarrollo
+npm run dev
+
+# 5. Para compilar y ejecutar en modo producción
+npm run build
+npm start
+```
+
+La aplicación quedará disponible en `http://localhost:3000`.
+
+---
+
+## 8. Variables de entorno
+
+Cree un archivo `.env.local` en la raíz del proyecto. Las variables sensibles nunca deben incluirse en el control de versiones:
 
 ```dotenv
-# Entorno y Servidor
+# Configuración del servidor y entorno
 NODE_ENV=development
 PORT=3000
 DATABASE_PATH=./data/alsiz.db
 APP_URL=http://localhost:3000
 
-# Seguridad de Sesión (Mínimo 32 caracteres criptográficos)
-SESSION_SECRET=alsiz_ekballo_session_secret_change_in_production_2026_min32bytes
-SESSION_TTL_HOURS=72
+# Seguridad de sesiones (Obligatoria: mínimo 32 caracteres criptográficos)
+SESSION_SECRET=clave_secreta_robusta_para_produccion_de_al_menos_32_caracteres_hex
 
-# Proveedores de Inteligencia Artificial (Opcionales - Cuentan con Fallback Local)
+# Proveedores de Inteligencia Artificial (Opcionales con fallback automático a simulador)
+GEMINI_API_KEY=
 DEEPSEEK_API_KEY=
 DEEPSEEK_MODEL=deepseek-chat
-GEMINI_API_KEY=
 OPENROUTER_API_KEY=
-OPENCODE_API_KEY=
 GOOGLE_TTS_API_KEY=
-```
 
-*Para especificaciones de Staging y Producción, consulte [`docs/operacion/guia_configuracion_entornos.md`](docs/operacion/guia_configuracion_entornos.md).*
-
----
-
-## 7. Estructura del Repositorio
-
-```
-plataforma-educativa-alsiz/
-├── docs/                             # Biblioteca de documentación y gobernanza
-│   ├── arquitectura/                 # Diagramas C4, modelo de datos, contratos API, ADRs
-│   ├── curriculum/                   # Malla curricular, informe jurídico MINEDUC, bilingüismo
-│   ├── diseno/                       # Sistema de diseño e identidad Ekballo Church
-│   ├── ejecucion/                    # Bitácora histórica y expedientes de las etapas 00 a 14
-│   │   ├── bitacora.md               # Registro cronológico detallado de intervenciones
-│   │   ├── README.md                 # Índice general del sistema de etapas
-│   │   └── etapas/ETAPA-00/ a 14/    # Planes, cambios, pruebas, validación y cierres
-│   └── operacion/                    # Manuales operativos de producción (v1.0.0)
-│       ├── guia_instalacion_despliegue.md
-│       ├── guia_configuracion_entornos.md
-│       ├── manual_administrativo.md
-│       ├── manual_actualizacion_curricular.md
-│       ├── guia_gestion_profesores_ia.md
-│       ├── procedimiento_respaldo_restauracion.md
-│       ├── procedimiento_respuesta_incidentes.md
-│       ├── runbook_fallos_frecuentes.md
-│       └── registro_versiones_cambios.md
-├── public/                           # Activos estáticos, branding Ekballo y avatares
-├── scripts/                          # Herramientas CLI y suites de pruebas automatizadas
-│   ├── backup-db.ts                  # Generador de Hot Backups
-│   ├── restore-db.ts                 # Restaurador y validador de integridad
-│   ├── health-check.ts               # Diagnóstico de salud operativa
-│   └── test-etapa-05.ts a 14.ts      # Banco de 153 pruebas automatizadas
-├── server/                           # Backend modular en Node.js/Express
-│   ├── agents/                       # Orquestador multi-proveedor y simulador local
-│   ├── auth/                         # Criptografía scrypt, sesiones y tokens
-│   ├── backup/                       # Servicio de copias de seguridad (VACUUM INTO)
-│   ├── continuing-ed/                # Servicio de cursos de oficios y certificados
-│   ├── db/                           # Conexión SQLite WAL y 12 migraciones versionadas
-│   ├── knowledge/                    # Motor de RAG institucional y búsqueda FTS
-│   ├── middleware/                   # RBAC, auditoría LOPDP, rate-limit y errores
-│   ├── pilot/                        # Aula interactiva socrática multiagente
-│   └── routes/                       # Enrutadores RESTful de la API v1
-├── src/                              # Frontend React 19 (SPA)
-│   ├── components/                   # Vistas de estudiante, familias, admin y componentes
-│   ├── context/                      # Estado global de la aplicación (SchoolContext)
-│   ├── services/                     # Clientes de API y utilidades de renderizado
-│   └── types/                        # Definiciones de tipo TypeScript
-├── dev-server.ts                     # Servidor de desarrollo integrado con Vite
-├── server.ts                         # Servidor principal de Express y API
-└── package.json                      # Definición de dependencias y scripts operacionales
+# Base de datos Turso Cloud (Opcional si se utiliza el motor local SQLite)
+TURSO_DATABASE_URL=
+TURSO_AUTH_TOKEN=
 ```
 
 ---
 
-## 8. Aseguramiento de Calidad y Cobertura de Pruebas
+## 9. Comandos del proyecto
 
-El sistema cuenta con un banco integral de **153 casos de prueba automatizados** ejecutados con **100% de éxito**:
-
-- `test:etapa05` (Núcleo LMS, Auth & RBAC): 16/16 PASÓ
-- `test:etapa06` (Centro de Conocimiento RAG): 25/25 PASÓ
-- `test:etapa07` (Profesores IA & Fallback): 16/16 PASÓ
-- `test:etapa08` (Aula Interactiva & Piloto): 17/17 PASÓ
-- `test:etapa09` (Portal de Familias Anti-IDOR): 14/14 PASÓ
-- `test:etapa10` (Privacidad LOPDP & Telemetría): 15/15 PASÓ
-- `test:etapa11` (Consola Administrativa Unificada): 16/16 PASÓ
-- `test:etapa12` (Artes, Oficios & Certificados): 12/12 PASÓ
-- `test:etapa13` (Auditoría Integral End-to-End): 10/10 PASÓ
-- `test:etapa14` (Aseguramiento de Despliegue): 12/12 PASÓ
-
----
-
-## 9. Marco Normativo y Legal (Ecuador)
-
-La operación de la plataforma está fundamentada en el marco legal de la República del Ecuador:
-- **Constitución de la República del Ecuador (Art. 29)**: Garantiza la libertad de enseñanza y el derecho de las familias a elegir la educación para sus hijos.
-- **Ley Orgánica de Educación Intercultural (LOEI - Art. 50)**: Reconocimiento de modalidades de aprendizaje no convencionales y educación en casa.
-- **Acuerdo Ministerial MINEDUC-2023-00069-A (Art. 32)**: Delimitación de cursos de educación continua y oficios como *Servicio Educativo Complementario No Formal*, no conducente a título de bachillerato ni educación superior.
-- **Ley Orgánica de Protección de Datos Personales (LOPDP - Arts. 21 y 22)**: Protección reforzada de datos personales de niñas, niños y adolescentes mediante anonimización criptográfica.
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Inicia el servidor de desarrollo Vite con Express en puerto 3000. |
+| `npm run build` | Compila la SPA frontend a `dist/` y empaqueta el servidor con esbuild a `dist/server.cjs` y `api-server.js`. |
+| `npm start` | Inicia el servidor de producción compilado (`node dist/server.cjs`). |
+| `npm run lint` | Comprueba tipos en todo el proyecto mediante TypeScript (`tsc --noEmit`). |
+| `npm run health` | Diagnóstico de persistencia, integridad de SQLite, migraciones y artefactos. |
+| `npm run db:migrate` | Ejecuta de forma segura las migraciones SQL pendientes. |
+| `npm run db:backup` | Genera una copia de seguridad atómica en caliente (`VACUUM INTO`). |
+| `npm run db:restore` | Restaura y verifica la integridad física de una copia de seguridad. |
+| `npm run test:security-p0` | Suite de 10 pruebas de seguridad (sanitización de claves, scrypt, secretos). |
+| `npm run test:etapa11-acceptance` | Suite de aceptación y pre-vuelo de inicio de clases (19 pruebas integrales). |
+| `npm run test:turso` | Validación de conexión y flujo de autenticación contra Turso libSQL Cloud. |
 
 ---
 
-## 10. Despliegue en Producción
+## 10. Pruebas y mecanismos de validación
 
-Para consultar los procedimientos detallados de puesta en producción con Nginx, PM2, Docker y políticas de contingencia:
-- Consulte la [Guía de Instalación y Despliegue](docs/operacion/guia_instalacion_despliegue.md).
-- Consulte el [Runbook de Fallos Frecuentes](docs/operacion/runbook_fallos_frecuentes.md).
-- Consulte el [Procedimiento de Respaldo y Restauración](docs/operacion/procedimiento_respaldo_restauracion.md).
+El proyecto cuenta con un sistema riguroso de pruebas que garantiza la estabilidad técnica antes de cada pase:
+- **Verificación de tipos:** `tsc --noEmit` sin supresiones artificiales (0 errores).
+- **Sanitización de código de producción:** Escaneo automatizado de bundles en `dist/` para certificar cero filtración de secretos, API keys o variables de entorno del servidor.
+- **Aislamiento en producción:** Las migraciones de semillas de prueba (`003_seed_dev_data.sql`, `005_lms_seed_data.sql`, etc.) se omiten automáticamente en entornos de producción mediante control estricto en `migrator.ts`.
+- **Integridad referencial:** Verificación continua de claves foráneas y ausencia de registros huérfanos.
 
 ---
 
-© 2026 **Ekballo Church**. Todos los derechos reservados.
-Plataforma Educativa ALSIZ — Formando el carácter, la sabiduría y la vocación de las futuras generaciones.
+## 11. Seguridad, privacidad y tratamiento de datos
+
+- **Criptografía de Contraseñas y PINs:** Almacenamiento mediante `scryptSync` con sal criptográfica aleatoria de 16 bytes y parámetros de coste computacional seguro.
+- **Gestión de Sesiones:** Cookie `alsiz_session` configurada con directivas `HttpOnly`, `SameSite=Lax`, `Path=/`, `Max-Age=72h` y flag `Secure` automático en conexiones HTTPS.
+- **Protección contra IDOR:** Los controladores de estudiantes y representantes validan que el usuario autenticado posea autorización explícita de parentesco o rol directivo sobre el expediente solicitado.
+- **Anonimización de Telemetría (LOPDP):** Las direcciones IP en los registros de auditoría son procesadas con función hash HMAC-SHA256 para evitar el almacenamiento de identificadores directos de menores de edad.
+
+---
+
+## 12. Procedimientos de despliegue
+
+### 12.1. Despliegue en Vercel
+- El frontend se compila como paquete estático en `dist/`.
+- La función serverless `api-entry.js` actúa como reverse proxy hacia el backend persistente configurado en la variable `BACKEND_URL`, protegiendo la base de datos de la naturaleza efímera de los entornos serverless.
+- Cuando se configura Turso Cloud (`TURSO_DATABASE_URL`), el backend puede operar de manera agnóstica sin requerir volumen de disco físico montado.
+
+### 12.2. Despliegue en Servidor Dedicado / VPS / Contenedor
+- Se compila el proyecto con `npm run build`.
+- Se ejecutan las migraciones con `npm run db:migrate`.
+- Se inicia el proceso con gestor PM2 o Docker mediante `node dist/server.cjs`, manteniendo el volumen persistente en la ruta configurada en `DATABASE_PATH`.
+
+---
+
+## 13. Limitaciones actuales y tareas planificadas
+
+1. **Liberación progresiva curricular:** La Unidad 1 (Semanas 1 a 4) cuenta con 48 clases socráticas completas desarrolladas. Las unidades correspondientes a los trimestres 2 y 3 se encuentran estructuradas a nivel de asignaturas y objetivos, programadas para su liberación progresiva conforme al avance del calendario escolar.
+2. **Exportación formal de bitácora:** Las funciones de descarga de sílabo oficial con firma digital institucional y exportación de bitácora ministerial se encuentran maquetadas y orientadas a fases de integración con servicios externos de firma.
+
+---
+
+## 14. Descargo institucional y titularidad
+
+**Naturaleza del Servicio Educativo:**  
+Wisdom Academy es un entorno digital de apoyo pedagógico, tutoría socrática inteligente y formación académica para familias en educación en casa (*Homeschooling*). Este servicio complementario no constituye por sí mismo un establecimiento educativo escolarizado presencial con código AMIE ni emite títulos oficiales de bachiller de forma directa. La convalidación y registro de estudios ante el Ministerio de Educación corresponde a los representantes legales conforme a la normativa vigente.
+
+© 2026 **Wisdom Academy**. Todos los derechos reservados.
+
+**Naturaleza del Servicio Educativo:**  
+Wisdom Academy es un entorno digital de apoyo pedagógico, tutoría socrática inteligente y formación académica para familias en educación en casa (*Homeschooling*). Este servicio complementario no constituye por sí mismo un establecimiento educativo escolarizado presencial con código AMIE ni emite títulos oficiales de bachiller de forma directa. La convalidación y registro de estudios ante el Ministerio de Educación corresponde a los representantes legales conforme a la normativa vigente.
+
+© 2026 **Wisdom Academy**. Todos los derechos reservados.
+

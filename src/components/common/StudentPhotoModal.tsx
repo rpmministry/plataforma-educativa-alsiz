@@ -140,32 +140,32 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-xl bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-xl bg-[#18181B] border border-[#27272A] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#27272A] bg-[#121214]">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <div className="p-2 rounded-xl bg-[#E0A82E]/10 text-[#E0A82E] border border-[#E0A82E]/30">
               <Camera className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">Configurar Foto de Estudiante</h3>
-              <p className="text-xs text-slate-400">Sube o personaliza la foto real del alumno</p>
+              <h3 className="text-base font-bold text-white">Configurar Foto de Estudiante</h3>
+              <p className="text-xs text-[#A1A1AA]">Sube o personaliza la foto institucional del alumno</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+            className="p-2 text-[#A1A1AA] hover:text-white rounded-xl hover:bg-[#27272A] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Student Selector Tabs */}
-        <div className="flex border-b border-slate-800 bg-slate-900/60 p-2 gap-2">
+        <div className="flex border-b border-[#27272A] bg-[#121214] p-2 gap-2">
           {STUDENTS_DATA.map((student) => {
             const isSelected = selectedStudent === student.id;
             return (
@@ -175,10 +175,10 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
                   setSelectedStudent(student.id);
                   setPreviewUrl('');
                 }}
-                className={`flex-1 flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl font-medium text-sm transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2.5 py-2 px-3 rounded-xl font-medium text-sm transition-colors ${
                   isSelected
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    ? 'bg-[#E0A82E] text-[#0A0A0A] font-semibold shadow-md'
+                    : 'text-[#A1A1AA] hover:text-white hover:bg-[#27272A]'
                 }`}
               >
                 <span className="font-semibold">{student.name}</span>
@@ -203,18 +203,18 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
                   alt={`Retrato de ${selectedStudent}`}
                   referrerPolicy="no-referrer"
                   style={{ objectPosition: selectedStudent === 'avril' ? '50% 10%' : '50% 20%' }}
-                  className="w-32 h-32 rounded-2xl object-cover ring-4 ring-indigo-500/40 bg-slate-800 shadow-xl"
+                  className="w-32 h-32 rounded-2xl object-cover ring-2 ring-[#E0A82E]/40 bg-[#18181B] shadow-xl"
                 />
-                <div className="absolute inset-0 rounded-2xl bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                  <span className="text-[11px] text-white font-medium bg-black/60 px-2 py-1 rounded-md backdrop-blur-sm">
+                <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                  <span className="text-[11px] text-white font-medium bg-black/70 px-2 py-1 rounded-md backdrop-blur-sm">
                     Vista previa
                   </span>
                 </div>
               </div>
-              <span className="mt-2 text-xs font-semibold text-slate-300">
+              <span className="mt-2 text-xs font-semibold text-white">
                 {currentStudentData?.name}
               </span>
-              <span className="text-[11px] text-slate-500">{currentStudentData?.grade}</span>
+              <span className="text-[11px] text-[#A1A1AA]">{currentStudentData?.grade}</span>
             </div>
 
             {/* Drag and Drop Box */}
@@ -226,10 +226,10 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`flex-1 w-full border-2 border-dashed rounded-2xl p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+              className={`flex-1 w-full border-2 border-dashed rounded-2xl p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${
                 isDragging
-                  ? 'border-indigo-400 bg-indigo-500/10 scale-[1.01]'
-                  : 'border-slate-700 hover:border-indigo-500/60 bg-slate-800/40 hover:bg-slate-800/80'
+                  ? 'border-[#E0A82E] bg-[#E0A82E]/10'
+                  : 'border-[#27272A] hover:border-[#E0A82E]/60 bg-[#0A0A0A]'
               }`}
             >
               <input
@@ -243,22 +243,22 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
                   }
                 }}
               />
-              <div className="p-3 rounded-full bg-indigo-500/10 text-indigo-400 mb-2">
-                <Upload className="w-6 h-6" />
+              <div className="p-3 rounded-full bg-[#E0A82E]/10 text-[#E0A82E] mb-2">
+                <Upload className="w-5 h-5" />
               </div>
               <p className="text-sm font-semibold text-white">
-                Arrastra tu foto aquí o <span className="text-indigo-400 underline">haz clic</span>
+                Arrastra tu foto aquí o <span className="text-[#E0A82E] underline">haz clic</span>
               </p>
-              <p className="text-xs text-slate-400 mt-1">
-                Admite archivos PNG, JPG, JPEG o WEBP de tu computadora
+              <p className="text-xs text-[#A1A1AA] mt-1">
+                Admite archivos PNG, JPG, JPEG o WEBP
               </p>
             </div>
           </div>
 
           {/* Quick Presets Section */}
           <div className="space-y-2.5 pt-2">
-            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            <label className="text-xs font-semibold text-[#D4D4D8] uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#E0A82E]" />
               Opciones de fotos de alta resolución disponibles:
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -269,10 +269,10 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
                     key={idx}
                     type="button"
                     onClick={() => handleSelectPreset(preset.url)}
-                    className={`flex items-center gap-2.5 p-2 rounded-xl border text-left transition-all ${
+                    className={`flex items-center gap-2.5 p-2 rounded-xl border text-left transition-colors ${
                       isSelected
-                        ? 'border-indigo-500 bg-indigo-500/20 text-white ring-1 ring-indigo-500'
-                        : 'border-slate-800 bg-slate-800/50 text-slate-300 hover:bg-slate-800 hover:border-slate-700'
+                        ? 'border-[#E0A82E] bg-[#E0A82E]/10 text-white ring-1 ring-[#E0A82E]'
+                        : 'border-[#27272A] bg-[#0A0A0A] text-[#A1A1AA] hover:bg-[#18181B] hover:border-[#3F3F46]'
                     }`}
                   >
                     <img
@@ -280,7 +280,7 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
                       alt={preset.label}
                       referrerPolicy="no-referrer"
                       style={{ objectPosition: selectedStudent === 'avril' ? '50% 10%' : '50% 20%' }}
-                      className="w-10 h-10 rounded-lg object-cover bg-slate-900 shrink-0"
+                      className="w-10 h-10 rounded-lg object-cover bg-[#18181B] shrink-0"
                     />
                     <span className="text-xs font-medium leading-snug line-clamp-2">
                       {preset.label}
@@ -293,7 +293,7 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
 
           {/* Or Paste Direct URL */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-[#A1A1AA] flex items-center gap-1.5">
               <ImageIcon className="w-3.5 h-3.5" />
               O ingresa el enlace URL de la imagen:
             </label>
@@ -303,7 +303,7 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
                 placeholder="https://ejemplo.com/foto.jpg"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
-                className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-[#0A0A0A] border border-[#27272A] rounded-xl px-3.5 py-2 text-xs text-white placeholder-[#71717A] focus:outline-none focus:border-[#E0A82E]"
               />
               <button
                 type="button"
@@ -314,7 +314,7 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
                   }
                 }}
                 disabled={!urlInput.trim()}
-                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700"
+                className="px-3 py-2 bg-[#27272A] hover:bg-[#3F3F46] disabled:opacity-50 text-[#E4E4E7] text-xs font-semibold rounded-xl border border-[#3F3F46]"
               >
                 Cargar
               </button>
@@ -323,11 +323,11 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-800 bg-slate-950/50">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-[#27272A] bg-[#121214]">
           <button
             type="button"
             onClick={handleResetToDefault}
-            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-rose-400 transition-colors"
+            className="flex items-center gap-1.5 text-xs text-[#A1A1AA] hover:text-rose-400 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Restablecer a inicial
@@ -337,7 +337,7 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#A1A1AA] hover:text-white hover:bg-[#27272A] transition-colors"
             >
               Cancelar
             </button>
@@ -345,11 +345,11 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-60"
+              className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-semibold bg-[#E0A82E] hover:bg-[#B77D06] text-[#0A0A0A] shadow-md transition-colors disabled:opacity-60"
             >
               {saveSuccess ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-300 animate-bounce" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-900" />
                   ¡Foto Guardada!
                 </>
               ) : isSaving ? (
@@ -357,7 +357,7 @@ export const StudentPhotoModal: React.FC<StudentPhotoModalProps> = ({
               ) : (
                 <>
                   <UserCheck className="w-4 h-4" />
-                  Guardar y Aplicar Foto
+                  Guardar y Aplicar
                 </>
               )}
             </button>

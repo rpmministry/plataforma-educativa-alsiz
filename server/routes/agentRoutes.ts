@@ -491,5 +491,21 @@ router.get(
   }
 );
 
+/**
+ * GET /api/v1/agents/health
+ * Estado de salud e inventario sanitizado de proveedores IA (sin secretos ni PII)
+ */
+router.get('/health', requireAuth, (_req: Request, res: Response): void => {
+  try {
+    const report = ProviderManager.getHealthReport();
+    res.status(200).json({ success: true, data: report });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: err.message },
+    });
+  }
+});
+
 export default router;
 

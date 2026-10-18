@@ -1,22 +1,66 @@
 @import "tailwindcss";
 
+:root {
+  /* Tokens de color oficiales de Wisdom Academy */
+  --wa-ink: #0A0A0A;
+  --wa-graphite: #18181B;
+  --wa-line-dark: #27272A;
+  --wa-line-subtle: #202024;
+  --wa-slate: #52525B;
+  --wa-slate-light: #71717A;
+  --wa-mist: #E4E4E7;
+  --wa-paper: #F4F4F5;
+  --wa-white: #FFFFFF;
+
+  /* Acentos de Luz (10% de la interfaz) */
+  --wa-luz: #E0A82E;
+  --wa-luz-hover: #F0B840;
+  --wa-luz-600: #B77D06;
+  --wa-luz-800: #8A5A00;
+  --wa-luz-subtle: rgba(224, 168, 46, 0.12);
+  --wa-luz-border: rgba(224, 168, 46, 0.35);
+
+  /* Semántica de estados (WCAG AA) */
+  --wa-success: #1B7F4B;
+  --wa-warning: #B45309;
+  --wa-error: #B42318;
+  --wa-info: #1D4ED8;
+
+  /* Tipografías */
+  --wa-font-display: "Poppins", system-ui, -apple-system, sans-serif;
+  --wa-font-body: "Figtree", system-ui, -apple-system, sans-serif;
+  --wa-font-scripture: "Lora", Georgia, serif;
+  --wa-font-mono: "Fira Code", monospace;
+
+  /* Radios de borde */
+  --wa-radius-sm: 8px;
+  --wa-radius: 12px;
+  --wa-radius-lg: 16px;
+  --wa-radius-xl: 20px;
+}
+
 @layer base {
   html {
-    /* Desactiva el gesto nativo de "deslizar para volver" del navegador (Chrome/Android):
-       la navegación atrás la controla la SPA con su propia pila de historial. */
     overscroll-behavior-x: none;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: var(--wa-font-body);
+    background-color: var(--wa-ink);
+    color: var(--wa-paper);
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     overflow-x: hidden;
-    /* Evita el encadenamiento del scroll al contenedor padre en móviles. */
     overscroll-behavior-x: none;
     overscroll-behavior-y: contain;
+    line-height: 1.6;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    font-family: var(--wa-font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--wa-white);
   }
   img, svg, video, canvas {
     max-width: 100%;
@@ -32,25 +76,12 @@
   }
   @media (min-width: 1440px) {
     html {
-      font-size: 17px;
-    }
-  }
-  @media (min-width: 1920px) {
-    html {
-      font-size: 18px;
+      font-size: 16px;
     }
   }
 }
 
-/* ------------------------------------------------------------------
-   Ergonomía táctil (móvil y tablet)
-   ------------------------------------------------------------------ */
-
-/* Sin resaltado azul al tocar y sin retardo de 300 ms en controles. */
-html {
-  -webkit-tap-highlight-color: transparent;
-}
-
+/* Ergonomía táctil (móvil y tableta) */
 button,
 a,
 [role='button'],
@@ -62,12 +93,14 @@ textarea {
   touch-action: manipulation;
 }
 
-/* Respeta el notch / indicador de inicio en la parte superior. */
 .pt-safe {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Los campos de texto no deben provocar el zoom automático de iOS (<16px). */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 @media (max-width: 767px) {
   input,
   select,
@@ -76,26 +109,23 @@ textarea {
   }
 }
 
-/* Deslizamiento horizontal fluido en tablas/carruseles táctiles. */
 .touch-scroll-x {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Feedback táctil consistente donde no hay hover real. */
 @media (hover: none) {
   .touch-lift:active {
     transform: scale(0.98);
   }
 }
 
-/* Anillo de foco visible para tablets con teclado o control por switch. */
+/* Anillo de foco accesible para teclado (WCAG AA) */
 :focus-visible {
-  outline: 2px solid rgb(129 140 248);
+  outline: 2px solid var(--wa-luz);
   outline-offset: 2px;
   border-radius: 0.5rem;
 }
 
-/* Respeta la preferencia de movimiento reducido (evita mareo en niños sensibles). */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -107,9 +137,9 @@ textarea {
   }
 }
 
+/* Markdown en tutor IA y guías */
 .markdown-body {
   line-height: 1.6;
-  /* Evita que una palabra/URL larga desborde y rompa el scroll del chat. */
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -124,20 +154,22 @@ textarea {
 
 .markdown-body strong {
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--wa-white);
 }
 
 .markdown-body em {
   font-style: italic;
-  color: #dbeafe;
+  color: var(--wa-paper);
 }
 
 .markdown-body code {
-  background: rgba(15, 23, 42, 0.8);
-  color: #c4b5fd;
+  background: var(--wa-graphite);
+  color: var(--wa-luz);
+  border: 1px solid var(--wa-line-dark);
   padding: 0.12rem 0.35rem;
   border-radius: 0.35rem;
-  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-family: var(--wa-font-mono);
+  font-size: 0.85em;
 }
 
 .markdown-body ul,
@@ -152,12 +184,13 @@ textarea {
 .markdown-body h1,
 .markdown-body h2,
 .markdown-body h3 {
-  margin: 0.5rem 0;
-  font-weight: 700;
-  color: #fff;
+  margin: 0.6rem 0 0.3rem;
+  font-weight: 600;
+  color: var(--wa-white);
+  font-family: var(--wa-font-display);
 }
 
-/* Custom scrollbars */
+/* Scrollbars discretos y neutrales */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -166,10 +199,9 @@ textarea {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
+  background: var(--wa-line-dark);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.5);
+  background: var(--wa-slate);
 }
-

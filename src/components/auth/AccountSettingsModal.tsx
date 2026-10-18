@@ -18,7 +18,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
@@ -33,7 +33,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
       return;
     }
 
-    const result = changePassword(currentStudent.id, currentPass, newPass);
+    const result = await changePassword(currentStudent.id, currentPass, newPass);
     
     if (result.success) {
       setSuccessMsg('Tu contraseña ha sido actualizada exitosamente.');
@@ -49,21 +49,21 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden text-slate-100">
-        <div className="relative bg-gradient-to-r from-slate-900 via-indigo-950/50 to-slate-900 p-6 border-b border-slate-800 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-md bg-[#18181B] border border-[#27272A] rounded-2xl shadow-2xl overflow-hidden text-[#F4F4F5]">
+        <div className="relative bg-[#121214] p-6 border-b border-[#27272A] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+            <div className="p-2.5 rounded-xl bg-[#E0A82E]/10 border border-[#E0A82E]/30 text-[#E0A82E]">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-white">Seguridad de Cuenta</h2>
-              <p className="text-[11px] text-slate-400">Cambiar contraseña temporal o personal</p>
+              <p className="text-[11px] text-[#A1A1AA]">Cambiar contraseña temporal o personal</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-xl bg-[#27272A]/70 hover:bg-[#27272A] text-[#A1A1AA] hover:text-white transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -71,14 +71,14 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
 
         <div className="p-6 space-y-5">
           {errorMsg && (
-            <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5 animate-shake">
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5 animate-shake">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2.5">
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2.5">
               <CheckCircle className="w-4 h-4 shrink-0 text-emerald-400" />
               <span>{successMsg}</span>
             </div>
@@ -86,8 +86,8 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                <KeyRound className="w-3.5 h-3.5 text-indigo-400" />
+              <label className="text-xs font-semibold text-[#D4D4D8] flex items-center gap-1.5">
+                <KeyRound className="w-3.5 h-3.5 text-[#E0A82E]" />
                 <span>Contraseña Actual (o PIN)</span>
               </label>
               <input
@@ -95,13 +95,13 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
                 value={currentPass}
                 onChange={(e) => setCurrentPass(e.target.value)}
                 placeholder="Ingresa tu contraseña actual"
-                className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#0A0A0A] border border-[#27272A] text-white placeholder-[#71717A] text-sm focus:outline-none focus:border-[#E0A82E] transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <label className="text-xs font-semibold text-[#D4D4D8] flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-[#E0A82E]" />
                 <span>Nueva Contraseña</span>
               </label>
               <input
@@ -109,13 +109,13 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
                 value={newPass}
                 onChange={(e) => setNewPass(e.target.value)}
                 placeholder="Mínimo 4 caracteres"
-                className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#0A0A0A] border border-[#27272A] text-white placeholder-[#71717A] text-sm focus:outline-none focus:border-[#E0A82E] transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <label className="text-xs font-semibold text-[#D4D4D8] flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#E0A82E]" />
                 <span>Confirmar Nueva Contraseña</span>
               </label>
               <input
@@ -123,14 +123,14 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
                 value={confirmPass}
                 onChange={(e) => setConfirmPass(e.target.value)}
                 placeholder="Repite la nueva contraseña"
-                className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#0A0A0A] border border-[#27272A] text-white placeholder-[#71717A] text-sm focus:outline-none focus:border-[#E0A82E] transition-colors"
               />
             </div>
 
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-xl shadow-emerald-950/50 transition-all flex items-center justify-center gap-2 transform active:scale-95"
+                className="w-full py-3 px-6 rounded-xl bg-[#E0A82E] hover:bg-[#B77D06] text-[#0A0A0A] font-semibold text-sm transition-colors flex items-center justify-center gap-2"
               >
                 <CheckCircle className="w-4 h-4" />
                 <span>Actualizar Contraseña</span>

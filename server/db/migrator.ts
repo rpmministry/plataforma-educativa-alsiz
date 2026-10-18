@@ -23,6 +23,14 @@ export interface MigrationOptions {
   skipDevSeeds?: boolean;
 }
 
+export function getMigrationsDir(): string {
+  const primary = path.resolve(__dirname, 'migrations');
+  if (fs.existsSync(primary)) return primary;
+  const fromCwd = path.resolve(process.cwd(), 'server', 'db', 'migrations');
+  if (fs.existsSync(fromCwd)) return fromCwd;
+  return primary;
+}
+
 export function runMigrations(customDb?: DatabaseSync, options?: MigrationOptions): MigrationResult[] {
   const db = customDb || getDb();
   const results: MigrationResult[] = [];
@@ -39,7 +47,7 @@ export function runMigrations(customDb?: DatabaseSync, options?: MigrationOption
   `);
 
   // 2. Localizar directorio de migraciones
-  const migrationsDir = path.resolve(__dirname, 'migrations');
+  const migrationsDir = getMigrationsDir();
   if (!fs.existsSync(migrationsDir)) {
     console.warn(`[Migrator] Carpeta de migraciones no encontrada en ${migrationsDir}`);
     return results;
@@ -166,7 +174,7 @@ export function checkMigrationsStatus(customDb?: DatabaseSync): MigrationHealth 
     }>;
     const appliedMap = new Map<string, string>(appliedRows.map((r) => [r.version, r.checksum_sha256]));
 
-    const migrationsDir = path.resolve(__dirname, 'migrations');
+    const migrationsDir = getMigrationsDir();
     if (!fs.existsSync(migrationsDir)) {
       return {
         status: 'SYNCED',
@@ -256,7 +264,7 @@ export async function runMigrationsAsync(
   `);
 
   // 2. Localizar directorio de migraciones
-  const migrationsDir = path.resolve(__dirname, 'migrations');
+  const migrationsDir = getMigrationsDir();
   if (!fs.existsSync(migrationsDir)) {
     console.warn(`[MigratorAsync] Carpeta de migraciones no encontrada en ${migrationsDir}`);
     return results;
@@ -366,7 +374,7 @@ export async function checkMigrationsStatusAsync(customAdapter?: IDatabaseAdapte
     );
     const appliedMap = new Map<string, string>(appliedRows.map((r) => [r.version, r.checksum_sha256]));
 
-    const migrationsDir = path.resolve(__dirname, 'migrations');
+    const migrationsDir = getMigrationsDir();
     if (!fs.existsSync(migrationsDir)) {
       return {
         status: 'SYNCED',
@@ -438,7 +446,12 @@ export async function checkMigrationsStatusAsync(customAdapter?: IDatabaseAdapte
 }
 
 // Ejecución directa por CLI si se invoca con tsx o node
-if (require.main === module) {
+const isDirectCli = require.main === module && (
+  process.argv[1]?.includes('migrator.ts') || 
+  process.argv[1]?.includes('migrator.js') ||
+  process.argv[1]?.endsWith('migrator')
+);
+if (isDirectCli) {
   try {
     console.log('[Migrator] Ejecutando migraciones de base de datos...');
     const results = runMigrations();
